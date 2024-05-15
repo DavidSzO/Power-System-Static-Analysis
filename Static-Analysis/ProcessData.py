@@ -34,6 +34,7 @@ class ProcessData():
         
     def get_processdata(self):
 
+    # ========================== Define main funtions for this method ===================================================================
         def labelBUS_UF_GT(data, keys, num: int, sf=None):
             Analize_patterns = [analize + r'\d{3}' for analize in keys]
             condition = data['BUS_NAME'].str.slice(-num).str.contains('|'.join(Analize_patterns))
@@ -84,7 +85,7 @@ class ProcessData():
 
             data.loc[data['U_FED'].isin(state_region_mapping), 'REG'] = data['U_FED'].map(state_region_mapping)
             return data
-        
+    # =====================================================================================================================
         column_rename_mapping = {
             'NB': 'BUS_ID',
             'latitude': 'Latitude',
@@ -93,11 +94,9 @@ class ProcessData():
         BarraGeo = pd.read_excel('RECURSOS/LATITUDE_LONGITUDE_SIN_ATUALIZADO.xlsx', sheet_name='Planilha1', header=0)
         BarraGeo.rename(columns=column_rename_mapping, inplace=True)
 
-        #*********************************************************************************************************************************************
-
         Df_VF = self.df
+        # dataframe com um unico ponto de operação
         Df_ = Df_VF[(Df_VF['Dia']==Df_VF['Dia'].unique()[0]) & (Df_VF['Hora']==Df_VF['Hora'].unique()[0])][['BUS_ID', 'BUS_NAME']].copy()
-
         Df_.insert(1, 'U_FED', np.nan)
         Df_.insert(2, 'Gen_Type', np.nan)
         Df_.insert(3, 'REG', np.nan)
@@ -121,20 +120,18 @@ class ProcessData():
 
         # UNIR COORDENADAS
         Df_ = Df_.merge(BarraGeo[['BUS_ID', 'Latitude', 'Longitude']], on='BUS_ID', how='left')
-
         semcordenadas = Df_[Df_['Latitude'].isna()].shape[0]
-        # bus_ngeo = Df_[Df_['Latitude'].isna()]['BUS_ID'].values
-        print(f'Existe um total de, {semcordenadas} barras modeladas sem coordenadas segundo a base de dados usada')
+        print(f'Existe um total de, {semcordenadas} barras modeladas sem coordenadas asociadas segundo a base de dados usada')
+        print('... filtrando só as barras que aparecem com coordenadas ...')
+
         Df_ = Df_.dropna(subset=['Latitude'])
         sem_estado = Df_[Df_['REG'].isna()].shape[0]
+        print(f'A partir da base de dados filtrada por barras com coordenadas, existe {sem_estado} barras modeladas sem região ou estado asociado pelo nome')
 
-        print(f'A partir da base de dados filtrada por barras com coordenadas existe, {sem_estado} barras modeladas sem região ou estado asociado pelo nome')
         print(f'*** ETAPA: Asignação de estado e região pelas coordenadas geograficas ***')
-
         lista_1 = Df_[Df_['U_FED'].isna()][['Latitude','Longitude']].values
         lista_2 = Df_[~Df_['U_FED'].isna()][['Latitude','Longitude','U_FED']].values
         condition = Df_['U_FED'].isna()
-
         Df_ = add_estados(Df_, condition, lista_1, lista_2)
         Df_ = regiao(Df_)
 
@@ -142,36 +139,33 @@ class ProcessData():
         print(f'O número de barras sem estado associado foi reduzido para {sem_estado}')
 
         #***************************************************** Merge com o DATA FRAME COMPLETO ******************************************************
-        # Dataframe geral 
-        
         columns = ['BUS_ID', 'BUS_NAME', 'VBASEKV', 'TP', 'ARE', 'MODV_PU', 'ANGV_DEG',
                     'BASE_MVA', 'PG_MW', 'QG_MVAR', 'PMAX_MW', 'PMIN_MW', 'QMX_MVAR',
                     'QMN_MVAR', 'Ger_Units','Ger_Active_Units', 'PL_MW', 'QL_MVAR', 'TC',
                     'VMAX_PU', 'VMIN_PU', 'BCO_ID', 'B0_MVAR', 'ST', 'SHUNT_INST_IND', 
                     'SHUNT_INST_CAP', 'Dia', 'Hora']
-        
+        # Dataframe geral 
         Df_VF_novo = Df_VF[columns].merge(Df_[['BUS_ID','U_FED','Gen_Type','REG', 'Latitude','Longitude']], on='BUS_ID', how='left')
         Df_VF_novo.drop(Df_VF_novo[Df_VF_novo['REG'] == np.nan].index)
-
         # Dataframe geral sem filtro
         self.Df_VF_SF = Df_VF_novo
 
     def get_splitdata_PV_PQ(self):
+
         # Read DBAR.csv into DataFrame
         df_buscode = pd.read_csv('RECURSOS/DBAR.csv', sep=';')
-
-        # Filter Df_VF based on BUS_ID
+        # complexo madeira buses
         barra_ids = [7050, 7051, 7061, 7062, 7064, 7055, 7053, 7063, 7060, 7056, 7065]
         Df_VF = self.Df_VF_SF
         Df_VF['REG'] = np.where(Df_VF['BUS_ID'].isin(barra_ids), 'Sudeste-Centro-Oeste', Df_VF['REG'])
-        print(f"Trocando de Região as barras do compplexo madeira: {barra_ids}") 
+        print(f"Trocando de Região as barras do complexo madeira: {barra_ids}") 
 
         # Drop rows with NaN Latitude
-        Df_VF.dropna(subset=['Latitude'], inplace=True)
-
+        Df_VF = Df_VF[Df_VF['Latitude'].notna()]
         # Filter df_buscode and Df_VF based on 'Code' and 'BUS_ID' respectively
         dfcode = df_buscode[df_buscode['Code'] == 0]
-        Df_VF = Df_VF[Df_VF['BUS_ID'].isin(dfcode['BusID'].unique())]
+        # Df_VF = Df_VF[Df_VF['BUS_ID'].isin(dfcode['BusID'].unique())]
+        Df_VF.merge(dfcode[['BusID']], left_on='BUS_ID', right_on='BusID', how='inner').drop(columns=['BusID'])
 
         # Print number of unique BUS_IDs
         print(f"Numero de Barras no pwf sem aplicar o filtro:  {df_buscode['BusID'].nunique()}") 

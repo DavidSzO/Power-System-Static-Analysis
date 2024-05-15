@@ -11,11 +11,6 @@ class computeDPI():
         self.limitAlertaPV = {'UHE': [0.95,1.05],'PCH': [0.95,1.05], 'UTE': [0.95,1.05], 'EOL': [0.95,1.05], 'UFV': [0.95,1.05], 'BIO': [0.95,1.05], 'SIN':[0.95,1.05]}
         self.limitSecurityPV = {'UHE': [0.9,1.1],'PCH': [0.9,1.1], 'UTE': [0.9,1.1], 'EOL': [0.9,1.1], 'UFV': [0.9,1.1], 'BIO': [0.9,1.1], 'SIN':[0.9,1.1]}
 
-        # self.limitAlertaPQ = {138: [0.90,1.1],230: [0.90,1.1],345: [0.90,1.1], 440: [0.90,1.1], 500: [0.90,1.1],525: [0.90,1.1],765: [0.90,1.1],}
-        # self.limitSecurityPQ = {138: [0.8,1.2],230: [0.8,1.2],345: [0.8,1.2], 440: [0.8,1.2], 500: [0.8,1.2],525: [0.8,1.2],765: [0.8,1.2],}
-        # self.limitAlertaPV = {'UHE': [0.90,1.1],'PCH': [0.90,1.1], 'UTE': [0.90,1.1], 'EOL': [0.90,1.1], 'UFV': [0.90,1.1], 'BIO': [0.90,1.1]}
-        # self.limitSecurityPV = {'UHE': [0.8,1.2],'PCH': [0.8,1.2], 'UTE': [0.8,1.2], 'EOL': [0.8,1.2], 'UFV': [0.8,1.2], 'BIO': [0.8,1.2]}
-
          # List of regions and states
         self.regioes = df_Final_nt['REG'].unique()
         self.estados = ['AC', 'RO', 'AM', 'AP', 'PA', 'TO', 'MA', 'AL', 'BA', 'CE', 'PB', 'PE', 'PI', 'RN', 'SE', 'DF', 'GO', 'MT', 'MS', 'ES', 'MG', 'RJ', 'SP', 'PR', 'RS', 'SC']
@@ -211,75 +206,3 @@ class computeDPI():
         self.dfPV_CSI = dfPV_CSI
                 
 
-
-# df_Final_nt = pd.read_csv('V1A1F3_RESP_FNS_lim_rev1_2026/Df_nt.csv')
-# df_Final_ger = pd.read_csv('V1A1F3_RESP_FNS_lim_rev1_2026/Df_ger.csv')
-# # =====================================================================
-
-# df_Final_nt = df_Final_nt[(df_Final_nt['REG']=='Sudeste-Centro-Oeste') & (df_Final_nt['VBASEKV']==500) & (df_Final_nt['Dia']==1) & (df_Final_nt['Hora']=='00-00')].reset_index(drop=True)
-# df_Final_ger = df_Final_ger[(df_Final_ger['REG']=='Sudeste-Centro-Oeste') & (df_Final_ger['Gen_Type']=='UHE') & (df_Final_ger['Dia']==1) & (df_Final_ger['Hora']=='00-00')].reset_index(drop=True)
-
-# df_Final_nt['MODV_PU'] = 1.05
-# cantidad_inseguro = 20
-# df_Final_nt.loc[:cantidad_inseguro-1, 'MODV_PU'] = 1.124
-
-# print('CALCULO DO DPI para todos os Cenários:')
-# ts = 0.8
-# tb = 1
-# VVI = computeDPI(df_Final_nt, df_Final_ger, ts, tb, p_norm = 2, p_inf = False, NBcv = True)
-# dfPQ_CSI = VVI.dfPQ_CSI
-# df_PQ_reg = VVI.df_PQ_reg
-# df_busPQ = VVI.df_busPQ
-# n_maior = VVI.n_maior
-
-# dfPQ_CSI = dfPQ_CSI.groupby(['Dia' , 'Hora', 'REG']).first()
-# dffPQgb = df_PQ_reg.groupby(by=['Dia','Hora','REG','VBASEKV']).agg({'CSI_INF':'first','CSI_SUP':'first'})
-
-# import matplotlib.pyplot as plt
-# import seaborn as sns
-# plt.rcParams["font.family"] = "Times New Roman"
-# paletadcolor = sns.color_palette()
-
-# def plot_indice_2 (df, eje_y, name ,title, regiao, INDICE, GB, limites=None, order = True):
-
-#     fig, axs = plt.subplots(nrows=1, figsize=(10, 6))
-#     labelG = {'BIO': 'Bio', 'EOL': 'Wind', 'PCH': 'SHP','UFV': 'Solar', 'UHE': 'Hydro','UTE': 'Thermal', 'SIN': 'Synchronous C.'}
-#     if GB=='Gen_Type':
-#         colores = {'BIO': paletadcolor[4], 'EOL': paletadcolor[0], 'PCH': paletadcolor[3],'UFV': paletadcolor[2], 'UHE': paletadcolor[5],'UTE': paletadcolor[1], 'SIN': paletadcolor[6]}
-#     else:
-#         colores = {230: paletadcolor[4], 345: paletadcolor[0], 440: paletadcolor[3],500: paletadcolor[2], 525: paletadcolor[5], 765: paletadcolor[1]}
-#     data = df.loc[:, :, regiao]
-#     Busgroup = np.array(data.reset_index(GB)[GB].unique())
-#     print(Busgroup)
-#     for idx, G_bus in enumerate(Busgroup):
-#         if order:
-#             data_ = df.loc[:, :, regiao, G_bus][INDICE]
-#         else:
-#             data_ = df.loc[:, :, regiao, G_bus].sort_values(INDICE, ascending=False)[INDICE]
-#         if GB=='Gen_Type':
-#             label = labelG[G_bus]
-#         else:
-#             label = G_bus
-#         # axs.plot(data_.values, color=colores[G_bus], label= label,lw=2)
-#         axs.bar(str(G_bus), data_.values, color=colores[G_bus], label=label, linewidth=2)
-
-#     axs.legend(loc='best', fontsize=14)
-    
-#     axs.set_xlabel('Operating points', fontsize=23)
-#     axs.set_ylabel(eje_y, fontsize=20)
-#     axs.set_title(title, fontsize=25)
-#     if limites != None:
-#         axs.set_ylim(limites)
-#     axs.grid(True, linestyle='-', linewidth=1.2, alpha=0.4)
-#     plt.show()
-
-# def main_plot_indice_2(dffPQgb):
-#     regioes = df_PQ_reg['REG'].unique()
-#     region_map = {'Nordeste':'Northeast', 'Norte':'North', 'Sudeste-Centro-Oeste':'SE-CW', 'Sul':'South','AC-RO':'AC-RO'}
-#     for i in regioes:
-#         Indice = 'CSI_INF'
-#         plot_indice_2 (dffPQgb, r'$\mathrm{DPI}_\mathrm{PQ}^\mathrm{l}$', 'DPI_(l)_PQ_' + region_map[i], region_map[i] ,i, Indice, 'VBASEKV', limites=[0,1.7])
-#         Indice = 'CSI_SUP'
-#         plot_indice_2 (dffPQgb, r'$\mathrm{DPI}_\mathrm{PQ}^\mathrm{u}$', 'DPI_(u)_PQ_' + region_map[i], region_map[i] ,i, Indice, 'VBASEKV',)
-
-# main_plot_indice_2(dffPQgb)

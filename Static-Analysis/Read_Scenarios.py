@@ -14,21 +14,28 @@ class Read_Scenarios():
         self.noConverged = [] 
 
         #******************* Cria pasta para salvar os graficos para cada cenario *******************
+        # Solicitar al usuario la ruta del directorio
+        user_specified_dir = input("Please enter the directory path where you want to save the files: ")
+        # Asegurarse de que la ruta especificada es absoluta
+        notebook_dir = os.path.abspath(user_specified_dir)
+        # Obtener el nombre del cenario (suponiendo que es el último directorio en la ruta)
 
-        notebook_dir = os.path.dirname(os.path.abspath('__file__'))
         cenario = path.split('/')[-2]
-        self.cenario = cenario
+
+        # Crear la ruta del directorio principal y los subdirectorios
         folder_path = os.path.join(notebook_dir, cenario)
         os.makedirs(folder_path, exist_ok=True)
-        os.makedirs(folder_path + '/Mapas', exist_ok=True)
-        os.makedirs(folder_path + '/Intercambios', exist_ok=True)
-        os.makedirs(folder_path + '/Indice', exist_ok=True)
-        os.makedirs(folder_path + '/Analise Correlação', exist_ok=True)
-        os.makedirs(folder_path + '/Potencia', exist_ok=True)
-        os.makedirs(folder_path + '/Boxplot', exist_ok=True)
-        os.makedirs(folder_path + '/Analise Histograma', exist_ok=True)
-        os.makedirs(folder_path + '/CriticalBuses', exist_ok=True)
-        
+        os.makedirs(os.path.join(folder_path, 'Mapas'), exist_ok=True)
+        os.makedirs(os.path.join(folder_path, 'Intercambios'), exist_ok=True)
+        os.makedirs(os.path.join(folder_path, 'Indice'), exist_ok=True)
+        os.makedirs(os.path.join(folder_path, 'Potencia'), exist_ok=True)
+        os.makedirs(os.path.join(folder_path, 'Boxplot'), exist_ok=True)
+        os.makedirs(os.path.join(folder_path, 'CriticalBuses'), exist_ok=True)
+
+        self.cenario = folder_path
+
+        print(f"The directories have been created in: {folder_path}")
+
 
         if genscript ==  False:
             if PO == False:
