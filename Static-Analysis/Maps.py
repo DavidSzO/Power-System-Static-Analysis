@@ -20,17 +20,9 @@ class Maps():
         # # Función para convertir la string de lista a una lista de floats
         # def convert_string_to_float_list(string):
         #     return [float(num) for num in string.strip('[]').split(', ')]
-
         # # Aplicar la función a cada fila del DataFrame
         # dff_NT_map['MODV_PU'] = dff_NT_map['MODV_PU'].apply(convert_string_to_float_list)
         # dff_Ger_map['MODV_PU'] = dff_Ger_map['MODV_PU'].apply(convert_string_to_float_list)
-
-        # Options, description:
-        # 1. ['Limit Violations All': True, 'Mean and Variance': True, 'Limit Violations by Group': True, 'HeatMap by state 1': True, 'HeatMap by state 2': True]
-
-        # response = requests.get(url = 'https://raw.githubusercontent.com/fititnt/gis-dataset-brasil/master/uf/geojson/uf.json')
-        # if response.status_code == 200: # O código 200 (OK) indica que a solicitação foi bem sucedida
-        #     self.state_geo = response.json()
 
         with open('RECURSOS/Coordenadas.json', 'r') as json_file:
             self.state_geo = json.load(json_file)
