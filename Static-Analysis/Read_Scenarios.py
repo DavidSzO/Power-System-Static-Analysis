@@ -198,7 +198,7 @@ class Read_Scenarios():
                     df['Dia'] = i[-2:]
                     df['Hora'] = file.split('_')[-1].split('.')[0]
                     PWFs_sep.append(df)
-                elif file.startswith('PWF25_') and linhas and Intercambios:
+                elif file.startswith('PWF25_') and Intercambios:
                     df = dd.read_csv(caminho_arquivo, sep=';', skiprows=[0], usecols=col_list_hvdc)
                     df['Dia'] = i[-2:]
                     df['Hora'] = file.split('_')[-1].split('.')[0]
@@ -227,9 +227,15 @@ class Read_Scenarios():
             print("Final da leitura das Linhas")
 
             if Intercambios:
-                print("Concatenação dos Intercambios")
-                DCLinks_concatenados = dd.concat(DCLinks_sep, ignore_index=True).compute()
-                self.HVDCInfo = DCLinks_concatenados
+                self.get_Intercambios()
+
+        if Intercambios:
+            print("Concatenação da info do HVDC")
+            DCLinks_concatenados = dd.concat(DCLinks_sep, ignore_index=True).compute()
+            self.HVDCInfo = DCLinks_concatenados
+            print("Salvando Dataframe do HVDC")
+            DCLinks_concatenados.to_csv(self.path+'/HVDCInfo.csv', index=None)
+            print("Final da leitura do HVDC")
         
         if Reserva:
             print("Concatenação da Reserva")
@@ -241,11 +247,9 @@ class Read_Scenarios():
             SGN01_concatenados[' Units']= SGN01_concatenados[' Units'].astype(int)
             self.ReserveInfo = SGN01_concatenados
             print("Salvando Dataframe da Reserva")
-            PWF16_concatenados.to_csv(self.path+'/ReservaInfo.csv', index=None)
+            SGN01_concatenados.to_csv(self.path+'/ReservaInfo.csv', index=None)
             print("Final da leitura da Reserva")
 
-        if Intercambios:
-            self.get_Intercambios()
 
     def generatescript(self, path = None):
 
@@ -309,7 +313,7 @@ class Read_Scenarios():
     def get_Intercambios(self, df=None):
 
         print(f'*** ETAPA: OBTENÇÃO DOS INTERCAMBIOS ***')
-        if df == None:
+        if df is None:
             PWF16_concatenados = self.linesInfo
         else:
             PWF16_concatenados = df

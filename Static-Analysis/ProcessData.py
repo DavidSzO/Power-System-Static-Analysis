@@ -154,11 +154,16 @@ class ProcessData():
 
         # Read DBAR.csv into DataFrame
         df_buscode = pd.read_csv('RECURSOS/DBAR.csv', sep=';')
+
+        Df_VF = self.Df_VF_SF
         # complexo madeira buses
         barra_ids = [7050, 7051, 7061, 7062, 7064, 7055, 7053, 7063, 7060, 7056, 7065]
-        Df_VF = self.Df_VF_SF
         Df_VF['REG'] = np.where(Df_VF['BUS_ID'].isin(barra_ids), 'Sudeste-Centro-Oeste', Df_VF['REG'])
-        print(f"Trocando de Região as barras do complexo madeira: {barra_ids}") 
+        print(f"Trocando de Região as barras do complexo madeira: {barra_ids}")
+        # Usinas Eolicas buses
+        barra_ids =['MSULD3-EOL22', 'CLEMNTEOL-66', 'CLEMNTEOL-60', 'MSULD1-EOL27', 'MSULD2-EOL27', 'MSULD4-EOL08']  
+        Df_VF['Gen_Type'] = np.where(Df_VF['BUS_NAME'].isin(barra_ids), 'EOL', Df_VF['Gen_Type'])
+        print(f"Asignando tipo de geração nas usinas eolicas faltantes: {barra_ids}")
 
         # Drop rows with NaN Latitude
         Df_VF = Df_VF[Df_VF['Latitude'].notna()]

@@ -205,7 +205,6 @@ class Plots_Static():
 
         return area_trapezoidal
 
-
     def plot_indice (self, df_data, eje_y, name, title, INDICE, xlimites=None,ylimites=None,  order = False):
 
         fig, axs = plt.subplots(nrows=1, figsize=(10, 6), sharex=False)

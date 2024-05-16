@@ -1,52 +1,50 @@
-import os
+import sys
+import time
 import numpy as np
 import pandas as pd
 import dask.dataframe as dd
 import matplotlib.pyplot as plt
-from Read_Scenarios import *
-from ProcessData import *
 from computeDPI import *
 from Maps import *
 from Handle_Plots_Static import *
+from Read_Process_Cases import *
 
+start_time = time.time()
 # ************************************************************************************************
 #                                       OPÇÕES DE EJECUÇÃO
 # ************************************************************************************************
 
-genscriptbool = False
-extract_fromcsv = True
-# Analises
-ConvergenceAnalise = True
-LinhaAnalise = False
-ReservaAnalise = False
-IntercambiosAnalise = False
-#------------------------------
-linhascsv = False
-reservacsv =False
-# CorrelationAnalise = True
-PlotGeralPotencia = False
-MapasAnalise = True
+Options_ReadProcess= {
+                        'gen_script4lines' : False,
+                        'extract_fromcsv' : True,
+                        'ConvergenceAnalise' : True,
+                        'busdata' : True,
+                    }
+
+
+LinhaAnalise = True
+HVDCAnalise = True
+ReservaAnalise = True
+IntercambiosAnalise = True
+linhascsv = True
+reservacsv =True
+HVDCcsv = True
 ComputeDPI = True
 resumoIndice = True
-# Plots
+
+PlotGeralPotencia = True
+MapasPlots = True
 Plot_Tensao_Geral = True  #PERMITE SALVAR OS DATAFRAMES DE df_Final_ger e df_Final_nt
 plotDPI =  True
 PlotDPICriticosPot = True
-BP_Criticalbuses = True
+Plot_Boxplot_DPI = True
 PlotIntercambios = True
-# PlotAnaliseEstab = False
 
 # ************************************************************************************************
 #                                              PATHS
 # ************************************************************************************************
 
 path_folder = 'D:/MPV_(FNS Lim)_RC/'
-# ============================= CASOS 2022 ===========================================
-# path_folder = 'D:/0 FERV/0 Dados PYTHON/Cenarios HPPA PRE-QUALI/MPV_(FNS Lim)_RC/'
-
-# path_folder = 'D:/0 FERV/0 Dados PYTHON/Cenarios HPPA PRE-QUALI/V1A1F2_REV2_091123/'
-# path_folder = 'D:/0 FERV/0 Dados PYTHON/Cenarios HPPA PRE-QUALI/V2A2F2_REV4_081123/'
-# path_folder = 'D:/0 FERV/0 Dados PYTHON/Cenarios HPPA PRE-QUALI/V3A3F2_REV2_091123/'
 
 # ============================= CASOS 2026 V2A2F_===========================================
 # path_folder = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/V2A2F2_RESP_FNS_lim_rev2_2026/'
@@ -59,87 +57,57 @@ path_folder = 'D:/MPV_(FNS Lim)_RC/'
 # path_folder = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/V1A1F4_RESP_FNS_lim_rev1_2026/'
 # path_folder = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/V1A1F5_RESP_FNS_lim_rev1_2026/'
 
-if extract_fromcsv:
-    pathcsv1 = path_folder + 'ProcessedDataBase.csv'
-    pathcsv2 = None
+if Options_ReadProcess['gen_script4lines']:
+    ReadandProcces(path_folder, Options_ReadProcess)
+    sys.exit()
 else:
-    pathcsv1 = None
-    pathcsv2 = path_folder + 'ProcessedDataBase.csv'
+    cases, processdata = ReadandProcces(path_folder, Options_ReadProcess)
 
-cases = Read_Scenarios(path_folder, RST=False, pathcsv = pathcsv1, genscript=genscriptbool)
+bool_PWF_NConv = cases.PWF_NC[['Dia', 'Hora']].apply(tuple, axis=1)
 cenario = cases.cenario
-plots_static = Plots_Static(cenario, svg=False)
-
-if ConvergenceAnalise:
-    OPFs_concatenados = cases.OPF
-    OPF_NC = OPFs_concatenados[(OPFs_concatenados['Valor4'] == 'F')].copy()
-    PWF_NC = OPFs_concatenados[(OPFs_concatenados['Valor5'] == 'F')].copy()
-    PWF_CV = OPFs_concatenados[(OPFs_concatenados['Valor5'] == 'T')].copy()
-    print('====================================================================')
-    print('Numero de casos não Convergidos no PWF: ' + str(len(PWF_NC)) + '=> ' +  str(round(len(PWF_NC)/1344*100,2)))
-    print('Numero de casos não Convergidos no OPF: ' + str(len(OPF_NC)) + '=> ' + str(round(len(OPF_NC)/1344*100,2)))
-    print('====================================================================')
-
-    OPF_NC[['Dia','Hora']].to_csv(cenario+'/OPF_NC.csv', index=None)
-    PWF_NC[['Dia','Hora']].to_csv(cenario+'/PWF_NC.csv', index=None)
-    print('Os pontos de operação não convergidos no PWF são:')
-    bool_PWF_NConv = PWF_NC[['Dia', 'Hora']].apply(tuple, axis=1)
-    print(bool_PWF_NConv.values)
-
-# =============================================================================================================================
-#                                                   PREPARAÇÃO DOS DADOS
-# =============================================================================================================================
-
-busdata = True
-## ***************** (Este código adiciona as barras pertencentes a cada estado e agrupa por região e barra) *****************
-print('******************** PREPARAÇÃO DE DADOS ********************')
-processdata = ProcessData(cases.DfAnalysis, pathcsv2, extract_fromcsv, busdata)
 df_Final_ger = processdata.df_Final_ger
 df_Final_nt = processdata.df_Final_nt
 dff_Ger_map = processdata.dff_Ger_map
 dff_Ger_map.loc[dff_Ger_map['Gen_Type']=='UNE','Gen_Type'] = 'UTE' # cambia de designación de usinas nucleares a termicas para ser plotadas en el mapa
 dff_NT_map = processdata.dff_NT_map
-
 DF_REGIONAL_GER = processdata.DF_REGIONAL_GER
-DF_REGIONAL_GER['QG/QL'] = DF_REGIONAL_GER['QG_MVAR']/DF_REGIONAL_GER['QL_MVAR']
-DF_REGIONAL_GER['PG/PL'] = DF_REGIONAL_GER['PG_MW']/DF_REGIONAL_GER['PL_MW']
-DF_REGIONAL_GER['PG_FERV'] =  (DF_REGIONAL_GER['PG_EOL'] + DF_REGIONAL_GER['PG_SOL'])/DF_REGIONAL_GER['PL_MW']
-DF_REGIONAL_GER['ReservaINDshunt'] = DF_REGIONAL_GER['SHUNT_INST_IND'] - DF_REGIONAL_GER['Shunt_Ind']
-DF_REGIONAL_GER['ReservaCAPshunt'] = DF_REGIONAL_GER['SHUNT_INST_CAP'] - DF_REGIONAL_GER['Shunt_Cap']
-
-DF_REGIONAL_GER[['PG_MW', 'QG_MVAR', 'PL_MW', 'QL_MVAR','Shunt_Ind', 'Shunt_Cap','SHUNT_INST_IND', 'SHUNT_INST_CAP', 'ReservaIND', 'ReservaCAP',
-                'PG_UHE', 'PG_UTE', 'PG_EOL', 'PG_SOL', 'PG_BIO', 'PG_Dist', 'QG/QL', 'PG/PL', 'PG_FERV', 'ReservaINDshunt', 'ReservaCAPshunt']].to_csv(cenario+'/DF_POT_Reg.csv')
-
 DF_REGIONAL_PQ = processdata.DF_REGIONAL_PQ
-# barras  = ['MSULD3-EOL22', 'CLEMNTEOL-66', 'CLEMNTEOL-60', 'MSULD1-EOL27', 'MSULD2-EOL27', 'MSULD4-EOL08'] #em algun momento asignar EOL no Tipo de usina nessas barras que não esta asignando automaticamente
 
+plots_static = Plots_Static(cenario, svg=False)
 
 # =============================================================================================================================
 #                                                 LEITURA LINHAS E RESERVA
 # =============================================================================================================================
 
 ## ***************** (Este código obtem as informações das linhas AC e DC e reserva por maquina) *****************
-if linhascsv | reservacsv:
-        PWF16_concatenados = dd.read_csv(path_folder + '/LinhasInfo.csv', sep=',').compute()
-        PWF16_concatenados['Dia'] = PWF16_concatenados['Dia'].astype(str)
-        PWF16_concatenados['Dia'] = PWF16_concatenados['Dia'].str.zfill(2)
+if linhascsv and LinhaAnalise:
+    PWF16_concatenados = dd.read_csv(path_folder + '/LinhasInfo.csv', sep=',').compute()
+    PWF16_concatenados['Dia'] = PWF16_concatenados['Dia'].astype(str).str.zfill(2)
+    cases.get_Intercambios(df=PWF16_concatenados)
+    DF_Intercambios = cases.DF_Intercambios
 
-        if IntercambiosAnalise:
-                cases.get_Intercambios(df = PWF16_concatenados)
-        if reservacsv:
-                SGN01_concatenados = dd.read_csv(path_folder + '/ReservaInfo.csv', sep=',').compute()
-                SGN01_concatenados['Dia'] = SGN01_concatenados['Dia'].astype(str)
-                SGN01_concatenados['Dia'] = SGN01_concatenados['Dia'].str.zfill(2)
+if HVDCcsv and HVDCAnalise:
+    DCLinks_concatenados = dd.read_csv(path_folder + '/HVDCInfo.csv', sep=',').compute()
+    DCLinks_concatenados['Dia'] = DCLinks_concatenados['Dia'].astype(str).str.zfill(2)
 
-elif (LinhaAnalise == True )|(ReservaAnalise == True):
-    cases.get_Networkinfo(linhas = LinhaAnalise, Reserva = ReservaAnalise, Intercambios = IntercambiosAnalise)
-    if LinhaAnalise:
+if reservacsv and ReservaAnalise:
+    SGN01_concatenados = dd.read_csv(path_folder + '/ReservaInfo.csv', sep=',').compute()
+    SGN01_concatenados['Dia'] = SGN01_concatenados['Dia'].astype(str).str.zfill(2)
+
+if not (linhascsv and reservacsv and HVDCcsv):
+    cases.get_Networkinfo(linhas=not linhascsv, Reserva=not reservacsv, Intercambios=not HVDCcsv)
+
+    if not linhascsv and LinhaAnalise:
         PWF16_concatenados = cases.linesInfo
-        if IntercambiosAnalise:
-            DCLinks_concatenados = cases.HVDCInfo
-            DF_Intercambios = cases.DF_Intercambios
-    if ReservaAnalise:
+        DF_Intercambios = cases.DF_Intercambios
+
+    if not reservacsv and ReservaAnalise:
         SGN01_concatenados = cases.ReserveInfo
+
+    if not HVDCcsv and HVDCAnalise:
+        DCLinks_concatenados = cases.HVDCInfo
+        DF_Intercambios = cases.DF_Intercambios
+
 
 if LinhaAnalise:
 
@@ -174,8 +142,11 @@ if LinhaAnalise:
         return PWF16_Filt_linhas, PWF16_Filt_TRAFO
 
     PWF16_Filt_linhas, PWF16_Filt_TRAFO = Main_linha_addREG(PWF16_concatenados)
+
     PWF16_Filt_linhas[['From#','To#','From Name','To Name','% L1', 'L1(MVA)', 'Mvar:Losses','Dia', 'Hora','REG', 'VBASEKV','MVA', 'MW:From-To', 'MW:To-From','Power Factor:From-To','Power Factor:To-From']].to_csv(cenario+'/Linhas.csv', index=None)
+
     PWF16_Filt_TRAFO[['From#','To#','From Name','To Name','% L1', 'L1(MVA)', 'Mvar:Losses','Dia', 'Hora','REG', 'VBASEKV','MVA', 'MW:From-To', 'MW:To-From','Power Factor:From-To','Power Factor:To-From']].to_csv(cenario+'/Trafo.csv', index=None)
+
     PWF16_Filt_grouped = PWF16_Filt_linhas[PWF16_Filt_linhas['VBASEKV'].isin([230, 345, 440, 500, 525, 765])].groupby(by = ['Dia','Hora','REG']).agg({'% L1':'mean', 'Mvar:Losses':'sum'}) 
 
     if IntercambiosAnalise:
@@ -233,13 +204,13 @@ if ReservaAnalise == True:
         SGN01_concatenados.rename(columns={'Bus':'BUS_ID', }, inplace=True)
         Df_Reserva = SGN01_concatenados.merge(df_Final_ger_mod, how = 'left', on='BUS_ID')
 
-        REG_groupReserve = Df_Reserva.groupby(by = ['Dia','Hora', 'REG']).agg({' Reserve': sum})
-        GroupReserve = Df_Reserva.groupby(by = ['Dia','Hora']).agg({' Reserve': sum})
+        REG_groupReserve = Df_Reserva.groupby(by = ['Dia','Hora', 'REG']).agg({' Reserve': 'sum'})
+        GroupReserve = Df_Reserva.groupby(by = ['Dia','Hora']).agg({' Reserve': 'sum'})
         GroupReserve[' Reserve'].to_csv(cenario + '/Reserva_MW_PO.csv', header=True, index=True)
         REG_groupReserve[' Reserve'].to_csv(cenario + '/Reserva_MW_PO_REG.csv', header=True, index=True)
 
         plots_static.plot_Potencia(GroupReserve[' Reserve'], '(MW)', 'RESERVA (MW) - SIN', limites=None)
-        plots_static.plot_reserva_reg (REG_groupReserve, '(MW)', 'Reserva por Região', 'RESERVA POR REGIÃO', ' Reserve', xlimites=None,ylimites=None, display_ = False, order = False)
+        plots_static.plot_reserva_reg (REG_groupReserve, '(MW)', 'Reserva por Região', 'RESERVA POR REGIÃO', ' Reserve', xlimites=None,ylimites=None, order = False)
 
     # ======================ESSE DATAFRAME É SÓ DA RESERVA DAS MAQUINAS COM MODELO DO GERADOR PARA O CONTROLE DE FREQ
     # ===========================================================================================================================
@@ -249,8 +220,8 @@ if ReservaAnalise == True:
     dff_reserva['ReservaIND'] = np.where(dff_reserva['QG_MVAR'] < 0, dff_reserva['Qmin'] - dff_reserva['QG_MVAR'], dff_reserva['Qmin'])
     dff_reserva['ReservaCAP'] = np.where(dff_reserva['QG_MVAR'] > 0, dff_reserva['Qmax'] - dff_reserva['QG_MVAR'], dff_reserva['Qmax'])
     # ============================================================================================================================
-    dffreservaPO = df_Final_ger.groupby(['Dia', 'Hora']).agg({'QG_MVAR': sum, 'ReservaIND':sum, 'ReservaCAP':sum})
-    dffreservaPO_REG = df_Final_ger.groupby(['Dia', 'Hora', 'REG']).agg({'QG_MVAR': sum, 'ReservaIND':sum, 'ReservaCAP':sum})
+    dffreservaPO = df_Final_ger.groupby(['Dia', 'Hora']).agg({'QG_MVAR': 'sum', 'ReservaIND':'sum', 'ReservaCAP':'sum'})
+    dffreservaPO_REG = df_Final_ger.groupby(['Dia', 'Hora', 'REG']).agg({'QG_MVAR': 'sum', 'ReservaIND':'sum', 'ReservaCAP':'sum'})
     # Salvando dataframe de reserva mvar ============================================
     dffreservaPO.to_csv(cenario + '/ReservaMVAR_PO.csv', header=True, index=True)
     dffreservaPO_REG.to_csv(cenario + '/ReservaMVAR_PO_REG.csv', header=True, index=True)
@@ -259,8 +230,8 @@ if ReservaAnalise == True:
     #                                                                   PLOTS RESERVA MVAR
     #=============================================================================================================================
 
-    plots_static.plot_reserva_reg (dffreservaPO_REG, '(MVAR)', 'Reserva Capacitiva por Região MVAR', 'RESERVA CAPACITIVA POR REGIÃO MVAR', 'ReservaCAP', xlimites=None,ylimites=None, display_ = False, order = False)
-    plots_static.plot_reserva_reg (dffreservaPO_REG, '(MVAR)', 'Reserva Indutiva por Região MVAR', 'RESERVA INDUTIVA POR REGIÃO MVAR', 'ReservaIND', xlimites=None,ylimites=None, display_ = False, order = False)
+    plots_static.plot_reserva_reg (dffreservaPO_REG, '(MVAR)', 'Reserva Capacitiva por Região MVAR', 'RESERVA CAPACITIVA POR REGIÃO MVAR', 'ReservaCAP', xlimites=None,ylimites=None, order = False)
+    plots_static.plot_reserva_reg (dffreservaPO_REG, '(MVAR)', 'Reserva Indutiva por Região MVAR', 'RESERVA INDUTIVA POR REGIÃO MVAR', 'ReservaIND', xlimites=None,ylimites=None, order = False)
 
     fig, ax = plt.subplots(figsize=(20,10))
     dffreservaPO['ReservaCAP'].plot(figsize=(20,10), grid=True, title='RESERVA CAPACITIVA (Mvar)',legend='RESERVA')
@@ -317,12 +288,11 @@ if PlotGeralPotencia:
             nome = str('MW ' + reg.replace('-',' ')  + ' (' + tog.replace('_','-') + ') - Numero de Usinas ' + str(int(numUsinas)))
             plots_static.plot_Potencia(DF_REGIONAL_GER.loc[:,:,reg][tog], '(MW)', nome , limites=None)
 
-
 #=============================================================================================================================
 #                                                          TENSÃO
 #=============================================================================================================================
 
-if ConvergenceAnalise:
+if Options_ReadProcess['ConvergenceAnalise']:
     if Plot_Tensao_Geral:
 
         def boxplot_barrasGeracao(Df_VF):
@@ -411,7 +381,7 @@ if ConvergenceAnalise:
 #                                                           MAPAS
 #=============================================================================================================================
 
-if MapasAnalise:
+if MapasPlots:
     Df_VF = processdata.Df_VF
     options = {'Limit Violations All': True, 'Mean and Variance': True, 'Limit Violations by Group': True, 'HeatMap by state 1': True, 'Limit Violations PO': False}
     Maps(Df_VF, dff_NT_map, dff_Ger_map, cenario, options)
@@ -421,7 +391,7 @@ if MapasAnalise:
 #=============================================================================================================================
 
 if ComputeDPI:
-    
+
     print('CALCULO DO DPI para todos os Cenários:')
     ts = 0.8
     tb = 1
@@ -440,7 +410,7 @@ if ComputeDPI:
     dffPQgb = df_PQ_reg.groupby(by=['Dia','Hora','REG','VBASEKV']).agg({'CSI_INF':'first','CSI_SUP':'first'})
     dffPVgb = df_PV_reg.groupby(by=['Dia','Hora','REG','Gen_Type']).agg({'CSI_INF':'first','CSI_SUP':'first'})
 
-    if ConvergenceAnalise:
+    if Options_ReadProcess['ConvergenceAnalise']:
         for index in bool_PWF_NConv:
             dfPQ_CSI.drop((index[0], index[1]), inplace=True)
             dfPV_CSI.drop((index[0], index[1]), inplace=True)
@@ -512,7 +482,7 @@ if ComputeDPI:
 
         main_plot_indice_2(dffPQgb, dffPVgb)
 
-    if BP_Criticalbuses:
+    if Plot_Boxplot_DPI:
         def boxplot_plot_PB(dff_filtered_PQ, dff_filtered_PV, df_ind, condition):
             dff_PQ =  dff_filtered_PQ.groupby(by=['REG','VBASEKV','BUS_NAME']).agg(Ocurrencies = ('VBASEKV','count'), 
                                                                                 MODV_PU = ('MODV_PU', list),
@@ -620,3 +590,10 @@ if ComputeDPI:
                 f.write('numero de casos Alarme: ' + str(df_reg_sub[df_reg_sub['UV condition']=='Alarme'].shape[0])+'\n')
                 f.write('numero de casos Seguros: ' + str(df_reg_sub[df_reg_sub['UV condition']=='Seguro'].shape[0])+'\n')
                 f.write('--------------------------\n')
+
+
+# Guarda el tiempo de finalización
+end_time = time.time()
+# Calcula la diferencia de tiempo
+execution_time = end_time - start_time
+print("Tiempo de ejecución:", execution_time/60, "minutos")
