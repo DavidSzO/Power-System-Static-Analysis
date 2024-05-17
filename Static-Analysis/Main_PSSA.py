@@ -17,7 +17,7 @@ start_time = time.time()
 
 Options_ReadProcess= {
                         'gen_script4lines' : False,
-                        'extract_fromcsv' : False,
+                        'extract_fromcsv' : True,
                         'ConvergenceAnalise' : True,
                         'busdata' : True,
                     }
@@ -26,9 +26,9 @@ LinhaAnalise = True
 HVDCAnalise = True
 ReservaAnalise = True
 IntercambiosAnalise = True
-linhascsv = False
-reservacsv =False
-HVDCcsv = False
+linhascsv = True
+reservacsv =True
+HVDCcsv = True
 ComputeDPI = True
 resumoIndice = True
 
@@ -57,8 +57,8 @@ path_folder = 'D:/MPV_(FNS Lim)_RC_test/'
 #                                PATH for SAVE THE PLOTS AND OTHER
 # ************************************************************************************************
 
-# user_specified_dir = input("Please enter the directory path where you want to save the files: ")
-user_specified_dir = "C:/Users/david/OneDrive/Documents/FERV_documentos/0_Repositorio_Resultados"
+user_specified_dir = input("Please enter the directory path where you want to save the files: ")
+# user_specified_dir = "C:/Users/david/OneDrive/Documents/FERV_documentos/0_Repositorio_Resultados"
 notebook_dir = os.path.abspath(user_specified_dir)
 folder_path = os.path.join(notebook_dir, os.path.basename(os.path.normpath(path_folder)))
 subfolders = ['Mapas', 'Intercambios', 'Indice', 'Potencia', 'Boxplot', 'CriticalBuses']
@@ -137,8 +137,7 @@ if not (linhascsv and reservacsv and HVDCcsv):
 
     if not HVDCcsv and HVDCAnalise:
         DCLinks_concatenados = cases.HVDCInfo
-        DF_Intercambios = cases.DF_Intercambios
-
+        # DF_Intercambios = cases.DF_Intercambios
 
 if LinhaAnalise:
 
@@ -230,8 +229,9 @@ if LinhaAnalise:
 
 if ReservaAnalise == True:
     if (SGN01_concatenados.empty == False):
-
-        df_Final_ger_mod = df_Final_ger[(df_Final_ger['Dia'] == '01') & (df_Final_ger['Hora'] == '00-00')][['BUS_ID', 'Gen_Type', 'U_FED', 'REG']]
+        dia = df_Final_ger['Dia'].iloc[0]
+        hora = df_Final_ger['Hora'].iloc[0]
+        df_Final_ger_mod = df_Final_ger[(df_Final_ger['Dia'] == dia) & (df_Final_ger['Hora'] == hora)][['BUS_ID', 'Gen_Type', 'U_FED', 'REG']]
         SGN01_concatenados.rename(columns={'Bus':'BUS_ID', }, inplace=True)
         Df_Reserva = SGN01_concatenados.merge(df_Final_ger_mod, how = 'left', on='BUS_ID')
 
@@ -310,12 +310,12 @@ if PlotGeralPotencia:
         plots_static.plot_Potencia(DF_REGIONAL_GER.loc[:,:,reg]['QG_MVAR'], '(MVAR)', 'POTENCIA REATIVA GERADA (MVAR) - ' + reg, limites=None)
         plots_static.plot_Potencia(DF_REGIONAL_GER.loc[:,:,reg]['PG_MW'], '(MW)', 'POTENCIA ATIVA GERADA (MW) - ' + reg, limites=None)
         for tog in typeGenRegDic[reg]:
-            numUsinas = DF_REGIONAL_GER.loc[:,:,reg][typeGenDic[tog]][0]
+            numUsinas = DF_REGIONAL_GER.loc[:,:,reg][typeGenDic[tog]].iloc[0]
             nome = str('MVAR ' + reg.replace('-',' ')  + ' (' + tog.replace('_','-') + ') - Numero de Usinas ' + str(int(numUsinas)))
             plots_static.plot_Potencia(DF_REGIONAL_GER.loc[:,:,reg][tog], '(MVAR)', nome , limites=None)
 
         for tog in typeGenRegDic_MW[reg]:
-            numUsinas = DF_REGIONAL_GER.loc[:,:,reg][typeGenDic_MW[tog]][0]
+            numUsinas = DF_REGIONAL_GER.loc[:,:,reg][typeGenDic_MW[tog]].iloc[0]
             nome = str('MW ' + reg.replace('-',' ')  + ' (' + tog.replace('_','-') + ') - Numero de Usinas ' + str(int(numUsinas)))
             plots_static.plot_Potencia(DF_REGIONAL_GER.loc[:,:,reg][tog], '(MW)', nome , limites=None)
 

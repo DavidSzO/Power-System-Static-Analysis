@@ -11,7 +11,9 @@ def read_file_in_parallel(file_path, PO, folders):
     try:
         # Mueve la lógica de extract_scenario_data aquí
         Caso_name = os.path.basename(file_path).replace('.ntw', '').replace('.txt', '')
-        Dia_name = folders if PO else os.path.basename(os.path.dirname(os.path.dirname(file_path)))
+        Dia_name = folders if PO else os.path.basename(os.path.dirname(os.path.dirname(file_path)))[-2:] #select only the day as two digit format
+
+        file_path.strip().split('/')[-3][-2:]
 
         NetData = NTW_Reader(file_path)
 
@@ -284,17 +286,17 @@ class Read_Scenarios():
         PWF16_concatenados = PWF16_concatenados.set_index(['From#', 'To#'])
         # PWF16_concatenados = PWF16_concatenados[(PWF16_concatenados['Type'] == ' TL')]  #Importante ver si afecta!!
 
-        linhas_expNE = pd.read_csv('RECURSOS/LINHAS/buses_EXPNE.csv',sep=';', skipinitialspace=True).set_index(['De', 'Para'])
-        linhas_expNE_flip = pd.read_csv('RECURSOS/LINHAS/buses_EXPNE_flip.csv',sep=';', skipinitialspace=True).set_index(['De', 'Para'])
-        linhas_FNS = pd.read_csv('RECURSOS/LINHAS/buses_FNS.csv',sep=';', skipinitialspace=True).set_index(['De', 'Para'])
-        linhas_FNESE = pd.read_csv('RECURSOS/LINHAS/buses_FNESE.csv',sep=';', skipinitialspace=True).set_index(['De', 'Para'])
-        linhas_FNESE_flip = pd.read_csv('RECURSOS/LINHAS/buses_FNESE_flip.csv',sep=';', skipinitialspace=True).set_index(['De', 'Para'])
-        linhas_FNEN = pd.read_csv('RECURSOS/LINHAS/buses_FNEN.csv',sep=';', skipinitialspace=True).set_index(['De', 'Para'])
-        linhas_FNEN_flip = pd.read_csv('RECURSOS/LINHAS/buses_FNEN_flip.csv',sep=';', skipinitialspace=True).set_index(['De', 'Para'])
-        linhas_FSULSECO = pd.read_csv('RECURSOS/LINHAS/buses_FSULSECO.csv',sep=';', skipinitialspace=True).set_index(['De', 'Para'])
-        linhas_FSULSECO_flip = pd.read_csv('RECURSOS/LINHAS/buses_FSULSECO_flip.csv',sep=';', skipinitialspace=True).set_index(['De', 'Para'])
-        linhas_RSUL = pd.read_csv('RECURSOS/LINHAS/buses_RSUL.csv',sep=';', skipinitialspace=True).set_index(['De', 'Para'])
-        linhas_RSUL_flip = pd.read_csv('RECURSOS/LINHAS/buses_RSUL_flip.csv',sep=';', skipinitialspace=True).set_index(['De', 'Para'])
+        linhas_expNE = pd.read_csv('Static-Analysis/RECURSOS/LINHAS/buses_EXPNE.csv',sep=';', skipinitialspace=True).set_index(['De', 'Para'])
+        linhas_expNE_flip = pd.read_csv('Static-Analysis/RECURSOS/LINHAS/buses_EXPNE_flip.csv',sep=';', skipinitialspace=True).set_index(['De', 'Para'])
+        linhas_FNS = pd.read_csv('Static-Analysis/RECURSOS/LINHAS/buses_FNS.csv',sep=';', skipinitialspace=True).set_index(['De', 'Para'])
+        linhas_FNESE = pd.read_csv('Static-Analysis/RECURSOS/LINHAS/buses_FNESE.csv',sep=';', skipinitialspace=True).set_index(['De', 'Para'])
+        linhas_FNESE_flip = pd.read_csv('Static-Analysis/RECURSOS/LINHAS/buses_FNESE_flip.csv',sep=';', skipinitialspace=True).set_index(['De', 'Para'])
+        linhas_FNEN = pd.read_csv('Static-Analysis/RECURSOS/LINHAS/buses_FNEN.csv',sep=';', skipinitialspace=True).set_index(['De', 'Para'])
+        linhas_FNEN_flip = pd.read_csv('Static-Analysis/RECURSOS/LINHAS/buses_FNEN_flip.csv',sep=';', skipinitialspace=True).set_index(['De', 'Para'])
+        linhas_FSULSECO = pd.read_csv('Static-Analysis/RECURSOS/LINHAS/buses_FSULSECO.csv',sep=';', skipinitialspace=True).set_index(['De', 'Para'])
+        linhas_FSULSECO_flip = pd.read_csv('Static-Analysis/RECURSOS/LINHAS/buses_FSULSECO_flip.csv',sep=';', skipinitialspace=True).set_index(['De', 'Para'])
+        linhas_RSUL = pd.read_csv('Static-Analysis/RECURSOS/LINHAS/buses_RSUL.csv',sep=';', skipinitialspace=True).set_index(['De', 'Para'])
+        linhas_RSUL_flip = pd.read_csv('Static-Analysis/RECURSOS/LINHAS/buses_RSUL_flip.csv',sep=';', skipinitialspace=True).set_index(['De', 'Para'])
 
 
         EXPNE_grouped = PWF16_concatenados[PWF16_concatenados.index.isin(linhas_expNE.index)]
@@ -399,10 +401,10 @@ class ProcessData():
             self.get_processdata_region()
         else:
             if busdata:
-                file = os.path.abspath('RECURSOS/GeoINFO_BusesSIN.csv')
+                file = os.path.abspath("Static-Analysis/RECURSOS/GeoINFO_BusesSIN.csv")
                 df1 = pd.read_csv(file, sep=';')
 
-                #***************************************************** Merge com o DATA FRAME COMPLETO ******************************************************
+                #************************ Merge com o DATA FRAME COMPLETO ***************************
                 columns = ['BUS_ID', 'BUS_NAME', 'VBASEKV', 'TP', 'ARE', 'MODV_PU', 'ANGV_DEG', 'BASE_MVA', 'PG_MW', 'QG_MVAR', 'PMAX_MW', 'PMIN_MW', 'QMX_MVAR','QMN_MVAR', 'Ger_Units','Ger_Active_Units', 'PL_MW', 'QL_MVAR', 'TC', 'VMAX_PU', 'VMIN_PU', 'BCO_ID', 'B0_MVAR', 'ST', 'SHUNT_INST_IND', 'SHUNT_INST_CAP', 'Dia','Hora']
                 Df_VF_novo = self.df[columns].merge(df1[['BUS_ID','Gen_Type','U_FED','REG', 'Latitude','Longitude']], on='BUS_ID', how='left')
                 Df_VF_novo.drop(Df_VF_novo[Df_VF_novo['REG'] == np.nan].index)
@@ -474,8 +476,8 @@ class ProcessData():
             'latitude': 'Latitude',
             'longitude': 'Longitude'
         }
-        
-        BarraGeo = pd.read_excel('RECURSOS/LATITUDE_LONGITUDE_SIN_ATUALIZADO.xlsx', sheet_name='Planilha1', header=0)
+        file = os.path.abspath('Static-Analysis/RECURSOS/LATITUDE_LONGITUDE_SIN_ATUALIZADO.xlsx')
+        BarraGeo = pd.read_excel(file, sheet_name='Planilha1', header=0)
         BarraGeo.rename(columns=column_rename_mapping, inplace=True)
 
         Df_VF = self.df
@@ -537,7 +539,8 @@ class ProcessData():
     def get_splitdata_PV_PQ(self):
 
         # Read DBAR.csv into DataFrame
-        df_buscode = pd.read_csv('RECURSOS/DBAR.csv', sep=';')
+        file = os.path.abspath('Static-Analysis\RECURSOS\DBAR.csv')
+        df_buscode = pd.read_csv(file, sep=';')
 
         Df_VF = self.Df_VF_SF
         # complexo madeira buses
@@ -717,20 +720,20 @@ class ProcessData():
         print(f'*** ETAPA: FINAL DO PROCESSAMENTO DE DADOS ***')
 
 
-if __name__ == "__main__":
-    import time
-    path = 'D:/MPV_(FNS Lim)_RC/'
-    options=    {
-                'gen_script4lines' : False,
-                'extract_fromcsv' : False,
-                'ConvergenceAnalise' : True,
-                'busdata' : True,
-                }
-    start_time = time.time()
-    read_scenarios = Read_Scenarios(path, "C:/Users/david/OneDrive/Documents/FERV_documentos/0_Repositorio_Resultados")
-    end_time = time.time()
-    # Calcula la diferencia de tiempo
-    execution_time = end_time - start_time
-    print("Tiempo de ejecución:", execution_time, "segundos")
+# if __name__ == "__main__":
+#     import time
+#     path = 'D:/MPV_(FNS Lim)_RC/'
+#     options=    {
+#                 'gen_script4lines' : False,
+#                 'extract_fromcsv' : False,
+#                 'ConvergenceAnalise' : True,
+#                 'busdata' : True,
+#                 }
+#     start_time = time.time()
+#     read_scenarios = Read_Scenarios(path, "C:/Users/david/OneDrive/Documents/FERV_documentos/0_Repositorio_Resultados")
+#     end_time = time.time()
+#     # Calcula la diferencia de tiempo
+#     execution_time = end_time - start_time
+#     print("Tiempo de ejecución:", execution_time, "segundos")
 
 

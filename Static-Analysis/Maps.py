@@ -1,12 +1,11 @@
-import pandas as pd
 import numpy as np
 import seaborn as sns
 import folium
 from folium.vector_layers import CircleMarker
 from sklearn.preprocessing import MinMaxScaler
 from branca.colormap import StepColormap
-import requests
 import json
+import os
 
 class Maps():
 
@@ -23,8 +22,8 @@ class Maps():
         # # Aplicar la función a cada fila del DataFrame
         # dff_NT_map['MODV_PU'] = dff_NT_map['MODV_PU'].apply(convert_string_to_float_list)
         # dff_Ger_map['MODV_PU'] = dff_Ger_map['MODV_PU'].apply(convert_string_to_float_list)
-
-        with open('RECURSOS/Coordenadas.json', 'r') as json_file:
+        file = os.path.abspath('Static-Analysis/RECURSOS/Coordenadas.json')
+        with open(file, 'r') as json_file:
             self.state_geo = json.load(json_file)
         
         self.dff_Ger_map, self.dff_NT_map = self.get_df_LimitViolation(dff_NT_map, dff_Ger_map)
