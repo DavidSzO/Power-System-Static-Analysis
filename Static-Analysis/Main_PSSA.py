@@ -1,3 +1,4 @@
+import os
 import sys
 import time
 import numpy as np
@@ -16,19 +17,18 @@ start_time = time.time()
 
 Options_ReadProcess= {
                         'gen_script4lines' : False,
-                        'extract_fromcsv' : True,
+                        'extract_fromcsv' : False,
                         'ConvergenceAnalise' : True,
                         'busdata' : True,
                     }
-
 
 LinhaAnalise = True
 HVDCAnalise = True
 ReservaAnalise = True
 IntercambiosAnalise = True
-linhascsv = True
-reservacsv =True
-HVDCcsv = True
+linhascsv = False
+reservacsv =False
+HVDCcsv = False
 ComputeDPI = True
 resumoIndice = True
 
@@ -44,24 +44,55 @@ PlotIntercambios = True
 #                                              PATHS
 # ************************************************************************************************
 
-path_folder = 'D:/MPV_(FNS Lim)_RC/'
+# path_folder = 'D:/MPV_(FNS Lim)_RC/'
+path_folder = 'D:/MPV_(FNS Lim)_RC_test/'
 
-# ============================= CASOS 2026 V2A2F_===========================================
-# path_folder = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/V2A2F2_RESP_FNS_lim_rev2_2026/'
-# path_folder = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/V2A2F3_RESP_FNS_lim_rev1_2026/'
-# path_folder = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/V2A2F4_RESP_FNS_lim_rev1_2026/'
-# path_folder = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/V2A2F5_RESP_FNS_lim_rev1_2026/'
 # ============================= CASOS 2026 V1A1F_===========================================
 # path_folder = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/V1A1F2_RESP_FNS_lim_rev1_2026/'
 # path_folder = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/V1A1F3_RESP_FNS_lim_rev1_2026/'
 # path_folder = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/V1A1F4_RESP_FNS_lim_rev1_2026/'
 # path_folder = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/V1A1F5_RESP_FNS_lim_rev1_2026/'
 
+# ************************************************************************************************
+#                                PATH for SAVE THE PLOTS AND OTHER
+# ************************************************************************************************
+
+# user_specified_dir = input("Please enter the directory path where you want to save the files: ")
+user_specified_dir = "C:/Users/david/OneDrive/Documents/FERV_documentos/0_Repositorio_Resultados"
+notebook_dir = os.path.abspath(user_specified_dir)
+folder_path = os.path.join(notebook_dir, os.path.basename(os.path.normpath(path_folder)))
+subfolders = ['Mapas', 'Intercambios', 'Indice', 'Potencia', 'Boxplot', 'CriticalBuses']
+for subfolder in subfolders:
+    os.makedirs(os.path.join(folder_path, subfolder), exist_ok=True)
+print(f"The directories have been created in: {folder_path}")
+
+# ************************************************************************************************
+#                                             EXTRACTION AND PROCESS
+# ************************************************************************************************
+
+gen_script4lines = Options_ReadProcess['gen_script4lines']
+extract_fromcsv = Options_ReadProcess['extract_fromcsv']
+ConvergenceAnalise = Options_ReadProcess['ConvergenceAnalise']
+busdata = Options_ReadProcess['busdata']
+
+if extract_fromcsv:
+    pathcsv1 = os.path.join(path_folder, 'ProcessedDataBase.csv')
+    pathcsv2 = None
+else:
+    pathcsv1 = None
+    pathcsv2 = os.path.join(path_folder, 'ProcessedDataBase.csv')
+
 if Options_ReadProcess['gen_script4lines']:
-    ReadandProcces(path_folder, Options_ReadProcess)
+    Read_Scenarios(path_folder, folder_path, pathcsv=pathcsv1, genscript=gen_script4lines)
     sys.exit()
 else:
-    cases, processdata = ReadandProcces(path_folder, Options_ReadProcess)
+    print('******************** EXTRAÇÃO DE DADOS ********************')
+    cases = Read_Scenarios(path_folder, folder_path, pathcsv=pathcsv1, genscript=gen_script4lines)
+    # return cases
+    cenario = folder_path
+    print('******************** PROCESSAMENTO DE DADOS ********************')
+    processdata = ProcessData(df= cases.Df_Cases, cenario = cenario, pathcsv = pathcsv2, extract_fromcsv = extract_fromcsv, busdata = busdata)
+
 
 bool_PWF_NConv = cases.PWF_NC[['Dia', 'Hora']].apply(tuple, axis=1)
 cenario = cases.cenario
@@ -76,7 +107,7 @@ DF_REGIONAL_PQ = processdata.DF_REGIONAL_PQ
 plots_static = Plots_Static(cenario, svg=False)
 
 # =============================================================================================================================
-#                                                 LEITURA LINHAS E RESERVA
+#                                                LEITURA LINHAS E RESERVA
 # =============================================================================================================================
 
 ## ***************** (Este código obtem as informações das linhas AC e DC e reserva por maquina) *****************
@@ -596,4 +627,4 @@ if ComputeDPI:
 end_time = time.time()
 # Calcula la diferencia de tiempo
 execution_time = end_time - start_time
-print("Tiempo de ejecución:", execution_time/60, "minutos")
+print("Tiempo de ejecución:", execution_time, "segundos")

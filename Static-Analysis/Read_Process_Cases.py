@@ -1,48 +1,79 @@
 import os
 import pandas as pd
 import numpy as np
-from multiprocessing import Pool, cpu_count
+from multiprocessing import Pool
 import dask.dataframe as dd
-from NTW_Reader import *
+from NTW_Reader import NTW_Reader
 from scipy.spatial.distance import cdist
+from concurrent.futures import ProcessPoolExecutor
 
+def read_file_in_parallel(file_path, PO, folders):
+    try:
+        # Mueve la lógica de extract_scenario_data aquí
+        Caso_name = os.path.basename(file_path).replace('.ntw', '').replace('.txt', '')
+        Dia_name = folders if PO else os.path.basename(os.path.dirname(os.path.dirname(file_path)))
+
+        NetData = NTW_Reader(file_path)
+
+        Bus = NetData.bus_data[['BUS_ID', 'BUS_NAME', 'VBASEKV', 'TP', 'ARE', 'MODV_PU','ANGV_DEG']]
+        Gen = NetData.gen_data[['BUS_ID','ST', 'PG_MW', 'QG_MVAR', 'BASE_MVA', 'PMAX_MW', 'PMIN_MW', 'QMX_MVAR', 'QMN_MVAR']]
+        Load = NetData.load_data[['BUS_ID','PL_MW', 'QL_MVAR']]
+        Shunt = NetData.DF_shunt
+
+        df = [Bus, Gen, Load]
+
+        # Define la función getUniqueBus aquí también
+        def getUniqueBus(df):
+            df_modified_BUS = df[0].groupby('BUS_ID').first().reset_index()
+            df_modified_GEN = df[1].groupby('BUS_ID').agg({
+                'BASE_MVA': 'sum',
+                'ST': 'sum',
+                'PG_MW': 'sum',
+                'QG_MVAR': 'sum',
+                'PMAX_MW': 'sum',
+                'PMIN_MW': 'sum',
+                'QMX_MVAR': 'sum',
+                'QMN_MVAR': 'sum'
+            }).reset_index()
+            df_modified_GEN.rename(columns={'ST': 'Ger_Active_Units'}, inplace=True)
+            df_GEN = df[1].groupby('BUS_ID')['PG_MW'].count().reset_index().rename(columns={'PG_MW': 'Ger_Units'})
+            df_modified_GEN = pd.merge(df_modified_GEN, df_GEN, on='BUS_ID', how='left')
+
+            df_modified_LOAD = df[2].groupby('BUS_ID').agg({
+                'PL_MW': 'sum',
+                'QL_MVAR': 'sum',
+            }).reset_index()
+
+            return df_modified_BUS, df_modified_GEN, df_modified_LOAD
+
+        BUS_grouped, GEN_grouped, LOAD_grouped = getUniqueBus(df)
+
+        df_merge_0 = pd.merge(BUS_grouped, GEN_grouped, on='BUS_ID', how='outer').sort_values('BUS_ID')
+        df_merge_1 = pd.merge(df_merge_0, LOAD_grouped, on='BUS_ID', how='outer').sort_values('BUS_ID')
+        merged_df = pd.merge(df_merge_1, Shunt, on='BUS_ID', how='outer').sort_values('BUS_ID')
+
+        merged_df['Dia'] = str(Dia_name)
+        merged_df['Hora'] = str(Caso_name[-5:])
+
+        return merged_df
+    except Exception as e:
+        print(f"Error processing file {file_path}: {e}")
+        return None
 
 class Read_Scenarios():
 
-    def __init__(self, path, pathcsv = None, PO = False, genscript = False):
+    def __init__(self, path, cenario, pathcsv = None, PO = False, genscript = False):
         
         self.path  = path
         self.PO = PO
         self.csv = pathcsv
+        self.cenario = cenario
 
-        #******************* Cria pasta para salvar os graficos para cada cenario *******************
-        # Solicitar al usuario la ruta del directorio
-        user_specified_dir = input("Please enter the directory path where you want to save the files: ")
-        # Asegurarse de que la ruta especificada es absoluta
-        notebook_dir = os.path.abspath(user_specified_dir)
-        # Obtener el nombre del cenario (suponiendo que es el último directorio en la ruta)
-        cenario = path.split('/')[-2]
-
-        # Crear la ruta del directorio principal y los subdirectorios
-        folder_path = os.path.join(notebook_dir, cenario)
-        os.makedirs(folder_path, exist_ok=True)
-        os.makedirs(os.path.join(folder_path, 'Mapas'), exist_ok=True)
-        os.makedirs(os.path.join(folder_path, 'Intercambios'), exist_ok=True)
-        os.makedirs(os.path.join(folder_path, 'Indice'), exist_ok=True)
-        os.makedirs(os.path.join(folder_path, 'Potencia'), exist_ok=True)
-        os.makedirs(os.path.join(folder_path, 'Boxplot'), exist_ok=True)
-        os.makedirs(os.path.join(folder_path, 'CriticalBuses'), exist_ok=True)
-
-        self.cenario = folder_path
-
-        print(f"The directories have been created in: {folder_path}")
-
-        if genscript ==  False:
+        if genscript == False:
             if PO == False:
-                archivos=os.listdir(path)
-                self.folders = [nomes_archivos for nomes_archivos in archivos if 'DS202' in nomes_archivos]  
-                self.folders.sort()
-                if pathcsv != None:
+                archivos = os.listdir(path)
+                self.folders = sorted([nomes_archivos for nomes_archivos in archivos if 'DS202' in nomes_archivos])
+                if pathcsv:
                     self.getDataFrames_csv()
                     self.get_ConvergenceData()
                 else:
@@ -61,103 +92,42 @@ class Read_Scenarios():
     def getDataFrames_csv(self): # Extract form csv files previuosly saved
 
         self.Df_Cases = dd.read_csv(self.csv, sep=';').compute()
-        self.Df_Cases['Dia'] = self.Df_Cases['Dia'].astype(str)
-        self.Df_Cases['Dia'] = self.Df_Cases['Dia'].str.zfill(2)
-
-        results = self.Df_Cases.groupby(by= ['Dia', 'Hora'])['BUS_ID'].first()
+        self.Df_Cases['Dia'] = self.Df_Cases['Dia'].astype(str).str.zfill(2)
+        results = self.Df_Cases.groupby(['Dia', 'Hora'])['BUS_ID'].first()
         self.OpPointsC = results.shape[0]
         print('O numero total de casos analisados é: ', self.OpPointsC)
 
-    def getUniqueBus(self, df): 
-
-        df_modified_BUS = df[0].groupby(['BUS_ID']).agg({
-        'BUS_NAME': 'first',
-        'VBASEKV': 'first',
-        'TP': 'first',
-        'ARE': 'first',
-        'MODV_PU': 'first',
-        'ANGV_DEG': 'first',
-        }).reset_index()
-
-        df_modified_GEN = df[1].groupby(['BUS_ID']).agg({
-        'BASE_MVA': 'sum',
-        'ST': 'sum',
-        'PG_MW': 'sum',
-        'QG_MVAR': 'sum',
-        'PMAX_MW': 'sum',
-        'PMIN_MW': 'sum',
-        'QMX_MVAR': 'sum',
-        'QMN_MVAR': 'sum'
-        }).reset_index()
-        df_modified_GEN.rename(columns={'ST': 'Ger_Active_Units'}, inplace=True)
-        df_GEN = df[1].groupby(['BUS_ID']).agg({'PG_MW': 'count'}).reset_index().rename(columns={'PG_MW': 'Ger_Units'})
-        df_modified_GEN = pd.merge(df_modified_GEN, df_GEN,on='BUS_ID', how='left')
-        
-        df_modified_LOAD = df[2].groupby(['BUS_ID']).agg({
-        'PL_MW': 'sum',
-        'QL_MVAR': 'sum',
-        }).reset_index()
-
-        return df_modified_BUS, df_modified_GEN, df_modified_LOAD
-
-    def extract_scenario_data(self, file_path):
-
-        Caso_name = file_path.strip().split('/')[-1].replace('.ntw', '').replace('.txt', '')
-        if self.PO == False:
-            Dia_name = file_path.strip().split('/')[-3][-2:]
-        else: 
-            Dia_name = self.folders
-
-        NetData = NTW_Reader(file_path)
-
-        Bus = NetData.bus_data[['BUS_ID', 'BUS_NAME', 'VBASEKV', 'TP', 'ARE', 'MODV_PU','ANGV_DEG']]
-        Gen = NetData.gen_data[['BUS_ID','ST', 'PG_MW', 'QG_MVAR', 'BASE_MVA', 'PMAX_MW', 'PMIN_MW', 'QMX_MVAR', 'QMN_MVAR']]
-        Load = NetData.load_data[['BUS_ID','PL_MW', 'QL_MVAR']]
-        Shunt = NetData.DF_shunt
-
-        df = [Bus, Gen, Load]
-
-        BUS_grouped, GEN_grouped, LOAD_grouped = self.getUniqueBus(df)
-
-        df_merge_0 = pd.merge(BUS_grouped, GEN_grouped, on='BUS_ID', how='outer').sort_values('BUS_ID')
-        df_merge_1 = pd.merge(df_merge_0, LOAD_grouped, on='BUS_ID', how='outer').sort_values('BUS_ID')
-        merged_df = pd.merge(df_merge_1, Shunt, on='BUS_ID', how='outer').sort_values('BUS_ID')
-
-        merged_df['Dia']=str(Dia_name)
-        merged_df['Hora']=str(Caso_name[-5:])
-
-        return merged_df
-
     def getDataExtract(self):
 
-        if self.PO == False:
-
-            path_arquivo = [self.path + directory + '/' + 'Output' for directory in self.folders]
+        if not self.PO:
+            path_arquivo = [os.path.join(self.path, directory, 'Output') for directory in self.folders]
             directories_files = [os.listdir(path) for path in path_arquivo]
 
-            files_path = [path_arquivo[i] + '/' + file_name
-                    for i in range(len(path_arquivo))
-                    for file_name in directories_files[i]
-                    if '.ntw' in file_name]
-            
+            files_path = [os.path.join(path_arquivo[i], file_name)
+                          for i in range(len(path_arquivo))
+                          for file_name in directories_files[i]
+                          if file_name.endswith('.ntw')]
         else:
             files_path = [self.path]
 
-        # Data extraction with paralell processing
-        with Pool() as pool:
-            results = pool.map(self.extract_scenario_data, files_path)
 
-        # results = []
-        # for unique_path in files_path:
-        #     results.append(self.extract_scenario_data(unique_path))
+        results = []
+        for unique_path in files_path:
+            results.append(read_file_in_parallel(unique_path, self.PO, self.folders))
 
-        results = list(filter(lambda elemento: elemento is not None, results))
+        results = [result for result in results if result is not None]
 
-        df_Cvg = pd.concat(results, axis=0, sort=False)
-        self.Df_Cases = df_Cvg.sort_values(by=['Dia', 'Hora'])
-        self.OpPointsC = len(results)
+        if results:  # Check if results is not empty before concatenating
+            df_Cvg = pd.concat(results, axis=0, sort=False)
+            self.Df_Cases = df_Cvg.sort_values(by=['Dia', 'Hora'])
+            self.OpPointsC = len(results)
+            print('O número total de casos analisados é:', self.OpPointsC)
+        else:
+            self.Df_Cases = pd.DataFrame()
+            self.OpPointsC = 0
+            print('No data was processed.')
 
-        print('O numero total de casos analisados é: ', self.OpPointsC)
+
 
 # ======================================================================================================================
 #                                                AC & DC & RESERVE INFO EXTRACTION 
@@ -416,7 +386,6 @@ class Read_Scenarios():
         self.OPF_NC[['Dia','Hora']].to_csv(self.cenario+'/OPF_NC.csv', index=None)
         self.PWF_NC[['Dia','Hora']].to_csv(self.cenario+'/PWF_NC.csv', index=None)
 
-
 class ProcessData():
 
     def __init__(self,  df, cenario, pathcsv=None, extract_fromcsv=False, busdata=False, ):
@@ -430,7 +399,8 @@ class ProcessData():
             self.get_processdata_region()
         else:
             if busdata:
-                df1 = pd.read_csv('RECURSOS/GeoINFO_BusesSIN.csv',sep=';')
+                file = os.path.abspath('RECURSOS/GeoINFO_BusesSIN.csv')
+                df1 = pd.read_csv(file, sep=';')
 
                 #***************************************************** Merge com o DATA FRAME COMPLETO ******************************************************
                 columns = ['BUS_ID', 'BUS_NAME', 'VBASEKV', 'TP', 'ARE', 'MODV_PU', 'ANGV_DEG', 'BASE_MVA', 'PG_MW', 'QG_MVAR', 'PMAX_MW', 'PMIN_MW', 'QMX_MVAR','QMN_MVAR', 'Ger_Units','Ger_Active_Units', 'PL_MW', 'QL_MVAR', 'TC', 'VMAX_PU', 'VMIN_PU', 'BCO_ID', 'B0_MVAR', 'ST', 'SHUNT_INST_IND', 'SHUNT_INST_CAP', 'Dia','Hora']
@@ -504,6 +474,7 @@ class ProcessData():
             'latitude': 'Latitude',
             'longitude': 'Longitude'
         }
+        
         BarraGeo = pd.read_excel('RECURSOS/LATITUDE_LONGITUDE_SIN_ATUALIZADO.xlsx', sheet_name='Planilha1', header=0)
         BarraGeo.rename(columns=column_rename_mapping, inplace=True)
 
@@ -746,37 +717,20 @@ class ProcessData():
         print(f'*** ETAPA: FINAL DO PROCESSAMENTO DE DADOS ***')
 
 
-def ReadandProcces(path, options):
-        
-        path_folder = path
-        gen_script4lines = options['gen_script4lines']
-        extract_fromcsv = options['extract_fromcsv']
-        ConvergenceAnalise = options['ConvergenceAnalise']
-        busdata = options['busdata']
-
-        if extract_fromcsv:
-            pathcsv1 = path_folder + 'ProcessedDataBase.csv'
-            pathcsv2 = None
-        else:
-            pathcsv1 = None
-            pathcsv2 = path_folder + 'ProcessedDataBase.csv'
-        # =============================================================================================================================
-        #                                                   EXTRAÇÃO DOS DADOS
-        # =============================================================================================================================
-        print('******************** EXTRAÇÃO DE DADOS ********************')
-        cases = Read_Scenarios(path_folder, pathcsv = pathcsv1, genscript=gen_script4lines)
-        cenario = cases.cenario
-        if gen_script4lines == False:
-            # =============================================================================================================================
-            #                                                   PREPARAÇÃO DOS DADOS
-            # =============================================================================================================================
-            ## ***************** (Este código adiciona as barras pertencentes a cada estado e agrupa por região e barra) *****************
-            print('******************** PROCESSAMENTO DE DADOS ********************')
-            processdata = ProcessData(df= cases.Df_Cases, cenario = cenario, pathcsv = pathcsv2, extract_fromcsv = extract_fromcsv, busdata = busdata)
-
-            return cases, processdata
-        else:
-            return
-
+if __name__ == "__main__":
+    import time
+    path = 'D:/MPV_(FNS Lim)_RC/'
+    options=    {
+                'gen_script4lines' : False,
+                'extract_fromcsv' : False,
+                'ConvergenceAnalise' : True,
+                'busdata' : True,
+                }
+    start_time = time.time()
+    read_scenarios = Read_Scenarios(path, "C:/Users/david/OneDrive/Documents/FERV_documentos/0_Repositorio_Resultados")
+    end_time = time.time()
+    # Calcula la diferencia de tiempo
+    execution_time = end_time - start_time
+    print("Tiempo de ejecución:", execution_time, "segundos")
 
 

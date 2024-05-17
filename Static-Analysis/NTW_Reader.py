@@ -1,13 +1,11 @@
 import pandas as pd
 
 class NTW_Reader():
-    
-    def __init__(self, path, other=False):
+
+    # all = []
+    def __init__(self, path):
         
         self.path  = path
-        self.time  = 15.0
-        self.other = other
-        
         with open(path) as f:
             self.lines = f.readlines()
 
@@ -35,9 +33,11 @@ class NTW_Reader():
         self._get_bus_data()
         self._get_load_data()
         self._get_gen_data()
-        # self._get_transmission_data()
         self.getShuntDataFrame()
+        # self._get_transmission_data()
         # self._get_transformer_data()
+
+        # NTW_Reader.all.append(self)
 
     # Get the BUS's DATA ======================================================================================================================================
 
@@ -64,7 +64,6 @@ class NTW_Reader():
             self.bus_data = pd.DataFrame(data)
             print('BUS: Check the data or the columns')
             print(columns)
-
 
     # Get the LOAD's DATA =====================================================================================================================================
 
@@ -312,14 +311,14 @@ class NTW_Reader():
             print(f' Total Reactive Power: {self.total_QL_MVAR:10.4f} MVar\n\n')
 
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}('{self.path}')"
+
+
 # if __name__ == '__main__':
-
 #     path = 'D:\Arquivos FERV\Dados Eletroenergeticos Python\PTOPER_A2V2F2_rev2\DS20221009\Output/20230509_C_06-30.ntw'
-
 #     ND = NTW_Reader(path)
     # ND.concat()
-
-
     # print(ND.DF_shunt)
 
     # ND.bus_data.to_excel("bus_data.xlsx") 
