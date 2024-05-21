@@ -635,7 +635,6 @@ class Maps():
 
             get_limitMapG_PO(data_, [765, 525, 500, 440, 345, 230], Generation = Generation)
 
-
     def get_HeatMap_DPI(self, data, legend, geracao: bool):
 
         map = folium.Map(

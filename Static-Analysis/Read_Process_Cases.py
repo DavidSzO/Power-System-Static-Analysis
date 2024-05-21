@@ -5,102 +5,85 @@ from multiprocessing import Pool
 import dask.dataframe as dd
 from NTW_Reader import NTW_Reader
 from scipy.spatial.distance import cdist
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 
-def read_file_in_parallel(file_path, PO, folders):
-    try:
-        # Mueve la lógica de extract_scenario_data aquí
-        Caso_name = os.path.basename(file_path).replace('.ntw', '').replace('.txt', '')
-        Dia_name = folders if PO else os.path.basename(os.path.dirname(os.path.dirname(file_path)))[-2:] #select only the day as two digit format
 
-        file_path.strip().split('/')[-3][-2:]
+class ReadScenarios:
 
-        NetData = NTW_Reader(file_path)
+    def __init__(self, path, cenario, PO, pathcsv=None, genscript=False):
+        """
+        Initialize the ReadScenarios class.
 
-        Bus = NetData.bus_data[['BUS_ID', 'BUS_NAME', 'VBASEKV', 'TP', 'ARE', 'MODV_PU','ANGV_DEG']]
-        Gen = NetData.gen_data[['BUS_ID','ST', 'PG_MW', 'QG_MVAR', 'BASE_MVA', 'PMAX_MW', 'PMIN_MW', 'QMX_MVAR', 'QMN_MVAR']]
-        Load = NetData.load_data[['BUS_ID','PL_MW', 'QL_MVAR']]
-        Shunt = NetData.DF_shunt
-
-        df = [Bus, Gen, Load]
-
-        # Define la función getUniqueBus aquí también
-        def getUniqueBus(df):
-            df_modified_BUS = df[0].groupby('BUS_ID').first().reset_index()
-            df_modified_GEN = df[1].groupby('BUS_ID').agg({
-                'BASE_MVA': 'sum',
-                'ST': 'sum',
-                'PG_MW': 'sum',
-                'QG_MVAR': 'sum',
-                'PMAX_MW': 'sum',
-                'PMIN_MW': 'sum',
-                'QMX_MVAR': 'sum',
-                'QMN_MVAR': 'sum'
-            }).reset_index()
-            df_modified_GEN.rename(columns={'ST': 'Ger_Active_Units'}, inplace=True)
-            df_GEN = df[1].groupby('BUS_ID')['PG_MW'].count().reset_index().rename(columns={'PG_MW': 'Ger_Units'})
-            df_modified_GEN = pd.merge(df_modified_GEN, df_GEN, on='BUS_ID', how='left')
-
-            df_modified_LOAD = df[2].groupby('BUS_ID').agg({
-                'PL_MW': 'sum',
-                'QL_MVAR': 'sum',
-            }).reset_index()
-
-            return df_modified_BUS, df_modified_GEN, df_modified_LOAD
-
-        BUS_grouped, GEN_grouped, LOAD_grouped = getUniqueBus(df)
-
-        df_merge_0 = pd.merge(BUS_grouped, GEN_grouped, on='BUS_ID', how='outer').sort_values('BUS_ID')
-        df_merge_1 = pd.merge(df_merge_0, LOAD_grouped, on='BUS_ID', how='outer').sort_values('BUS_ID')
-        merged_df = pd.merge(df_merge_1, Shunt, on='BUS_ID', how='outer').sort_values('BUS_ID')
-
-        merged_df['Dia'] = str(Dia_name)
-        merged_df['Hora'] = str(Caso_name[-5:])
-
-        return merged_df
-    except Exception as e:
-        print(f"Error processing file {file_path}: {e}")
-        return None
-
-class Read_Scenarios():
-
-    def __init__(self, path, cenario, pathcsv = None, PO = False, genscript = False):
-        
-        self.path  = path
+        :param path: Path to the directory containing scenario files.
+        :param cenario: Scenario identifier.
+        :param PO: Flag indicating PO mode.
+        :param pathcsv: Path to CSV file, if any.
+        :param genscript: Flag indicating if a script should be generated.
+        """
+        self.path = path
         self.PO = PO
         self.csv = pathcsv
         self.cenario = cenario
+        self.folders = []
 
-        if genscript == False:
-            if PO == False:
+        if not genscript:
+            if not PO:
                 archivos = os.listdir(path)
                 self.folders = sorted([nomes_archivos for nomes_archivos in archivos if 'DS202' in nomes_archivos])
                 if pathcsv:
-                    self.getDataFrames_csv()
-                    self.get_ConvergenceData()
+                    self.get_dataframes_csv()
+                    self.get_convergence_data()
                 else:
-                    self.getDataExtract()
-                    self.get_ConvergenceData()
+                    self.get_data_extract()
+                    self.get_convergence_data()
             else:
                 self.folders = 'PO'
-                self.getDataExtract()
+                self.get_data_extract()
         else:
-            self.generatescript()
+            self.generate_script()
+    
+    def get_unique_bus(self, df):
+        df_modified_BUS = df[0].groupby('BUS_ID').first().reset_index()
+        df_modified_GEN = df[1].groupby('BUS_ID').sum().reset_index()
+        df_modified_GEN.rename(columns={'ST': 'Ger_Active_Units'}, inplace=True)
+        df_GEN = df[1].groupby('BUS_ID')['PG_MW'].count().reset_index().rename(columns={'PG_MW': 'Ger_Units'})
+        df_modified_GEN = pd.merge(df_modified_GEN, df_GEN, on='BUS_ID', how='left')
+        df_modified_LOAD = df[2].groupby('BUS_ID').agg({
+            'PL_MW': 'sum',
+            'QL_MVAR': 'sum',
+        }).reset_index()
 
-# ======================================================================================================================
-#                                                        MAIN EXTRACTION
-# ======================================================================================================================
+        return df_modified_BUS, df_modified_GEN, df_modified_LOAD
 
-    def getDataFrames_csv(self): # Extract form csv files previuosly saved
+    def read_file_in_parallel(self, file_path, folders):
+        try:
+            Caso_name = os.path.basename(file_path).replace('.ntw', '').replace('.txt', '')
+            Dia_name = folders if self.PO else os.path.basename(os.path.dirname(os.path.dirname(file_path)))[-2:]
 
-        self.Df_Cases = dd.read_csv(self.csv, sep=';').compute()
-        self.Df_Cases['Dia'] = self.Df_Cases['Dia'].astype(str).str.zfill(2)
-        results = self.Df_Cases.groupby(['Dia', 'Hora'])['BUS_ID'].first()
-        self.OpPointsC = results.shape[0]
-        print('O numero total de casos analisados é: ', self.OpPointsC)
+            NetData = NTW_Reader(file_path)
 
-    def getDataExtract(self):
+            Bus = NetData.bus_data[['BUS_ID', 'BUS_NAME', 'VBASEKV', 'TP', 'ARE', 'MODV_PU', 'ANGV_DEG']]
+            Gen = NetData.gen_data[['BUS_ID', 'ST', 'PG_MW', 'QG_MVAR', 'BASE_MVA', 'PMAX_MW', 'PMIN_MW', 'QMX_MVAR', 'QMN_MVAR']]
+            Load = NetData.load_data[['BUS_ID', 'PL_MW', 'QL_MVAR']]
+            Shunt = NetData.DF_shunt
 
+            df = [Bus, Gen, Load]
+
+            BUS_grouped, GEN_grouped, LOAD_grouped = self.get_unique_bus(df)
+
+            df_merge_0 = pd.merge(BUS_grouped, GEN_grouped, on='BUS_ID', how='outer').sort_values('BUS_ID')
+            df_merge_1 = pd.merge(df_merge_0, LOAD_grouped, on='BUS_ID', how='outer').sort_values('BUS_ID')
+            merged_df = pd.merge(df_merge_1, Shunt, on='BUS_ID', how='outer').sort_values('BUS_ID')
+
+            merged_df['Dia'] = str(Dia_name)
+            merged_df['Hora'] = str(Caso_name[-5:])
+
+            return merged_df
+        except Exception as e:
+            print(f"Error processing file {file_path}: {e}")
+            return None
+
+    def get_data_extract(self):
         if not self.PO:
             path_arquivo = [os.path.join(self.path, directory, 'Output') for directory in self.folders]
             directories_files = [os.listdir(path) for path in path_arquivo]
@@ -112,10 +95,8 @@ class Read_Scenarios():
         else:
             files_path = [self.path]
 
-
-        results = []
-        for unique_path in files_path:
-            results.append(read_file_in_parallel(unique_path, self.PO, self.folders))
+        with ThreadPoolExecutor() as executor:
+            results = list(executor.map(self.read_file_in_parallel, files_path, [self.folders]*len(files_path)))
 
         results = [result for result in results if result is not None]
 
@@ -129,51 +110,74 @@ class Read_Scenarios():
             self.OpPointsC = 0
             print('No data was processed.')
 
-
+    def get_dataframes_csv(self):
+        """Extract data from CSV files previously saved."""
+        self.Df_Cases = pd.read_csv(self.csv, sep=';')
+        self.Df_Cases['Dia'] = self.Df_Cases['Dia'].astype(str).str.zfill(2)
+        results = self.Df_Cases.groupby(['Dia', 'Hora'])['BUS_ID'].first()
+        self.OpPointsC = results.shape[0]
+        print('O numero total de casos analisados é: ', self.OpPointsC)
 
 # ======================================================================================================================
-#                                                AC & DC & RESERVE INFO EXTRACTION 
+#                                                AC & DC LINES & RESERVE INFO EXTRACTION 
 # ======================================================================================================================
         
-    def get_Networkinfo(self, linhas = True, Reserva = False, Intercambios = False):
+    def get_Networkinfo(self, linhas = True, Reserva = False, Intercambios = False, hour = None):
 
-        files_and_directories = os.listdir(self.path)
-        days = [nomes_archivos for nomes_archivos in files_and_directories if 'DS20' in nomes_archivos] 
-        days.sort() 
-
+        print(f'*** ETAPA: LEITURA DE INFORMAÇÃO DAS LINHAS ***')
         PWFs_sep = []
         dtype_dict_linhas = {'From#':'int32', ' From Name':'object', ' To# - Circ#':'object', ' To Name':'object', ' Type':'object', ' MVA':'float32', ' % L1':'float32', ' L1(MVA)':'float32', ' MW:From-To':'float32', ' Mvar:From-To':'float32',  ' Mvar:Losses':'float32', ' MW:To-From':'float32', ' Power Factor:From-To':'float32', ' Power Factor:To-From':'float32'}
         col_list = ['From#', ' From Name', ' To# - Circ#', ' To Name', ' Type', ' MVA', ' % L1', ' L1(MVA)', ' MW:From-To', ' Mvar:From-To',  ' Mvar:Losses', ' MW:To-From', ' Power Factor:From-To', ' Power Factor:To-From']
-        # col_list = ['From#', ' From Name', ' To# - Circ#', ' To Name', ' Type', ' MVA', ' % L1', ' L1(MVA)',  ' Mvar:Losses']
         DCLinks_sep = []
-        # col_list_hvdc = ['Bus #', ' Bus Name', ' Type', ' Pole #', ' P(MW)', ' Q(Mvar)', ' Satus']
         col_list_hvdc = ['Bus #', ' Bus Name', ' Type', ' Pole #', ' P(MW)', ' Q(Mvar)', ' Status']
         SGN01_sep = []
         col_list_reserve = ['Bus', ' Group', ' Bus Name', ' Area', ' Zone', ' V (pu)', ' Pg(MW)', ' Qg(Mvar)', ' Reserve', ' Units']
 
-        print(f'*** ETAPA: LEITURA DE INFORMAÇÃO DAS LINHAS ***')
-    
-        for i in days:
-            folder = os.path.join(self.path, i, 'Output')
-            files = [file for file in os.listdir(folder) if file.endswith('.csv')]
-
-            for file in files:
-                caminho_arquivo = os.path.join(folder, file)
+        if self.PO == True:
+            files_and_directories = os.path.dirname(self.path)
+            files_path = [os.path.join(files_and_directories, file_name) for file_name in os.listdir(files_and_directories) if file_name.endswith(hour+'.csv')]
+            for  caminho_arquivo in files_path:
+                file = os.path.join(os.path.basename(caminho_arquivo))
                 if file.startswith('PWF16_') and linhas:
                     df = dd.read_csv(caminho_arquivo, sep=';', skiprows=[0], usecols=col_list, dtype=dtype_dict_linhas)
-                    df['Dia'] = i[-2:]
+                    df['Dia'] = os.path.basename(os.path.dirname(files_and_directories))[-2:]
                     df['Hora'] = file.split('_')[-1].split('.')[0]
                     PWFs_sep.append(df)
                 elif file.startswith('PWF25_') and Intercambios:
                     df = dd.read_csv(caminho_arquivo, sep=';', skiprows=[0], usecols=col_list_hvdc)
-                    df['Dia'] = i[-2:]
+                    df['Dia'] = os.path.basename(os.path.dirname(files_and_directories))[-2:]
                     df['Hora'] = file.split('_')[-1].split('.')[0]
                     DCLinks_sep.append(df)
                 elif file.startswith('SGN01_') and Reserva:
                     df = dd.read_csv(caminho_arquivo, sep=';', skiprows=[0], usecols=col_list_reserve)
-                    df['Dia'] = i[-2:]
+                    df['Dia'] = os.path.basename(os.path.dirname(files_and_directories))[-2:]
                     df['Hora'] = file.split('_')[-1].split('.')[0]
                     SGN01_sep.append(df)
+        else:
+            days = self.folders 
+            days.sort() 
+
+            for i in days:
+                folder = os.path.join(self.path, i, 'Output')
+                files = [file for file in os.listdir(folder) if file.endswith('.csv')]
+
+                for file in files:
+                    caminho_arquivo = os.path.join(folder, file)
+                    if file.startswith('PWF16_') and linhas:
+                        df = dd.read_csv(caminho_arquivo, sep=';', skiprows=[0], usecols=col_list, dtype=dtype_dict_linhas)
+                        df['Dia'] = i[-2:]
+                        df['Hora'] = file.split('_')[-1].split('.')[0]
+                        PWFs_sep.append(df)
+                    elif file.startswith('PWF25_') and Intercambios:
+                        df = dd.read_csv(caminho_arquivo, sep=';', skiprows=[0], usecols=col_list_hvdc)
+                        df['Dia'] = i[-2:]
+                        df['Hora'] = file.split('_')[-1].split('.')[0]
+                        DCLinks_sep.append(df)
+                    elif file.startswith('SGN01_') and Reserva:
+                        df = dd.read_csv(caminho_arquivo, sep=';', skiprows=[0], usecols=col_list_reserve)
+                        df['Dia'] = i[-2:]
+                        df['Hora'] = file.split('_')[-1].split('.')[0]
+                        SGN01_sep.append(df)
 
         if linhas:
             PWF16_concatenados = dd.concat(PWFs_sep, ignore_index=True).compute()
@@ -188,9 +192,10 @@ class Read_Scenarios():
             PWF16_concatenados['To#'] = PWF16_concatenados['To#'].astype('int32')
             PWF16_concatenados.drop(columns=["To# - Circ#"], inplace=True)
             self.linesInfo = PWF16_concatenados
-            print("Salvando Dataframe das linhas")
-            PWF16_concatenados.to_csv(self.path+'/LinhasInfo.csv', index=None)
-            print("Final da leitura das Linhas")
+            if not self.PO:
+                print("Salvando Dataframe das linhas")
+                PWF16_concatenados.to_csv(self.path+'/LinhasInfo.csv', index=None)
+                print("Final da leitura das Linhas")
 
             if Intercambios:
                 self.get_Intercambios()
@@ -199,9 +204,10 @@ class Read_Scenarios():
             print("Concatenação da info do HVDC")
             DCLinks_concatenados = dd.concat(DCLinks_sep, ignore_index=True).compute()
             self.HVDCInfo = DCLinks_concatenados
-            print("Salvando Dataframe do HVDC")
-            DCLinks_concatenados.to_csv(self.path+'/HVDCInfo.csv', index=None)
-            print("Final da leitura do HVDC")
+            if not self.PO:
+                print("Salvando Dataframe do HVDC")
+                DCLinks_concatenados.to_csv(self.path+'/HVDCInfo.csv', index=None)
+                print("Final da leitura do HVDC")
         
         if Reserva:
             print("Concatenação da Reserva")
@@ -212,9 +218,10 @@ class Read_Scenarios():
             SGN01_concatenados[' Reserve']= SGN01_concatenados[' Reserve'].astype(float)
             SGN01_concatenados[' Units']= SGN01_concatenados[' Units'].astype(int)
             self.ReserveInfo = SGN01_concatenados
-            print("Salvando Dataframe da Reserva")
-            SGN01_concatenados.to_csv(self.path+'/ReservaInfo.csv', index=None)
-            print("Final da leitura da Reserva")
+            if not self.PO:
+                print("Salvando Dataframe da Reserva")
+                SGN01_concatenados.to_csv(self.path+'/ReservaInfo.csv', index=None)
+                print("Final da leitura da Reserva")
 
     def generatescript(self, path = None):
 
@@ -329,15 +336,16 @@ class Read_Scenarios():
         Fluxo_RSUL_grouped.loc[:, 'MW:From-To'] *= -1
 
         self.DF_Intercambios = pd.concat([EXPNE_grouped,Fluxo_NESE_grouped, Fluxo_NS_grouped, Fluxo_SULSECO_grouped, Fluxo_NEN_grouped, Fluxo_RSUL_grouped], axis=0, keys=['EXP_NE', 'Fluxo_NE-SE', 'Fluxo_N-S' ,'Fluxo_SUL-SECO', 'Fluxo_NE-N', 'Fluxo_RSUL'])
-        print(f'*** ETAPA: Salvando dados dos Intercambios ***')
-        self.DF_Intercambios.to_csv(self.cenario+'/DF_Intercambios.csv')
-        print(f'*** ETAPA: FINAL DA OBTENÇÃO DE INTERCAMBIOS ***')
+        if not self.PO:
+            print(f'*** ETAPA: Salvando dados dos Intercambios ***')
+            self.DF_Intercambios.to_csv(self.cenario+'/DF_Intercambios.csv')
+            print(f'*** ETAPA: FINAL DA OBTENÇÃO DE INTERCAMBIOS ***')
 
 # ======================================================================================================================
 #                                                   CONVERGENCE INFO EXTRACTION
 # ======================================================================================================================
 
-    def get_ConvergenceData(self):
+    def get_convergence_data(self):
 
         import re
         days = self.folders
@@ -390,7 +398,7 @@ class Read_Scenarios():
 
 class ProcessData():
 
-    def __init__(self,  df, cenario, pathcsv=None, extract_fromcsv=False, busdata=False, ):
+    def __init__(self,  df, cenario, pathcsv=None, extract_fromcsv=False, savecsv = True, busdata=False, ):
         
         self.df  = df
         self.cenario = cenario
@@ -414,8 +422,9 @@ class ProcessData():
             
             self.get_splitdata_PV_PQ()
             self.get_processdata_region()
-            print(f'*** Salvando Dataframe com Região e Estado ***')
-            self.Df_VF_SF.to_csv(pathcsv, sep=';', index=False)
+            if savecsv:
+                print(f'*** Salvando Dataframe com Região e Estado ***')
+                self.Df_VF_SF.to_csv(pathcsv, sep=';', index=False)
         
     def get_processdata(self):
 

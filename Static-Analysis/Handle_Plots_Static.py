@@ -7,10 +7,11 @@ import pandas as pd
 
 class Plots_Static():
 
-    def __init__(self, cenario, svg = False) -> None:
+    def __init__(self, cenario, svg = False, PO = False) -> None:
         
         self.cenario = cenario
         self.svg = svg
+        self.PO = PO
         plt.rcParams["font.family"] = "Times New Roman"
         self.paletadcolor = sns.color_palette()
 
@@ -211,26 +212,38 @@ class Plots_Static():
         colores = [sns.color_palette("Paired")[1], sns.color_palette("Paired")[3], sns.color_palette("Paired")[5],sns.color_palette("Paired")[7],sns.color_palette("Paired")[9]]
         region_map = {'Nordeste':'Northeast', 'Norte':'North', 'Sudeste-Centro-Oeste':'SE-CW', 'Sul':'South','AC-RO':'AC-RO'}
         for idx, regiao in enumerate(['Norte','Nordeste','Sudeste-Centro-Oeste', 'Sul', 'AC-RO']):
-            
-            if order:
-                data = df_data.loc[:, :, regiao].sort_values(INDICE, ascending=False)[INDICE]
-                data_points_per_day = 10
-                num_days = 1344*data_points_per_day / 100
-                axs.set_xticks([round(i * num_days) for i in range(data_points_per_day+1)])
-                axs.set_xticklabels([f'{i*10}' for i in range(data_points_per_day+1)], fontsize=12, rotation=0, ha='center')
+
+            if not self.PO:         
+                if order:
+                    data = df_data.loc[:, :, regiao].sort_values(INDICE, ascending=False)[INDICE]
+                    data_points_per_day = 10
+                    num_days = 1344*data_points_per_day / 100
+                    axs.set_xticks([round(i * num_days) for i in range(data_points_per_day+1)])
+                    axs.set_xticklabels([f'{i*10}' for i in range(data_points_per_day+1)], fontsize=12, rotation=0, ha='center')
+                else:
+                    data = df_data.loc[:, :, regiao][INDICE]
+                    data_points_per_day = 48
+                    num_days = len(data) // data_points_per_day
+                    axs.set_xticks([i * data_points_per_day for i in range(num_days)])
+                    axs.set_xticklabels([f'{i+1}' for i in range(num_days)], fontsize=18, rotation=0, ha='center')
+                
+                axs.plot(data.values, color=colores[idx], label=region_map[regiao], lw=2, linestyle='-')
+
             else:
-                data = df_data.loc[:, :, regiao][INDICE]
-                data_points_per_day = 48
-                num_days = len(data) // data_points_per_day
-                axs.set_xticks([i * data_points_per_day for i in range(num_days)])
-                axs.set_xticklabels([f'{i+1}' for i in range(num_days)], fontsize=18, rotation=0, ha='center')
+                if order:
+                    data = df_data.loc[:, :, regiao].sort_values(INDICE, ascending=False)[INDICE]
+                else:
+                    data = df_data.loc[:, :, regiao][INDICE]
             
-            axs.plot(data.values, color=colores[idx], label=region_map[regiao], lw=2, linestyle='-')
+                axs.bar(region_map[regiao], data, color=colores[idx], label=region_map[regiao], linewidth=2, linestyle='-')
             
         axs.legend(loc='upper right', fontsize=18)
         axs.tick_params(axis='y', labelsize=24)
         axs.tick_params(axis='x', labelsize=18)
-        axs.set_xlabel('Percentage of half hours in a month (%)', fontsize=23)
+        if not self.PO:
+            axs.set_xlabel('Percentage of half hours in a month (%)', fontsize=23)
+        else:
+            axs.set_xlabel('Region', fontsize=23)
         axs.set_ylabel(eje_y, fontsize=22)
         axs.set_title(title, fontsize=22)
         if xlimites != None:
@@ -257,9 +270,12 @@ class Plots_Static():
             else:
                 datapq = df_pq.loc[:, :, regiao].sort_values(indice, ascending=False)[indice]
                 datapv = df_pv.loc[:, :, regiao].sort_values(indice, ascending=False)[indice]
-                
-            axs.plot(datapq.values, color=colores[idx], label='PQ_'+ indice[4:7],lw=2, linestyle='-')
-            axs.plot(datapv.values, color=colores[idx+2], label='PV_'+ indice[4:7],lw=2, linestyle='-')
+            if not self.PO:     
+                axs.plot(datapq.values, color=colores[idx], label='PQ_'+ indice[4:7],lw=2, linestyle='-')
+                axs.plot(datapv.values, color=colores[idx+2], label='PV_'+ indice[4:7],lw=2, linestyle='-')
+            else:
+                axs.bar(indice, datapq.values, color=colores[idx], label='PQ_'+ indice[4:7], linewidth=2, linestyle='-')
+                axs.bar(indice, datapv.values, color=colores[idx + 2 ], label='PV_'+ indice[4:7], linewidth=2, linestyle='-')
 
         axs.legend(loc='best', fontsize=18)
 
@@ -273,7 +289,11 @@ class Plots_Static():
 
         axs.tick_params(axis='y', labelsize=18)
         axs.tick_params(axis='x', labelsize=18)
-        axs.set_xlabel('Operating points', fontsize=23)
+        if not self.PO: 
+            axs.set_xlabel('Operating points', fontsize=23)
+        else:
+            axs.set_xlabel('Index', fontsize=23)
+
         axs.set_ylabel(eje_y, fontsize=20)
         axs.set_title(title, fontsize=25)
         if limites != None:
@@ -306,7 +326,10 @@ class Plots_Static():
                 label = labelG[G_bus]
             else:
                 label = G_bus
-            axs.plot(data_.values, color=colores[G_bus], label= label,lw=2)
+            if not self.PO:
+                axs.plot(data_.values, color=colores[G_bus], label= label,lw=2)
+            else:
+                axs.bar(str(G_bus), data_.values, color=colores[G_bus], label=label, linewidth=2)
 
         axs.legend(loc='best', fontsize=14)
         # Calculate the number of data points in a day (assuming each day has 48 data points)
@@ -317,7 +340,11 @@ class Plots_Static():
         axs.set_xticks([i * data_points_per_day for i in range(num_days)])
         axs.set_xticklabels([f'{i+1}' for i in range(num_days)], fontsize=18, rotation=0, ha='center')
         axs.tick_params(axis='y', labelsize=18)
-        axs.set_xlabel('Days', fontsize=23)
+        if not self.PO:
+            axs.set_xlabel('Days', fontsize=23)
+        else:
+            axs.set_xlabel('Bus Group', fontsize=23)
+            
         axs.set_ylabel(eje_y, fontsize=20)
         axs.set_title(title, fontsize=25)
         if limites != None:
@@ -330,3 +357,144 @@ class Plots_Static():
             nome = self.cenario + '/Indice/' + name + '.svg'
             plt.savefig(nome)
         plt.close('all')
+
+    def analise_regiao_plot(self, data_GER, nome):
+        
+        # Data for the first plot
+        sns.set_context('talk')
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(20, 12), sharex=True)  # 2 rows, 1 column
+        bar_width = 0.4
+        data_pg = data_GER[['PG_MW', 'PL_MW']].loc[['Norte','Nordeste','Sudeste-Centro-Oeste','Sul','AC-RO']]
+        x = np.arange(len(data_pg.index))
+        b1 = ax1.bar(x, data_pg['PG_MW'], width=bar_width, label='PG_MW')
+        b2 = ax1.bar(x + bar_width, data_pg['PL_MW'], width=bar_width, label='PL_MW')
+        # Fix the x-axes.
+        ax1.set_xticks(x + bar_width / 2)
+        ax1.set_xticklabels(data_pg.index.unique(), rotation=0, ha='center') 
+        # Add legend.
+        ax1.legend()
+        # Axis styling.
+        ax1.spines['top'].set_visible(False)
+        ax1.spines['right'].set_visible(False)
+        ax1.spines['left'].set_visible(False)
+        ax1.spines['bottom'].set_color('#DDDDDD')
+        ax1.tick_params(bottom=False, left=False)
+        ax1.set_axisbelow(True)
+        ax1.yaxis.grid(True, color='#EEEEEE')
+        ax1.xaxis.grid(False)
+        # Add a legend for the second subplot
+        ax1.legend(title='', bbox_to_anchor=(1.05, 1), loc='upper left')
+        # Add axis and chart labels.
+        ax1.set_ylabel('MW', labelpad=15)
+        ax1.set_title('Potencia Gerada y Demanda Liquida por Região - MW')
+        # For each bar in the chart, add a text label.
+        for bar in b1 + b2:
+                bar_value = bar.get_height()
+                text = f'{bar_value:,.2f}'
+                text_x = bar.get_x() + bar.get_width() / 2
+                text_y = bar.get_y() + bar_value
+                bar_color = bar.get_facecolor()
+                ax1.text(text_x, text_y, text, ha='center', va='bottom', color=bar_color, size=12)
+
+        # Data for the second plot
+        df = data_GER[['PG_UHE','PG_UTE','PG_EOL','PG_SOL']].loc[['Norte','Nordeste','Sudeste-Centro-Oeste','Sul','AC-RO']]
+        # Plotting on the second subplot
+        df.plot.bar(stacked=True, ax=ax2, alpha=0.7, color=['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728'])
+        # Customize label size and rotation for the second subplot
+        ax2.tick_params(axis='y', labelsize=15, rotation=0)
+        # Axis styling.
+        ax2.spines['top'].set_visible(False)
+        ax2.spines['right'].set_visible(False)
+        ax2.spines['left'].set_visible(False)
+        ax2.spines['bottom'].set_color('#DDDDDD')
+        ax2.tick_params(bottom=False, left=False)
+        ax2.set_axisbelow(True)
+        ax2.yaxis.grid(True, color='#EEEEEE')
+        ax2.xaxis.grid(False)
+        # Add a legend for the second subplot
+        ax2.legend(title='Source', bbox_to_anchor=(1.05, 1), loc='upper left')
+        ax2.set_xticklabels(data_pg.index.unique(), rotation=0, ha='center') 
+        ax2.set_ylabel('MW', labelpad=15)
+        ax2.set_title('Potencia Gerada por tipo de geração - MW')
+        plt.tight_layout()
+        nomesave = self.cenario + '/Power_by_Regions/MW_' + nome + '.png'
+        plt.savefig(nomesave)
+        # plt.show()
+
+        # Data for the second plot ================================================================
+
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(20, 12), sharex=True)  # 2 rows, 1 column
+        # First plot
+        bar_width = 0.4
+        x = np.arange(len(data_GER.index))
+        data_qg = data_GER['QG_MVAR'][['Norte','Nordeste','Sudeste-Centro-Oeste','Sul','AC-RO']]
+        b1 = ax1.bar(x, data_qg, width=bar_width, label='QG_MVAR')
+        data_ql = data_GER['QL_MVAR'][['Norte','Nordeste','Sudeste-Centro-Oeste','Sul','AC-RO']]
+        b2 = ax1.bar(x + bar_width, data_ql ,width=bar_width, label='QL_MVAR')
+        # Fix the x-axes.
+        ax1.set_xticks(x + bar_width / 2)
+        ax1.set_xticklabels(data_qg.index.unique(), rotation=45, ha='right')  # Rotate the x-axis labels
+        # Add legend.
+        ax1.legend(title='', bbox_to_anchor=(1.05, 1), loc='upper left')
+        # Axis styling.
+        ax1.spines['top'].set_visible(False)
+        ax1.spines['right'].set_visible(False)
+        ax1.spines['left'].set_visible(False)
+        ax1.spines['bottom'].set_color('#DDDDDD')
+        ax1.tick_params(bottom=False, left=False)
+        ax1.set_axisbelow(True)
+        ax1.yaxis.grid(True, color='#EEEEEE')
+        ax1.xaxis.grid(False)
+        # Add axis and chart labels.
+        ax1.set_xlabel('Região', labelpad=15)
+        ax1.set_ylabel('MVAR', labelpad=15)
+        ax1.set_title('Potencia Gerada y Demanda Liquida por Região - MVAR', pad=20)
+        # For each bar in the chart, add a text label.
+        for bar in b1 + b2:
+                bar_value = bar.get_height()
+                text = f'{bar_value:,.2f}'
+                text_x = bar.get_x() + bar.get_width() / 2
+                text_y = bar.get_y() + bar_value
+                bar_color = bar.get_facecolor()
+                ax1.text(text_x, text_y, text, ha='center', va='bottom', color='black', size=12)
+        # Second plot
+        sns.set_context('talk')  # Use Seaborn's context settings to make fonts larger.
+        bar_width = 0.4
+        data_shunt = data_GER['Shunt_Ind'][['Norte','Nordeste','Sudeste-Centro-Oeste','Sul','AC-RO']]
+        b1 = ax2.bar(x, data_shunt, width=bar_width, color=sns.color_palette("Paired")[1], label='Shunt_Ind')
+        data_shunt_inst = data_GER['SHUNT_INST_IND'][['Norte','Nordeste','Sudeste-Centro-Oeste','Sul','AC-RO']]
+        b2 = ax2.bar(x + bar_width, data_shunt_inst ,width=bar_width, color=sns.color_palette("Paired")[0], label='Shunt_Ind_Inst')
+        data_shunt_cap = data_GER['Shunt_Cap'][['Norte','Nordeste','Sudeste-Centro-Oeste','Sul','AC-RO']]
+        b3 = ax2.bar(x, data_shunt_cap, width=bar_width, color=sns.color_palette("Paired")[3], label='Shunt_Cap')
+        data_shunt_cap_inst = data_GER['SHUNT_INST_CAP'][['Norte','Nordeste','Sudeste-Centro-Oeste','Sul','AC-RO']]
+        b4 = ax2.bar(x + bar_width, data_shunt_cap_inst ,width=bar_width, color=sns.color_palette("Paired")[2], label='Shunt_Cap_Inst')
+        # Fix the x-axes.
+        ax2.set_xticks(x + bar_width / 2)
+        ax2.set_xticklabels(data_shunt.index.unique(), rotation=45, ha='right')  # Rotate the x-axis labels
+        ax2.legend(title='', bbox_to_anchor=(1.05, 1), loc='upper left')
+        # Axis styling.
+        ax2.spines['top'].set_visible(False)
+        ax2.spines['right'].set_visible(False)
+        ax2.spines['left'].set_visible(False)
+        ax2.spines['bottom'].set_color('#DDDDDD')
+        ax2.tick_params(bottom=False, left=False)
+        ax2.set_axisbelow(True)
+        ax2.yaxis.grid(True, color='#EEEEEE')
+        ax2.xaxis.grid(False)
+        # Add axis and chart labels.
+        ax2.set_xlabel('Região', labelpad=15)
+        ax2.set_ylabel('MVAR', labelpad=15)
+        ax2.set_title('Shunt Alocado e Shunt Instalado por Região', pad=15)
+        # For each bar in the chart, add a text label.
+        for bar in b1 + b2 + b3 + b4:
+                bar_value = bar.get_height()
+                text = f'{bar_value:,.2f}'
+                text_x = bar.get_x() + bar.get_width() / 2
+                text_y = bar.get_y() + bar_value
+                bar_color = bar.get_facecolor()
+                ax2.text(text_x, text_y, text, ha='center', va='bottom', color='black', size=12)
+                
+        ax2.set_xticklabels(data_pg.index.unique(), rotation=0, ha='center') 
+        plt.tight_layout()
+        nomesave = self.cenario + '/Power_by_Regions/MW_' + nome + '.png'
+        plt.savefig(nomesave)
