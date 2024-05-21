@@ -2,5 +2,6 @@
 Static-Analysis/RECURSOS/Opf_Simulation.py
 Static-Analysis/RECURSOS/Opf_Simulation_filtrado.py
 Static-Analysis/RECURSOS/teste_estados_interligaciones.py
-Static-Analysis/CompareCenarios_Cluster_2.py
-Static-Analysis/CompareCenarios_Cluster.py
+Static-Analysis/CompareCenarios_Cluster_2.ipynb
+Static-Analysis/CompareCenarios_Cluster.ipynb
+Static-Analysis/CompareCenarios.ipynb
