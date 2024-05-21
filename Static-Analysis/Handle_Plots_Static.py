@@ -69,7 +69,7 @@ class Plots_Static():
         if self.svg:
             nome = self.cenario + '/BoxPlot/' + title + '.svg'
             plt.savefig(nome)
-        plt.close('all')
+        plt.close()
 
     def plot_Potencia(self, df_data, eje_y, title, limites=None):
         
@@ -95,14 +95,14 @@ class Plots_Static():
         plt.tight_layout()
         nome = self.cenario + '/Potencia/' + title + '.png'
         plt.savefig(nome, bbox_inches = 'tight')
-        plt.close('all')
+        plt.close()
 
     def plot_reserva_reg (self, df_data, eje_y, name, title, INDICE, xlimites=None,ylimites=None, order = False):
 
         fig, axs = plt.subplots(nrows=1, figsize=(20, 10), sharex=False)
         colores = [sns.color_palette("Paired")[1], sns.color_palette("Paired")[3], sns.color_palette("Paired")[4],sns.color_palette("Paired")[7],sns.color_palette("Paired")[9]]
         region_map = {'Nordeste':'Northeast', 'Norte':'North', 'Sudeste-Centro-Oeste':'SE-CW', 'Sul':'South','AC-RO':'AC-RO'}
-        for idx, regiao in enumerate(['Norte','Nordeste','Sudeste-Centro-Oeste', 'Sul', 'AC-RO']):
+        for idx, regiao in enumerate(df_data.index.get_level_values('REG').unique().values):
             
             if order:
                 data = df_data.loc[:, :, regiao].sort_values(INDICE, ascending=False)[INDICE]
@@ -125,7 +125,7 @@ class Plots_Static():
         plt.tight_layout()
         nome = self.cenario + '/Potencia/' + name + '.png'
         plt.savefig(nome)
-        plt.close('all')
+        plt.close()
 
     def plot_Intercambio (self, df_AC, df_DC , eje_y, title, COL_AC, COL_DC, Ylimites=None, Xlimites=  None):
 
@@ -160,7 +160,7 @@ class Plots_Static():
         if self.svg:
             nome = self.cenario + '/Intercambios/' + title + '.svg'
             plt.savefig(nome)
-        plt.close('all')
+        plt.close()
 
     def plot_indice_0 (self, df_data, eje_y, name, title, INDICE, xlimites=None,ylimites=None, order = False, ax=None):
         
@@ -202,7 +202,7 @@ class Plots_Static():
             if self.svg:
                 nome = self.cenario + '/Indice/' + name + '.svg'
                 plt.savefig(nome, bbox_inches = 'tight')
-            plt.close('all')
+            plt.close()
 
         return area_trapezoidal
 
@@ -257,7 +257,7 @@ class Plots_Static():
         if self.svg:
             nome = self.cenario + '/Indice/' + name + '.svg'
             plt.savefig(nome)
-        plt.close('all')     
+        plt.close()     
 
     def plot_indice_1 (self, df_pv, df_pq, eje_y, title, regiao, limites=None, order = True):
 
@@ -305,7 +305,7 @@ class Plots_Static():
         if self.svg:
             nome = self.cenario + '/Indice/' + title + '.svg'
             plt.savefig(nome)       
-        plt.close('all')
+        plt.close()
 
     def plot_indice_2 (self, df, eje_y, name ,title, regiao, INDICE, GB, limites=None, order = True):
 
@@ -356,7 +356,7 @@ class Plots_Static():
         if self.svg:
             nome = self.cenario + '/Indice/' + name + '.svg'
             plt.savefig(nome)
-        plt.close('all')
+        plt.close()
 
     def analise_regiao_plot(self, data_GER, nome):
         
@@ -498,3 +498,4 @@ class Plots_Static():
         plt.tight_layout()
         nomesave = self.cenario + '/Power_by_Regions/MW_' + nome + '.png'
         plt.savefig(nomesave)
+        plt.close()

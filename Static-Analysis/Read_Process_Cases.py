@@ -97,9 +97,10 @@ class ReadScenarios:
 
         with ThreadPoolExecutor() as executor:
             results = list(executor.map(self.read_file_in_parallel, files_path, [self.folders]*len(files_path)))
-
+            
+        print('Check if results is not empty before concatenating')
         results = [result for result in results if result is not None]
-
+        print('Concatenating ...')
         if results:  # Check if results is not empty before concatenating
             df_Cvg = pd.concat(results, axis=0, sort=False)
             self.Df_Cases = df_Cvg.sort_values(by=['Dia', 'Hora'])
@@ -122,108 +123,100 @@ class ReadScenarios:
 #                                                AC & DC LINES & RESERVE INFO EXTRACTION 
 # ======================================================================================================================
         
-    def get_Networkinfo(self, linhas = True, Reserva = False, Intercambios = False, hour = None):
-
+    def get_Networkinfo(self, linhas=True, Reserva=False, Intercambios=False, hour=None):
         print(f'*** ETAPA: LEITURA DE INFORMAÇÃO DAS LINHAS ***')
-        PWFs_sep = []
-        dtype_dict_linhas = {'From#':'int32', ' From Name':'object', ' To# - Circ#':'object', ' To Name':'object', ' Type':'object', ' MVA':'float32', ' % L1':'float32', ' L1(MVA)':'float32', ' MW:From-To':'float32', ' Mvar:From-To':'float32',  ' Mvar:Losses':'float32', ' MW:To-From':'float32', ' Power Factor:From-To':'float32', ' Power Factor:To-From':'float32'}
-        col_list = ['From#', ' From Name', ' To# - Circ#', ' To Name', ' Type', ' MVA', ' % L1', ' L1(MVA)', ' MW:From-To', ' Mvar:From-To',  ' Mvar:Losses', ' MW:To-From', ' Power Factor:From-To', ' Power Factor:To-From']
-        DCLinks_sep = []
+        
+        dtype_dict_linhas = {
+            'From#': 'int32', ' From Name': 'object', ' To# - Circ#': 'object', ' To Name': 'object', ' Type': 'object',
+            ' MVA': 'float32', ' % L1': 'float32', ' L1(MVA)': 'float32', ' MW:From-To': 'float32', ' Mvar:From-To': 'float32',
+            ' Mvar:Losses': 'float32', ' MW:To-From': 'float32', ' Power Factor:From-To': 'float32', ' Power Factor:To-From': 'float32'
+        }
+        col_list_lines = [
+            'From#', ' From Name', ' To# - Circ#', ' To Name', ' Type', ' MVA', ' % L1', ' L1(MVA)', ' MW:From-To',
+            ' Mvar:From-To', ' Mvar:Losses', ' MW:To-From', ' Power Factor:From-To', ' Power Factor:To-From'
+        ]
         col_list_hvdc = ['Bus #', ' Bus Name', ' Type', ' Pole #', ' P(MW)', ' Q(Mvar)', ' Status']
-        SGN01_sep = []
         col_list_reserve = ['Bus', ' Group', ' Bus Name', ' Area', ' Zone', ' V (pu)', ' Pg(MW)', ' Qg(Mvar)', ' Reserve', ' Units']
 
-        if self.PO == True:
-            files_and_directories = os.path.dirname(self.path)
-            files_path = [os.path.join(files_and_directories, file_name) for file_name in os.listdir(files_and_directories) if file_name.endswith(hour+'.csv')]
-            for  caminho_arquivo in files_path:
-                file = os.path.join(os.path.basename(caminho_arquivo))
-                if file.startswith('PWF16_') and linhas:
-                    df = dd.read_csv(caminho_arquivo, sep=';', skiprows=[0], usecols=col_list, dtype=dtype_dict_linhas)
-                    df['Dia'] = os.path.basename(os.path.dirname(files_and_directories))[-2:]
-                    df['Hora'] = file.split('_')[-1].split('.')[0]
-                    PWFs_sep.append(df)
-                elif file.startswith('PWF25_') and Intercambios:
-                    df = dd.read_csv(caminho_arquivo, sep=';', skiprows=[0], usecols=col_list_hvdc)
-                    df['Dia'] = os.path.basename(os.path.dirname(files_and_directories))[-2:]
-                    df['Hora'] = file.split('_')[-1].split('.')[0]
-                    DCLinks_sep.append(df)
-                elif file.startswith('SGN01_') and Reserva:
-                    df = dd.read_csv(caminho_arquivo, sep=';', skiprows=[0], usecols=col_list_reserve)
-                    df['Dia'] = os.path.basename(os.path.dirname(files_and_directories))[-2:]
-                    df['Hora'] = file.split('_')[-1].split('.')[0]
-                    SGN01_sep.append(df)
+        def add_dia_hora(df, path, dia, hour=None):
+            df['Dia'] = dia
+            df['Hora'] = hour if hour else os.path.basename(path).split('_')[-1].split('.')[0]
+            return df
+
+        def get_files_path(base_path, pattern):
+            return [os.path.join(base_path, file) for file in os.listdir(base_path) if file.endswith(pattern + '.csv')]
+
+        if self.PO:
+            files_path = get_files_path(os.path.dirname(self.path), hour)
         else:
-            days = self.folders 
-            days.sort() 
+            files_path = []
+            for day in sorted(self.folders):
+                folder = os.path.join(self.path, day, 'Output')
+                files_path.extend(get_files_path(folder, ''))
 
-            for i in days:
-                folder = os.path.join(self.path, i, 'Output')
-                files = [file for file in os.listdir(folder) if file.endswith('.csv')]
+        def read_files(pattern, col_list, dtype_dict=None):
+            filtered_files = [file for file in files_path if pattern in os.path.basename(file)]
+            if not filtered_files:
+                return []
+            dfs = [dd.read_csv(file, sep=';', skiprows=[0], usecols=col_list, dtype=dtype_dict)
+                   .pipe(add_dia_hora, file, os.path.basename(os.path.dirname(os.path.dirname(file)))[-2:], hour)
+                   for file in filtered_files]
+            return dfs
 
-                for file in files:
-                    caminho_arquivo = os.path.join(folder, file)
-                    if file.startswith('PWF16_') and linhas:
-                        df = dd.read_csv(caminho_arquivo, sep=';', skiprows=[0], usecols=col_list, dtype=dtype_dict_linhas)
-                        df['Dia'] = i[-2:]
-                        df['Hora'] = file.split('_')[-1].split('.')[0]
-                        PWFs_sep.append(df)
-                    elif file.startswith('PWF25_') and Intercambios:
-                        df = dd.read_csv(caminho_arquivo, sep=';', skiprows=[0], usecols=col_list_hvdc)
-                        df['Dia'] = i[-2:]
-                        df['Hora'] = file.split('_')[-1].split('.')[0]
-                        DCLinks_sep.append(df)
-                    elif file.startswith('SGN01_') and Reserva:
-                        df = dd.read_csv(caminho_arquivo, sep=';', skiprows=[0], usecols=col_list_reserve)
-                        df['Dia'] = i[-2:]
-                        df['Hora'] = file.split('_')[-1].split('.')[0]
-                        SGN01_sep.append(df)
+        PWFs_sep = read_files('PWF16_', col_list_lines, dtype_dict_linhas) if linhas else []
+        DCLinks_sep = read_files('PWF25_', col_list_hvdc) if Intercambios else []
+        SGN01_sep = read_files('SGN01_', col_list_reserve) if Reserva else []
+
+        def concat_and_compute(dfs):
+            if dfs:
+                return dd.concat(dfs, ignore_index=True).compute()
+            return pd.DataFrame()
 
         if linhas:
-            PWF16_concatenados = dd.concat(PWFs_sep, ignore_index=True).compute()
-            PWF16_concatenados.rename(columns={'From#':'From#', ' From Name': 'From Name', ' To# - Circ#':'To# - Circ#', ' To Name':'To Name', ' Type':'Type', ' MVA':'MVA', ' MW:From-To':'MW:From-To', ' Mvar:From-To':'Mvar:From-To',
-                                                ' % L1':'% L1', ' L1(MVA)':'L1(MVA)',  ' Mvar:Losses':'Mvar:Losses', ' MW:To-From':'MW:To-From', ' Power Factor:From-To':'Power Factor:From-To', ' Power Factor:To-From':'Power Factor:To-From',
-                                               }, inplace=True)
-            
-            # Splitting "To# - Circ#" column and creating new columns
-            print("Concatenação das linhas")
-            PWF16_concatenados[['To#', 'Circ#']] = PWF16_concatenados["To# - Circ#"].str.split(' # ', expand=True)
-            PWF16_concatenados['From#'] = PWF16_concatenados['From#'].astype('int32')
-            PWF16_concatenados['To#'] = PWF16_concatenados['To#'].astype('int32')
-            PWF16_concatenados.drop(columns=["To# - Circ#"], inplace=True)
-            self.linesInfo = PWF16_concatenados
-            if not self.PO:
-                print("Salvando Dataframe das linhas")
-                PWF16_concatenados.to_csv(self.path+'/LinhasInfo.csv', index=None)
-                print("Final da leitura das Linhas")
+            PWF16_concatenados = concat_and_compute(PWFs_sep)
 
-            if Intercambios:
-                self.get_Intercambios()
+            PWF16_concatenados.rename(columns={'From#':'From#', ' From Name': 'From Name', ' To# - Circ#':'To# - Circ#', ' To Name':'To Name', ' Type':'Type', ' MVA':'MVA', ' MW:From-To':'MW:From-To', ' Mvar:From-To':'Mvar:From-To',' % L1':'% L1', ' L1(MVA)':'L1(MVA)',  ' Mvar:Losses':'Mvar:Losses', ' MW:To-From':'MW:To-From', ' Power Factor:From-To':'Power Factor:From-To', ' Power Factor:To-From':'Power Factor:To-From'}, inplace=True)
+
+            if not PWF16_concatenados.empty:
+                print("Concatenação das linhas")
+                PWF16_concatenados[['To#', 'Circ#']] = PWF16_concatenados["To# - Circ#"].str.split(' # ', expand=True)
+                PWF16_concatenados['From#'] = PWF16_concatenados['From#'].astype('int32')
+                PWF16_concatenados['To#'] = PWF16_concatenados['To#'].astype('int32')
+                PWF16_concatenados.drop(columns=["To# - Circ#"], inplace=True)
+                self.linesInfo = PWF16_concatenados
+                if not self.PO:
+                    print("Salvando Dataframe das linhas")
+                    PWF16_concatenados.to_csv(os.path.join(self.path, 'LinhasInfo.csv'), index=None)
+                    print("Final da leitura das Linhas")
+                if Intercambios:
+                    self.get_Intercambios()
 
         if Intercambios:
             print("Concatenação da info do HVDC")
-            DCLinks_concatenados = dd.concat(DCLinks_sep, ignore_index=True).compute()
-            self.HVDCInfo = DCLinks_concatenados
-            if not self.PO:
-                print("Salvando Dataframe do HVDC")
-                DCLinks_concatenados.to_csv(self.path+'/HVDCInfo.csv', index=None)
-                print("Final da leitura do HVDC")
-        
+            DCLinks_concatenados = concat_and_compute(DCLinks_sep)
+            if not DCLinks_concatenados.empty:
+                self.HVDCInfo = DCLinks_concatenados
+                if not self.PO:
+                    print("Salvando Dataframe do HVDC")
+                    DCLinks_concatenados.to_csv(os.path.join(self.path, 'HVDCInfo.csv'), index=None)
+                    print("Final da leitura do HVDC")
+
         if Reserva:
             print("Concatenação da Reserva")
-            SGN01_concatenados = dd.concat(SGN01_sep, ignore_index=True).compute()
-            SGN01_concatenados['Bus']= SGN01_concatenados['Bus'].astype(int)
-            SGN01_concatenados[' Pg(MW)']= SGN01_concatenados[' Pg(MW)'].astype(float)
-            SGN01_concatenados[' Qg(Mvar)']= SGN01_concatenados[' Qg(Mvar)'].astype(float)
-            SGN01_concatenados[' Reserve']= SGN01_concatenados[' Reserve'].astype(float)
-            SGN01_concatenados[' Units']= SGN01_concatenados[' Units'].astype(int)
-            self.ReserveInfo = SGN01_concatenados
-            if not self.PO:
-                print("Salvando Dataframe da Reserva")
-                SGN01_concatenados.to_csv(self.path+'/ReservaInfo.csv', index=None)
-                print("Final da leitura da Reserva")
+            SGN01_concatenados = concat_and_compute(SGN01_sep)
+            if not SGN01_concatenados.empty:
+                SGN01_concatenados['Bus'] = SGN01_concatenados['Bus'].astype(int)
+                SGN01_concatenados[' Pg(MW)'] = SGN01_concatenados[' Pg(MW)'].astype(float)
+                SGN01_concatenados[' Qg(Mvar)'] = SGN01_concatenados[' Qg(Mvar)'].astype(float)
+                SGN01_concatenados[' Reserve'] = SGN01_concatenados[' Reserve'].astype(float)
+                SGN01_concatenados[' Units'] = SGN01_concatenados[' Units'].astype(int)
+                self.ReserveInfo = SGN01_concatenados
+                if not self.PO:
+                    print("Salvando Dataframe da Reserva")
+                    SGN01_concatenados.to_csv(os.path.join(self.path, 'ReservaInfo.csv'), index=None)
+                    print("Final da leitura da Reserva")
 
-    def generatescript(self, path = None):
+    def generate_script(self, path = None):
 
         # Rodar só uma vez para gerar o arquivo de texto para simular no organon
         if path == None:
@@ -283,62 +276,47 @@ class ReadScenarios:
         print('Script para rodar fluxos gerado exitosamente!')
 
     def get_Intercambios(self, df=None):
-
         print(f'*** ETAPA: OBTENÇÃO DOS INTERCAMBIOS ***')
         if df is None:
             PWF16_concatenados = self.linesInfo
         else:
             PWF16_concatenados = df
-            
+
         PWF16_concatenados = PWF16_concatenados.set_index(['From#', 'To#'])
-        # PWF16_concatenados = PWF16_concatenados[(PWF16_concatenados['Type'] == ' TL')]  #Importante ver si afecta!!
 
-        linhas_expNE = pd.read_csv('Static-Analysis/RECURSOS/LINHAS/buses_EXPNE.csv',sep=';', skipinitialspace=True).set_index(['De', 'Para'])
-        linhas_expNE_flip = pd.read_csv('Static-Analysis/RECURSOS/LINHAS/buses_EXPNE_flip.csv',sep=';', skipinitialspace=True).set_index(['De', 'Para'])
-        linhas_FNS = pd.read_csv('Static-Analysis/RECURSOS/LINHAS/buses_FNS.csv',sep=';', skipinitialspace=True).set_index(['De', 'Para'])
-        linhas_FNESE = pd.read_csv('Static-Analysis/RECURSOS/LINHAS/buses_FNESE.csv',sep=';', skipinitialspace=True).set_index(['De', 'Para'])
-        linhas_FNESE_flip = pd.read_csv('Static-Analysis/RECURSOS/LINHAS/buses_FNESE_flip.csv',sep=';', skipinitialspace=True).set_index(['De', 'Para'])
-        linhas_FNEN = pd.read_csv('Static-Analysis/RECURSOS/LINHAS/buses_FNEN.csv',sep=';', skipinitialspace=True).set_index(['De', 'Para'])
-        linhas_FNEN_flip = pd.read_csv('Static-Analysis/RECURSOS/LINHAS/buses_FNEN_flip.csv',sep=';', skipinitialspace=True).set_index(['De', 'Para'])
-        linhas_FSULSECO = pd.read_csv('Static-Analysis/RECURSOS/LINHAS/buses_FSULSECO.csv',sep=';', skipinitialspace=True).set_index(['De', 'Para'])
-        linhas_FSULSECO_flip = pd.read_csv('Static-Analysis/RECURSOS/LINHAS/buses_FSULSECO_flip.csv',sep=';', skipinitialspace=True).set_index(['De', 'Para'])
-        linhas_RSUL = pd.read_csv('Static-Analysis/RECURSOS/LINHAS/buses_RSUL.csv',sep=';', skipinitialspace=True).set_index(['De', 'Para'])
-        linhas_RSUL_flip = pd.read_csv('Static-Analysis/RECURSOS/LINHAS/buses_RSUL_flip.csv',sep=';', skipinitialspace=True).set_index(['De', 'Para'])
+        def read_bus_file(path):
+            return pd.read_csv(path, sep=';', skipinitialspace=True).set_index(['De', 'Para'])
 
+        paths = {
+            'EXPNE': ('buses_EXPNE.csv', 'buses_EXPNE_flip.csv'),
+            'FNS': ('buses_FNS.csv', None),
+            'FNESE': ('buses_FNESE.csv', 'buses_FNESE_flip.csv'),
+            'FNEN': ('buses_FNEN.csv', 'buses_FNEN_flip.csv'),
+            'FSULSECO': ('buses_FSULSECO.csv', 'buses_FSULSECO_flip.csv'),
+            'RSUL': ('buses_RSUL.csv', 'buses_RSUL_flip.csv')
+        }
 
-        EXPNE_grouped = PWF16_concatenados[PWF16_concatenados.index.isin(linhas_expNE.index)]
-        linhas_para_inverter = EXPNE_grouped[EXPNE_grouped.index.isin(linhas_expNE_flip.index)]
-        EXPNE_grouped.loc[linhas_para_inverter.index, 'MW:From-To'] *= -1
-        EXPNE_grouped = EXPNE_grouped.groupby(['Dia', 'Hora']).agg({'MW:From-To':'sum', 'Mvar:From-To':'sum'})
+        intercambios = []
+        for key, (path, flip_path) in paths.items():
+            lines = read_bus_file(f'Static-Analysis/RECURSOS/LINHAS/{path}')
+            if flip_path:
+                lines_flip = read_bus_file(f'Static-Analysis/RECURSOS/LINHAS/{flip_path}')
+                grouped = PWF16_concatenados[PWF16_concatenados.index.isin(lines.index)]
+                inverted = grouped[grouped.index.isin(lines_flip.index)]
+                grouped.loc[inverted.index, 'MW:From-To'] *= -1
+                grouped = grouped.groupby(['Dia', 'Hora']).agg({'MW:From-To': 'sum', 'Mvar:From-To': 'sum'})
+            else:
+                grouped = PWF16_concatenados[PWF16_concatenados.index.isin(lines.index)]
+                grouped = grouped.groupby(['Dia', 'Hora']).agg({'MW:From-To': 'sum', 'Mvar:From-To': 'sum'})
+            if key == 'RSUL':
+                grouped.loc[:, 'MW:From-To'] *= -1
+            intercambios.append(grouped)
 
-        Fluxo_NS = PWF16_concatenados[PWF16_concatenados.index.isin(linhas_FNS.index)]
-        Fluxo_NS_grouped = Fluxo_NS.groupby(['Dia', 'Hora']).agg({'MW:From-To':'sum', 'Mvar:From-To':'sum'})
-
-        Fluxo_NESE = PWF16_concatenados[PWF16_concatenados.index.isin(linhas_FNESE.index)]
-        Fluxo_NESE_invertido = Fluxo_NESE[Fluxo_NESE.index.isin(linhas_FNESE_flip.index)]
-        Fluxo_NESE.loc[Fluxo_NESE_invertido.index, 'MW:From-To'] *= -1
-        Fluxo_NESE_grouped = Fluxo_NESE.groupby(['Dia', 'Hora']).agg({'MW:From-To':'sum', 'Mvar:From-To':'sum'})
-
-        Fluxo_NEN = PWF16_concatenados[PWF16_concatenados.index.isin(linhas_FNEN.index)]
-        Fluxo_NEN_invertido = Fluxo_NEN[Fluxo_NEN.index.isin(linhas_FNEN_flip.index)]
-        Fluxo_NEN.loc[Fluxo_NEN_invertido.index, 'MW:From-To'] *= -1
-        Fluxo_NEN_grouped = Fluxo_NEN.groupby(['Dia', 'Hora']).agg({'MW:From-To':'sum', 'Mvar:From-To':'sum'})
-
-        Fluxo_SULSECO = PWF16_concatenados[PWF16_concatenados.index.isin(linhas_FSULSECO.index)]
-        Fluxo_SULSECO_invertido = Fluxo_SULSECO[Fluxo_SULSECO.index.isin(linhas_FSULSECO_flip.index)]
-        Fluxo_SULSECO.loc[Fluxo_SULSECO_invertido.index, 'MW:From-To'] *= -1
-        Fluxo_SULSECO_grouped = Fluxo_SULSECO.groupby(['Dia', 'Hora']).agg({'MW:From-To':'sum', 'Mvar:From-To':'sum'})
-
-        Fluxo_RSUL = PWF16_concatenados[PWF16_concatenados.index.isin(linhas_RSUL.index)]
-        Fluxo_RSUL_invertido = Fluxo_RSUL[Fluxo_RSUL.index.isin(linhas_RSUL_flip.index)]
-        Fluxo_RSUL.loc[Fluxo_RSUL_invertido.index, 'MW:From-To'] *= -1
-        Fluxo_RSUL_grouped = Fluxo_RSUL.groupby(['Dia', 'Hora']).agg({'MW:From-To':'sum', 'Mvar:From-To':'sum'})
-        Fluxo_RSUL_grouped.loc[:, 'MW:From-To'] *= -1
-
-        self.DF_Intercambios = pd.concat([EXPNE_grouped,Fluxo_NESE_grouped, Fluxo_NS_grouped, Fluxo_SULSECO_grouped, Fluxo_NEN_grouped, Fluxo_RSUL_grouped], axis=0, keys=['EXP_NE', 'Fluxo_NE-SE', 'Fluxo_N-S' ,'Fluxo_SUL-SECO', 'Fluxo_NE-N', 'Fluxo_RSUL'])
+        self.DF_Intercambios = pd.concat(intercambios, axis=0, keys=paths.keys())
+        self.DF_Intercambios.rename(index={'EXPNE':'EXP_NE', 'FNS':'Fluxo_N-S', 'FNESE':'Fluxo_NE-SE', 'FSULSECO':'Fluxo_SUL-SECO', 'FNEN':'Fluxo_NE-N', 'RSUL':'Fluxo_RSUL'}, inplace=True)
         if not self.PO:
             print(f'*** ETAPA: Salvando dados dos Intercambios ***')
-            self.DF_Intercambios.to_csv(self.cenario+'/DF_Intercambios.csv')
+            self.DF_Intercambios.to_csv(os.path.join(self.cenario, 'DF_Intercambios.csv'))
             print(f'*** ETAPA: FINAL DA OBTENÇÃO DE INTERCAMBIOS ***')
 
 # ======================================================================================================================

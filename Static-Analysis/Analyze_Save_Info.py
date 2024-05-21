@@ -61,12 +61,12 @@ class AnalyzeStaticCases:
             pathcsv1 = None
             pathcsv2 = os.path.join(self.path_folder, 'ProcessedDataBase.csv')
 
-        if self.Options['gen_script4lines']:
-            ReadScenarios(self.path_folder, self.folder_path, PO = self.readjustONEcase,  pathcsv=pathcsv1,  genscript=self.Options['gen_script4lines'])
+        if self.Options['generatescript']:
+            ReadScenarios(self.path_folder, self.folder_path, PO = self.readjustONEcase,  pathcsv=pathcsv1,  genscript=self.Options['generatescript'])
             sys.exit()
         else:
             print('******************** EXTRAÇÃO DE DADOS ********************')
-            self.cases = ReadScenarios(self.path_folder, self.folder_path, PO = self.readjustONEcase, pathcsv=pathcsv1, genscript=self.Options['gen_script4lines'])
+            self.cases = ReadScenarios(self.path_folder, self.folder_path, PO = self.readjustONEcase, pathcsv=pathcsv1, genscript=self.Options['generatescript'])
             self.cenario = self.folder_path
             # sys.exit()
             print('******************** PROCESSAMENTO DE DADOS ********************')
@@ -152,7 +152,7 @@ class AnalyzeStaticCases:
 
                 return PWF16_Filt_linhas, PWF16_Filt_TRAFO
 
-
+            print('Saving CSV of lines and trafos: ...')
             PWF16_Filt_linhas, PWF16_Filt_TRAFO = Main_linha_addREG(self.PWF16_concatenados)
             PWF16_Filt_linhas[['From#','To#','From Name','To Name','% L1', 'L1(MVA)', 'Mvar:Losses','Dia', 'Hora','REG', 'VBASEKV','MVA', 'MW:From-To', 'MW:To-From','Power Factor:From-To','Power Factor:To-From']].to_csv(self.cenario+'/Linhas.csv', index=None)
             PWF16_Filt_TRAFO[['From#','To#','From Name','To Name','% L1', 'L1(MVA)', 'Mvar:Losses','Dia', 'Hora','REG', 'VBASEKV','MVA', 'MW:From-To', 'MW:To-From','Power Factor:From-To','Power Factor:To-From']].to_csv(self.cenario+'/Trafo.csv', index=None)
@@ -179,7 +179,7 @@ class AnalyzeStaticCases:
                 # dfelo2.reset_index().groupby(['Dia', 'Hora', 'Bipole']).agg({' P(MW)': sum, 'Nome Elo': 'first'}).to_csv('HVDC_PVEL-ARARQ.csv')
 
                 ## ========================================== ELOS SEM SEPARAÇÃO POR POLOS: ==========================================
-
+                print('Filtering lines of Interconnections and Plotting:...')
                 dfelo1 = self.DCLinks_concatenados[self.DCLinks_concatenados['Bus #'] == 85].groupby(by=['Dia', 'Hora']).agg({' P(MW)': 'sum', ' Q(Mvar)': 'sum'})
                 dfelo1['Nome Elo'] = 'Elo_FOZ-IBIUNA'
                 dfelo2 = self.DCLinks_concatenados[self.DCLinks_concatenados['Bus #'] == 7055].groupby(by=['Dia', 'Hora']).agg({' P(MW)': 'sum', ' Q(Mvar)': 'sum'})
@@ -188,15 +188,17 @@ class AnalyzeStaticCases:
                 dfelo3['Nome Elo'] = 'Elo_CPVBTB-PVEL'
                 dfelo4 = self.DCLinks_concatenados[(self.DCLinks_concatenados['Bus #'] == 8100)].groupby(by=['Dia', 'Hora']).agg({' P(MW)': 'sum', ' Q(Mvar)': 'sum'})
                 dfelo4['Nome Elo'] = 'Elo_XINGU-SE'
-                dfelo4 = self.DCLinks_concatenados[(self.DCLinks_concatenados['Bus #'] == 8100) & (self.DCLinks_concatenados[' Pole #'].isin([1,2]))].groupby(by=['Dia', 'Hora']).agg({' P(MW)': 'sum', ' Q(Mvar)': 'sum'})
+
+                # dfelo4 = self.DCLinks_concatenados[(self.DCLinks_concatenados['Bus #'] == 8100) & (self.DCLinks_concatenados[' Pole #'].isin([1,2]))].groupby(by=['Dia', 'Hora']).agg({' P(MW)': 'sum', ' Q(Mvar)': 'sum'})
                 # dfelo4['Nome Elo'] = 'Elo_XINGU-ESTREI'
                 # dfelo5 = DCLinks_concatenados[(DCLinks_concatenados['Bus #'] == 8100) & (DCLinks_concatenados[' Pole #'].isin([3,4]))].groupby(by=['Dia', 'Hora']).agg({' P(MW)': 'sum', ' Q(Mvar)': 'sum'})
                 # dfelo5['Nome Elo'] = 'Elo_XINGU-T.RIO'
                 # Merge all dataframes
                 # df_HVDC = pd.concat([dfelo1, dfelo2, dfelo3, dfelo4, dfelo5], axis=0, keys=['Elo_FOZ-IBIUNA', 'Elo_PVEL-ARARQ', 'Elo_CPVBTB-PVEL' ,'Elo_XINGU-ESTREI', 'Elo_XINGU-T.RIO'])
+                
                 df_HVDC = pd.concat([dfelo1, dfelo2, dfelo3, dfelo4], axis=0, keys=['Elo_FOZ-IBIUNA', 'Elo_PVEL-ARARQ', 'Elo_CPVBTB-PVEL' ,'Elo_XINGU-SE'])
                 df_HVDC.to_csv(self.cenario+'/DF_HVDC.csv')
-
+                
                 if self.Options['PlotIntercambios'] == True and not self.readjustONEcase:
                     self.plots_static.plot_Intercambio (self.DF_Intercambios, df_HVDC , '(MW)', 'Exportação (N-S, NE-SE) e  Elo Xingu-SE', ['Fluxo_N-S', 'Fluxo_NE-SE'], ['Elo_XINGU-SE'], )
                     self.plots_static.plot_Intercambio (self.DF_Intercambios, df_HVDC , '(MW)', 'Exportação N-S e  Elo Xingu-SE', ['Fluxo_N-S'], ['Elo_XINGU-SE'], )
@@ -208,13 +210,14 @@ class AnalyzeStaticCases:
 #                                                    RESERVA REGIONAL
 #=============================================================================================================================
     def ReservaAnalise(self):
-
         if self.Options['ReservaAnalise'] == True:
+            print('Reserve Analysis and Plots: ...')
             if (self.SGN01_concatenados.empty == False):
                 dia = self.df_Final_ger['Dia'].iloc[0]
                 hora = self.df_Final_ger['Hora'].iloc[0]
                 df_Final_ger_mod = self.df_Final_ger[(self.df_Final_ger['Dia'] == dia) & (self.df_Final_ger['Hora'] == hora)][['BUS_ID', 'Gen_Type', 'U_FED', 'REG']]
                 self.SGN01_concatenados.rename(columns={'Bus':'BUS_ID', }, inplace=True)
+                self.SGN01_concatenados['BUS_ID'] = self.SGN01_concatenados['BUS_ID'].astype(float)
                 Df_Reserva = self.SGN01_concatenados.merge(df_Final_ger_mod, how = 'left', on='BUS_ID')
 
                 REG_groupReserve = Df_Reserva.groupby(by = ['Dia','Hora', 'REG']).agg({' Reserve': 'sum'})
@@ -279,6 +282,7 @@ class AnalyzeStaticCases:
 
     def ActiveReactivePower(self):
 
+        print('Active and Reactive Power Analysis and Plots:...')
         regioes = self.DF_REGIONAL_GER.reset_index()['REG'].unique()
         df_pg = self.DF_REGIONAL_GER.reset_index(level=['Dia','Hora', 'REG'])[['PG_MW','PL_MW','PG_EOL','PG_SOL', 'Dia', 'Hora', 'MODV_PU', 'QG_MVAR']]
         df_pg['PG_FERV'] =  (df_pg['PG_EOL'] + df_pg['PG_SOL'])/df_pg['PL_MW']
@@ -316,7 +320,7 @@ class AnalyzeStaticCases:
     def Plot_Tensao_Geral(self):
 
         if self.Options['Plot_Tensao_Geral']:
-            
+            print('Voltage General BoxPlots: ...')
             def boxplot_barrasGeracao(Df_VF):
                 grouped_UF = Df_VF.groupby('Gen_Type').agg({'BUS_ID': 'unique', 'MODV_PU': list})
                 data_UF = [grouped_UF.at[gen_type, 'MODV_PU'] for gen_type in ['UHE', 'UTE', 'PCH', 'EOL', 'UFV', 'BIO']]
@@ -413,8 +417,7 @@ class AnalyzeStaticCases:
     def ComputeDPI(self):
 
         if self.Options['ComputeDPI']:
-
-            print('CALCULO DO DPI para todos os Cenários:')
+            print('Computing the DPI for all cases: ...')
             ts, tb, n = 0.8, 1, 2
             VVI = computeDPI(self.df_Final_nt, self.df_Final_ger, ts, tb, p_norm=n, p_inf=False, NBcv=True)
 
@@ -478,6 +481,7 @@ class AnalyzeStaticCases:
             self.plots_static.plot_indice_0(df_DPI_PO, r'$\mathrm{DPI}$', 'DPI_PO_final', '', 'DPI_PO_final', order=True, ylimites=[-0.05, 1.5])
             df_DPI_PO[df_DPI_PO['DPI_PO_final'] > 1].index.to_frame()[['Dia', 'Hora']].apply(tuple, axis=1).to_csv(f"{self.cenario}/PO_Inseguros.txt", index=None)
 
+            print('Ploting DPI Analysis: ...')
             if self.Options['plotDPI']:
                 def plot_indices(df, prefix, label, column):
                     self.plots_static.plot_indice(df, label, f'DPI_({prefix})_{label}', '', column, order=True, ylimites=[0, 1])
@@ -552,7 +556,7 @@ class AnalyzeStaticCases:
                 boxplot_problematic_buses(df_busPQ_mod,df_busPV_mod)
 
             if self.Options['resumoIndice']:
-
+                print('Saving DPI Information files:')
                 df_busPQ_mod['BUS_ID'] = df_busPQ_mod['BUS_ID'].astype(int)
                 df_busPV_mod['BUS_ID'] = df_busPV_mod['BUS_ID'].astype(int)
                 df_busPV_mod[(df_busPV_mod['IndiceInf']>0.1)].groupby(by = ['REG'])['BUS_ID'].nunique().to_csv(self.cenario + '/Critical_infPVbuses.txt', header=True, index=True)
