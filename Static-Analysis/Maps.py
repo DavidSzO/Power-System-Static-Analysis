@@ -15,13 +15,7 @@ class Maps():
         self.cenario =  cenario
         self.limit = {138: [0.95,1.05],230: [0.95,1.05],345: [0.95,1.05],440: [0.95,1.046],500: [1,1.10],525: [0.95,1.05],765: [0.90,1.046]}
         self.region = region
-
-        # # Función para convertir la string de lista a una lista de floats
-        # def convert_string_to_float_list(string):
-        #     return [float(num) for num in string.strip('[]').split(', ')]
-        # # Aplicar la función a cada fila del DataFrame
-        # dff_NT_map['MODV_PU'] = dff_NT_map['MODV_PU'].apply(convert_string_to_float_list)
-        # dff_Ger_map['MODV_PU'] = dff_Ger_map['MODV_PU'].apply(convert_string_to_float_list)
+        
         file = os.path.abspath('Static-Analysis/RECURSOS/Coordenadas.json')
         with open(file, 'r') as json_file:
             self.state_geo = json.load(json_file)
@@ -40,8 +34,6 @@ class Maps():
             self.get_Map_Meanbygroup(['UHE','PCH','UTE','EOL','UFV'], Generation = True)
             self.get_Map_Meanbygroup([765, 525, 500, 440, 345, 230], Generation = False)
         # ======================================================================
-        if options['HeatMap by state 1'] == True:
-            self.get_HeatMap_1_UF(dff_NT_map, dff_Ger_map)
         # ======================================================================
         if options['Limit Violations PO'] == True:
             self.get_Map_VL_PO(['UHE','PCH','UTE','EOL','UFV',], Generation = True)
@@ -204,9 +196,8 @@ class Maps():
                 except:
                     print('no se tiene mapa de violação de limites para el nivel de tension ' + str(uf) + i) 
 
-                archivo = self.cenario + '/Mapas/' + str(uf) + '_ViolaçãoLimites' + '.html'
+                archivo = self.cenario + '/Plots/Mapas/' + str(uf) + '_ViolaçãoLimites' + '.html'
                 map.save(archivo)
-                # display(map)
         
     def get_Map_Meanbygroup(self, lista, Generation):
 
@@ -272,9 +263,8 @@ class Maps():
         
             colormap.add_to(map)
             colormap.caption = 'Cenário ' + self.cenario + ( ' - Barramento Geração '+ str(uf) if Generation else ' - Barramento Nivel de Tensão '+ str(uf) + ' kV')
-            archivo = self.cenario + '/Mapas/Mean_' + str(uf) + '.html'
+            archivo = self.cenario + '/Plots/Mapas/Mean_' + str(uf) + '.html'
             map.save(archivo)
-            # display(map)
 
     def get_Map_VL_Geral (self, lista, Generation):
 
@@ -391,85 +381,9 @@ class Maps():
         map.get_root().html.add_child(folium.Element(caption_html))
         map.get_root().html.add_child(folium.Element(legend_html))
 
-        archivo = self.cenario + '/Mapas/' + savenome + '_ViolaçãoLimites' + '.html'
+        archivo = self.cenario + '/Plots/Mapas/' + savenome + '_ViolaçãoLimites' + '.html'
         map.save(archivo)
-        map
-
-    def get_HeatMap_1_UF(self, dff_NT_map, dff_Ger_map):
-
-        def calculate_indices_1(data, lista, geracao: bool):
-            if geracao:
-                column = 'Gen_Type'
-            else:
-                column = 'VBASEKV'
-
-            df_filtered = data[data[column].isin(lista)]
-            statedata = df_filtered.groupby(by=['U_FED', column]).agg({'inferior': 'sum', 'superior': 'sum', 'BUS_NAME': 'count'})
-            statedata['ind_inf'] = [inferior / (count * 1344) for inferior, count in zip(statedata['inferior'], statedata['BUS_NAME'])]
-            statedata['ind_sup'] = [superior / (count * 1344) for superior, count in zip(statedata['superior'], statedata['BUS_NAME'])]
-            return statedata.reset_index()
-
-        def calculate_indices_2(data_grouped, count_column, target_columns):
-            indices = data_grouped.groupby(by='U_FED').agg(target_columns).reset_index()
-            indices['Indice_inf'] = indices['ind_inf'] / indices[count_column]
-            indices['Indice_sup'] = indices['ind_sup'] / indices[count_column]
-            indices.loc[indices['Indice_inf'] == 0, 'Indice_inf'] = np.nan
-            indices.loc[indices['Indice_sup'] == 0, 'Indice_sup'] = np.nan
-            return indices
-
-        def generate_heatmap(data, indice, legend, geracao: bool):
-                map = folium.Map(
-                    location=[-14.2350, -51.9253],
-                    tiles='cartodbpositron',
-                    zoom_start=4,
-                    control_scale=True,
-                    min_zoom=4,
-                    max_zoom=19,
-                    max_bounds=True,
-                    max_bounds_viscosity=1.0,
-                    detect_retina=False,
-                    attribution='My Map',
-                    zoom_control=True,
-                    scroll_wheel_zoom=True,
-                    double_click_zoom=True,
-                    dragging=True,
-                    world_copy_jump=False,
-                    no_wrap=False,
-                    style='height: 100%; width: 100%; position: relative; left: 0; top: 0; z-index: 0; -webkit-user-drag: none;'
-                )
-                if geracao:
-                    savenome = 'GER_heatmap'
-                else:
-                    savenome = 'NT_heatmap'
-
-                color = 'Blues' if indice in {'Indice_inf'} else 'YlOrRd'
-                folium.Choropleth(
-                    geo_data=self.state_geo,
-                    data=data,
-                    columns=['U_FED', indice],
-                    key_on='feature.properties.UF_05',
-                    fill_color=color,
-                    fill_opacity=0.8,
-                    line_opacity=0.8,
-                    line_color='black',
-                    nan_fill_color=color,
-                    nan_fill_opacity=0.10,
-                    legend_name=legend
-                ).add_to(map)
-                archivo = self.cenario + '/Mapas/' + savenome + '_' + indice + '.html'
-                map.save(archivo)
-                # display(map)
-
-        data_nt = calculate_indices_1(dff_NT_map, [230, 345, 440, 500, 525, 765], geracao=False)
-        data_ger= calculate_indices_1(dff_Ger_map, ['UHE', 'UTE', 'EOL', 'UFV', 'PCH'], geracao=True)
-        NT_indices = calculate_indices_2(data_nt, 'VBASEKV', {'ind_inf': 'sum', 'ind_sup': 'sum', 'VBASEKV': 'count'})
-        GerT_indices = calculate_indices_2(data_ger, 'Gen_Type', {'ind_inf': 'sum', 'ind_sup': 'sum', 'Gen_Type': 'count'})
-
-        generate_heatmap(GerT_indices, 'Indice_inf', 'Barras Geração - Indice Tensão Inferior (pu)', True)
-        generate_heatmap(GerT_indices, 'Indice_sup', 'Barras Geração - Indice Tensão Superior (pu)', True)
-        generate_heatmap(NT_indices, 'Indice_inf', 'Barras Niveis Tensão - Indice Tensão Inferior (pu)', False)
-        generate_heatmap(NT_indices, 'Indice_sup', 'Barras Niveis Tensão - Indice Tensão Superior (pu)', False)
-
+        
     def get_Map_VL_PO(self, lista, Generation):
     
         def get_limitMapG_PO (Datadf,lista, Generation):
@@ -538,11 +452,6 @@ class Maps():
                             continf = df['inferior'].count() + continf
                             colormap = StepColormap(colors=sns.color_palette("seismic",11)[:5][::1], vmin=0.90, vmax=self.limit[uf][0], max_labels=10)#, max_labels=10
 
-                    # scaler = MinMaxScaler(feature_range=(5, 14))
-                    # barras_rshp = np.array([item for sublist in voltage for item in sublist]).reshape(-1, 1)
-                    # longi = scaler.fit_transform(barras_rshp) # Normalize the variances using the MinMaxScaler
-                    # NormalizedVoltage = longi.flatten() # Flatten the normalized variances array
-
                     for idx, _ in  enumerate (Latitude):
 
                         if type(voltage[idx]) == float:
@@ -610,7 +519,7 @@ class Maps():
                 '''    
             map.get_root().html.add_child(folium.Element(caption_html))
             map.get_root().html.add_child(folium.Element(legend_html))
-            archivo = self.cenario + '/Mapas/' + savenome + '.html'
+            archivo = self.cenario + '/Plots/Mapas/' + savenome + '.html'
             map.save(archivo)
             # display(map)
 
@@ -634,58 +543,6 @@ class Maps():
                 data_ = data
 
             get_limitMapG_PO(data_, [765, 525, 500, 440, 345, 230], Generation = Generation)
-
-    def get_HeatMap_DPI(self, data, legend, geracao: bool):
-
-        map = folium.Map(
-            location=[-14.2350, -51.9253],
-            tiles='cartodbpositron',
-            zoom_start=4,
-            control_scale=True,
-            min_zoom=4,
-            max_zoom=19,
-            max_bounds=True,
-            max_bounds_viscosity=1.0,
-            detect_retina=False,
-            attribution='My Map',
-            zoom_control=True,
-            scroll_wheel_zoom=True,
-            double_click_zoom=True,
-            dragging=True,
-            world_copy_jump=False,
-            no_wrap=False,
-            style='height: 100%; width: 100%; position: relative; left: 0; top: 0; z-index: 0; -webkit-user-drag: none;',
-        )
-        if geracao ==   True:
-            savenome = 'PV'
-        else:
-            savenome = 'PQ'
-
-        for ind in ['DPI_INF_final', 'DPI_SUP_final']:
-
-            if ind == 'DPI_INF_final':
-                nome = 'DPI_Indice_inf_allcases'
-                color = 'Blues'
-            else:
-                nome = 'DPI_Indice_sup_allcases'
-                color = 'YlOrRd'
-
-            folium.Choropleth(
-                geo_data= self.state_geo,
-                data = data,
-                columns = ['REG', ind],
-                key_on='feature.properties.REGIAO',
-                fill_color = color,
-                fill_opacity=0.8,
-                line_opacity=0.8,
-                line_color='black',
-                nan_fill_color=color,  # Set the color for states with no data
-                nan_fill_opacity=0.10, 
-                legend_name= legend
-            ).add_to(map)
-            archivo = self.cenario + '/Mapas/' + savenome + '_' + nome + '.html'
-            map.save(archivo)
-            # display(map)
 
 
 # Df_VF = pd.read_csv('Df_VF.csv')

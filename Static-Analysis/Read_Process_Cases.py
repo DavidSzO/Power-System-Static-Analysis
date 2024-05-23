@@ -314,10 +314,7 @@ class ReadScenarios:
 
         self.DF_Intercambios = pd.concat(intercambios, axis=0, keys=paths.keys())
         self.DF_Intercambios.rename(index={'EXPNE':'EXP_NE', 'FNS':'Fluxo_N-S', 'FNESE':'Fluxo_NE-SE', 'FSULSECO':'Fluxo_SUL-SECO', 'FNEN':'Fluxo_NE-N', 'RSUL':'Fluxo_RSUL'}, inplace=True)
-        if not self.PO:
-            print(f'*** ETAPA: Salvando dados dos Intercambios ***')
-            self.DF_Intercambios.to_csv(os.path.join(self.cenario, 'DF_Intercambios.csv'))
-            print(f'*** ETAPA: FINAL DA OBTENÇÃO DE INTERCAMBIOS ***')
+
 
 # ======================================================================================================================
 #                                                   CONVERGENCE INFO EXTRACTION
@@ -371,8 +368,8 @@ class ReadScenarios:
         print('Numero de casos não Convergidos no PWF: ' + str(len(self.PWF_NC)) + '=> ' +  str(round(len(self.PWF_NC)/1344*100,2)))
         print('==============================================')
 
-        self.OPF_NC[['Dia','Hora']].to_csv(self.cenario+'/OPF_NC.csv', index=None)
-        self.PWF_NC[['Dia','Hora']].to_csv(self.cenario+'/PWF_NC.csv', index=None)
+        self.OPF_NC[['Dia','Hora']].to_csv(self.cenario+'/Data/Geral/OPF_NC.csv', index=None)
+        self.PWF_NC[['Dia','Hora']].to_csv(self.cenario+'/Data/Geral/PWF_NC.csv', index=None)
 
 class ProcessData():
 
@@ -698,8 +695,6 @@ class ProcessData():
         DF_Regional_Ger['PG_FERV'] =  (DF_Regional_Ger['PG_EOL'] + DF_Regional_Ger['PG_SOL'])/DF_Regional_Ger['PL_MW']
         DF_Regional_Ger['ReservaINDshunt'] = DF_Regional_Ger['SHUNT_INST_IND'] - DF_Regional_Ger['Shunt_Ind']
         DF_Regional_Ger['ReservaCAPshunt'] = DF_Regional_Ger['SHUNT_INST_CAP'] - DF_Regional_Ger['Shunt_Cap']
-
-        DF_Regional_Ger[['PG_MW', 'QG_MVAR', 'PL_MW', 'QL_MVAR','Shunt_Ind', 'Shunt_Cap','SHUNT_INST_IND', 'SHUNT_INST_CAP', 'ReservaIND', 'ReservaCAP','PG_UHE', 'PG_UTE', 'PG_EOL', 'PG_SOL', 'PG_BIO', 'PG_Dist', 'QG/QL', 'PG/PL', 'PG_FERV', 'ReservaINDshunt', 'ReservaCAPshunt']].to_csv(self.cenario + '/DF_POT_Reg.csv')
 
         self.DF_REGIONAL_GER = DF_Regional_Ger
         self.DF_REGIONAL_PQ = DF_Regional_PQ

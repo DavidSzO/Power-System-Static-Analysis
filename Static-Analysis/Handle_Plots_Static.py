@@ -23,12 +23,6 @@ class Plots_Static():
         fig1, axs = plt.subplots(figsize=(25, 20))
         if vert:
             axs.boxplot(data, flierprops=markerfacecolor)
-            
-            # axs.spines['top'].set_visible(False)
-            # axs.spines['right'].set_visible(False)
-            # axs.spines['left'].set_visible(False)
-            # axs.spines['bottom'].set_color('#DDDDDD')
-
             axs.tick_params(bottom=False, left=False)
             axs.set_axisbelow(True)
 
@@ -64,10 +58,10 @@ class Plots_Static():
         plt.yticks(fontsize=25)
         plt.grid(True, linestyle='--', linewidth=0.5, alpha=0.6)
         axs.xaxis.grid(False)
-        nome = self.cenario + '/BoxPlot/' + title + '.png'
+        nome = self.cenario + '/Plots/BoxPlot Tensão/' + title + '.png'
         plt.savefig(nome, bbox_inches = 'tight')
         if self.svg:
-            nome = self.cenario + '/BoxPlot/' + title + '.svg'
+            nome = self.cenario + '/Plots/BoxPlot Tensão/BoxPlot/' + title + '.svg'
             plt.savefig(nome)
         plt.close()
 
@@ -75,7 +69,7 @@ class Plots_Static():
         
         fig, axs = plt.subplots(nrows=1, figsize=(20, 10), sharex=False)
 
-        axs.plot(df_data.values, color=sns.color_palette("Paired")[1])
+        axs.plot(df_data.values, color=sns.color_palette("Paired")[1], lw=2.5)
             
         # axs.legend(loc='best', fontsize=12)
         # Calculate the number of data points in a day (assuming each day has 48 data points)
@@ -93,7 +87,12 @@ class Plots_Static():
             axs.set_xlim(limites)
         axs.grid()
         plt.tight_layout()
-        nome = self.cenario + '/Potencia/' + title + '.png'
+        if title.strip().split()[0]=='MW':
+            nome = self.cenario + '/Plots/Perfil Potência Ativa/' + title + '.png'
+        elif title.strip().split()[0]=='MVAR':
+            nome = self.cenario + '/Plots/Perfil Potência Reativa/' + title + '.png'
+        else:
+            nome = self.cenario + '/Plots/Reserva/' + title + '.png'
         plt.savefig(nome, bbox_inches = 'tight')
         plt.close()
 
@@ -109,7 +108,7 @@ class Plots_Static():
             else:
                 data = df_data.loc[:, :, regiao][INDICE]
             
-            axs.plot(data.values, color=colores[idx], label=region_map[regiao], lw=2, linestyle='-')
+            axs.plot(data.values, color=colores[idx], label=region_map[regiao], lw=2.5, linestyle='-')
             
         axs.legend(loc='upper right', fontsize=18)
         axs.tick_params(axis='y', labelsize=24)
@@ -123,7 +122,7 @@ class Plots_Static():
             axs.set_ylim(ylimites)
         axs.grid(True, linestyle='-', linewidth=1.2, alpha=0.4)
         plt.tight_layout()
-        nome = self.cenario + '/Potencia/' + name + '.png'
+        nome = self.cenario + '/Plots/Reserva/' + name + '.png'
         plt.savefig(nome)
         plt.close()
 
@@ -155,10 +154,10 @@ class Plots_Static():
             axs.set_xlim(Xlimites)
         axs.grid(True, linestyle='--', linewidth=1, alpha=0.2)
         plt.tight_layout()
-        nome = self.cenario + '/Intercambios/' + title + '.png'
+        nome = self.cenario + '/Plots/Intercambios AC-DC/' + title + '.png'
         plt.savefig(nome)
         if self.svg:
-            nome = self.cenario + '/Intercambios/' + title + '.svg'
+            nome = self.cenario + '/Plots/Intercambios AC-DC/' + title + '.svg'
             plt.savefig(nome)
         plt.close()
 
@@ -197,10 +196,10 @@ class Plots_Static():
         axs.grid(True, linestyle='-', linewidth=1.2, alpha=0.4)
         plt.tight_layout()
         if ax is None:
-            nome = self.cenario + '/Indice/' + name + '.png'
+            nome = self.cenario + '/Plots/Indice/' + name + '.png'
             plt.savefig(nome, bbox_inches = 'tight')
             if self.svg:
-                nome = self.cenario + '/Indice/' + name + '.svg'
+                nome = self.cenario + '/Plots/Indice/' + name + '.svg'
                 plt.savefig(nome, bbox_inches = 'tight')
             plt.close()
 
@@ -252,10 +251,10 @@ class Plots_Static():
             axs.set_ylim(ylimites)
         axs.grid(True, linestyle='-', linewidth=1.2, alpha=0.4)
         plt.tight_layout()
-        nome = self.cenario + '/Indice/' + name + '.png'
+        nome = self.cenario + '/Plots/Indice/' + name + '.png'
         plt.savefig(nome, bbox_inches = 'tight')
         if self.svg:
-            nome = self.cenario + '/Indice/' + name + '.svg'
+            nome = self.cenario + '/Plots/Indice/' + name + '.svg'
             plt.savefig(nome)
         plt.close()     
 
@@ -278,15 +277,6 @@ class Plots_Static():
                 axs.bar(indice, datapv.values, color=colores[idx + 2 ], label='PV_'+ indice[4:7], linewidth=2, linestyle='-')
 
         axs.legend(loc='best', fontsize=18)
-
-        # # Calculate the number of data points in a day (assuming each day has 48 data points)
-        # data_points_per_day = 48
-        # # Calculate the number of days based on the length of the data
-        # num_days = len(datapq) // data_points_per_day
-        # # Set x-axis ticks and labels for each day
-        # axs.set_xticks([i * data_points_per_day for i in range(num_days)])
-        # axs.set_xticklabels([f'{i+1}' for i in range(num_days)], fontsize=12, rotation=0, ha='right')
-
         axs.tick_params(axis='y', labelsize=18)
         axs.tick_params(axis='x', labelsize=18)
         if not self.PO: 
@@ -300,10 +290,10 @@ class Plots_Static():
             axs.set_ylim(limites)
         axs.grid(True, linestyle='--', linewidth=1, alpha=0.2)
         plt.tight_layout()
-        nome = self.cenario + '/Indice/' + title + '.png'
+        nome = self.cenario + '/Plots/Indice/' + title + '.png'
         plt.savefig(nome, bbox_inches = 'tight')
         if self.svg:
-            nome = self.cenario + '/Indice/' + title + '.svg'
+            nome = self.cenario + '/Plots/Indice/' + title + '.svg'
             plt.savefig(nome)       
         plt.close()
 
@@ -351,10 +341,10 @@ class Plots_Static():
             axs.set_ylim(limites)
         axs.grid(True, linestyle='-', linewidth=1.2, alpha=0.4)
         plt.tight_layout()
-        nome = self.cenario + '/Indice/' + name + '.png'
+        nome = self.cenario + '/Plots/Indice/' + name + '.png'
         plt.savefig(nome, bbox_inches = 'tight')
         if self.svg:
-            nome = self.cenario + '/Indice/' + name + '.svg'
+            nome = self.cenario + '/Plots/Indice/' + name + '.svg'
             plt.savefig(nome)
         plt.close()
 
@@ -417,7 +407,7 @@ class Plots_Static():
         ax2.set_ylabel('MW', labelpad=15)
         ax2.set_title('Potencia Gerada por tipo de geração - MW')
         plt.tight_layout()
-        nomesave = self.cenario + '/Power_by_Regions/MW_' + nome + '.png'
+        nomesave = self.cenario + '/Plots/Potencia/MW_' + nome + '.png'
         plt.savefig(nomesave)
         # plt.show()
 
@@ -496,6 +486,6 @@ class Plots_Static():
                 
         ax2.set_xticklabels(data_pg.index.unique(), rotation=0, ha='center') 
         plt.tight_layout()
-        nomesave = self.cenario + '/Power_by_Regions/MW_' + nome + '.png'
+        nomesave = self.cenario + '/Plots/Potencia/MW_' + nome + '.png'
         plt.savefig(nomesave)
         plt.close()
