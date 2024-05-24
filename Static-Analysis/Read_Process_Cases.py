@@ -5,21 +5,12 @@ from multiprocessing import Pool
 import dask.dataframe as dd
 from NTW_Reader import NTW_Reader
 from scipy.spatial.distance import cdist
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
 
 
 class ReadScenarios:
 
     def __init__(self, path, cenario, PO, pathcsv=None, genscript=False):
-        """
-        Initialize the ReadScenarios class.
-
-        :param path: Path to the directory containing scenario files.
-        :param cenario: Scenario identifier.
-        :param PO: Flag indicating PO mode.
-        :param pathcsv: Path to CSV file, if any.
-        :param genscript: Flag indicating if a script should be generated.
-        """
         self.path = path
         self.PO = PO
         self.csv = pathcsv
@@ -39,7 +30,7 @@ class ReadScenarios:
                 self.get_data_extract()
         else:
             self.generate_script()
-    
+
     @staticmethod
     def get_unique_bus(df):
         df_modified_BUS = df[0].groupby('BUS_ID').first().reset_index()
@@ -54,7 +45,7 @@ class ReadScenarios:
 
         return df_modified_BUS, df_modified_GEN, df_modified_LOAD
 
-    def read_file_in_parallel(self, file_path):
+    def read_file(self, file_path):
         try:
             Caso_name = os.path.basename(file_path).replace('.ntw', '').replace('.txt', '')
             Dia_name = self.folders if self.PO else os.path.basename(os.path.dirname(os.path.dirname(file_path)))[-2:]
@@ -92,32 +83,35 @@ class ReadScenarios:
                           if file_name.endswith('.ntw')]
         else:
             files_path = [self.path]
-        print('Extraindo ...')
 
-        with ThreadPoolExecutor() as executor:
-            results = list(executor.map(self.read_file_in_parallel, files_path))
-            
-        print('Check if results is not empty before concatenating')
-        results = [result for result in results if result is not None]
+        print('Extracting ...')
+
+        results = []
+        with ProcessPoolExecutor() as executor:
+            futures = {executor.submit(self.read_file, file_path): file_path for file_path in files_path}
+            for future in as_completed(futures):
+                result = future.result()
+                if result is not None:
+                    results.append(result)
+
         print('Concatenating ...')
         if results:  # Check if results is not empty before concatenating
             df_Cvg = pd.concat(results, axis=0, sort=False)
             self.Df_Cases = df_Cvg.sort_values(by=['Dia', 'Hora'])
             self.OpPointsC = len(results)
-            print('O número total de casos analisados é:', self.OpPointsC)
+            print('The total number of analyzed cases is:', self.OpPointsC)
         else:
             self.Df_Cases = pd.DataFrame()
             self.OpPointsC = 0
             print('No data was processed.')
 
     def get_dataframes_csv(self):
-        """Extract data from CSV files previously saved."""
         self.Df_Cases = pd.read_csv(self.csv, sep=';')
         self.Df_Cases['Dia'] = self.Df_Cases['Dia'].astype(str).str.zfill(2)
         results = self.Df_Cases.groupby(['Dia', 'Hora'])['BUS_ID'].first()
         self.OpPointsC = results.shape[0]
-        print('O numero total de casos analisados é: ', self.OpPointsC)
-
+        print('The total number of analyzed cases is: ', self.OpPointsC)
+        
 # ======================================================================================================================
 #                                                AC & DC LINES & RESERVE INFO EXTRACTION 
 # ======================================================================================================================

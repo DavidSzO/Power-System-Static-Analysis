@@ -14,10 +14,11 @@ class AnalyzeStaticCases:
         
 
         user_specified_dir = input("Please enter the directory path where you want to save the files: ")
-        # user_specified_dir = "C:/Users/david/OneDrive/Documents/FERV_documentos/0_Repositorio_Resultados"
+        # user_specified_dir = "D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/REV_2/Simulation Results/V1A1F2_RESP_FNS_lim_rev1_2026/01_00-00"
         notebook_dir = os.path.abspath(user_specified_dir)
         folder_path = os.path.join(notebook_dir, os.path.basename(os.path.normpath(self.path_folder)))
         user_question = input("Do you want to read? (1). All cases or (2). Just One Case, Please input the corresponding number:\n")
+        # user_question = '2'
         readjustONEcase = True if user_question.strip().replace("(","").replace(")","")  == '2' else False
 
         self.readjustONEcase = readjustONEcase
@@ -32,6 +33,8 @@ class AnalyzeStaticCases:
             Options['ConvergenceAnalise'] = False
             self.day = input("Write the specific Day in this format 01:\n")
             self.hour = input("Write the specific Hour in this format 00-00:\n")
+            # self.day = '01'
+            # self.hour = '00-00'
             folder_path = os.path.join(folder_path, self.day + '_'+ self.hour)
             archivos = os.listdir(self.path_folder)
             folder = [nomes_archivos for nomes_archivos in archivos if nomes_archivos.endswith(self.day)][0]
@@ -54,7 +57,6 @@ class AnalyzeStaticCases:
             for folder in folders:
                 os.makedirs(os.path.join(folder_path, subfolder, folder), exist_ok=True)
             
-        
         print(f"The directories have been created in: {folder_path}")
         self.folder_path = folder_path
 
