@@ -14,11 +14,12 @@ class AnalyzeStaticCases:
         
 
         user_specified_dir = input("Please enter the directory path where you want to save the files: ")
-        # user_specified_dir = "D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/REV_2/Simulation Results/V1A1F2_RESP_FNS_lim_rev1_2026/01_00-00"
+        # user_specified_dir = "D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/REV_1/Simulation Results/p_2/"
+        # user_specified_dir = "D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/REV_1/Simulation Results/p_supremo"
         notebook_dir = os.path.abspath(user_specified_dir)
         folder_path = os.path.join(notebook_dir, os.path.basename(os.path.normpath(self.path_folder)))
         user_question = input("Do you want to read? (1). All cases or (2). Just One Case, Please input the corresponding number:\n")
-        # user_question = '2'
+        # user_question = '1'
         readjustONEcase = True if user_question.strip().replace("(","").replace(")","")  == '2' else False
 
         self.readjustONEcase = readjustONEcase
@@ -98,37 +99,38 @@ class AnalyzeStaticCases:
         self.plots_static = Plots_Static(self.cenario, svg=False, PO=self.readjustONEcase)
         
         ## ***************** (O código seguinte obtem as informações das linhas AC e DC e reserva por maquina) *****************
+        if self.Options['LinhaAnalise']:
 
-        if self.Options['linhascsv'] and self.Options['LinhaAnalise']:
-            self.PWF16_concatenados = dd.read_csv(self.path_folder + '/LinhasInfo.csv', sep=',').compute()
-            self.PWF16_concatenados['Dia'] = self.PWF16_concatenados['Dia'].astype(str).str.zfill(2)
-            self.cases.get_Intercambios(df=self.PWF16_concatenados)
-            self.DF_Intercambios = self.cases.DF_Intercambios
-
-        if self.Options['HVDCcsv'] and self.Options['HVDCAnalise']:
-            self.DCLinks_concatenados = dd.read_csv(self.path_folder + '/HVDCInfo.csv', sep=',').compute()
-            self.DCLinks_concatenados['Dia'] = self.DCLinks_concatenados['Dia'].astype(str).str.zfill(2)
-
-        if self.Options['reservacsv'] and self.Options['ReservaAnalise']:
-            self.SGN01_concatenados = dd.read_csv(self.path_folder + '/ReservaInfo.csv', sep=',').compute()
-            self.SGN01_concatenados['Dia'] = self.SGN01_concatenados['Dia'].astype(str).str.zfill(2)
-
-        if not (self.Options['linhascsv'] and self.Options['reservacsv'] and self.Options['HVDCcsv']):
-            self.cases.get_Networkinfo(linhas=not self.Options['linhascsv'], Reserva=not self.Options['reservacsv'], Intercambios=not self.Options['HVDCcsv'], hour = self.hour)
-
-            if not self.Options['linhascsv'] and self.Options['LinhaAnalise']:
-                self.PWF16_concatenados = self.cases.linesInfo
+            if self.Options['linhascsv'] and self.Options['LinhaAnalise']:
+                self.PWF16_concatenados = dd.read_csv(self.path_folder + '/LinhasInfo.csv', sep=',').compute()
+                self.PWF16_concatenados['Dia'] = self.PWF16_concatenados['Dia'].astype(str).str.zfill(2)
+                self.cases.get_Intercambios(df=self.PWF16_concatenados)
                 self.DF_Intercambios = self.cases.DF_Intercambios
 
-            if not self.Options['reservacsv'] and self.Options['ReservaAnalise']:
-                try:
-                    self.SGN01_concatenados = self.cases.ReserveInfo
-                except Exception as e:
-                    print(f"Error obtaining Reserve: {e}")
-                    pass
+            if self.Options['HVDCcsv'] and self.Options['HVDCAnalise']:
+                self.DCLinks_concatenados = dd.read_csv(self.path_folder + '/HVDCInfo.csv', sep=',').compute()
+                self.DCLinks_concatenados['Dia'] = self.DCLinks_concatenados['Dia'].astype(str).str.zfill(2)
 
-            if not self.Options['HVDCcsv'] and self.Options['HVDCAnalise']:
-                self.DCLinks_concatenados = self.cases.HVDCInfo
+            if self.Options['reservacsv'] and self.Options['ReservaAnalise']:
+                self.SGN01_concatenados = dd.read_csv(self.path_folder + '/ReservaInfo.csv', sep=',').compute()
+                self.SGN01_concatenados['Dia'] = self.SGN01_concatenados['Dia'].astype(str).str.zfill(2)
+
+            if not (self.Options['linhascsv'] and self.Options['reservacsv'] and self.Options['HVDCcsv']):
+                self.cases.get_Networkinfo(linhas=not self.Options['linhascsv'], Reserva=not self.Options['reservacsv'], Intercambios=not self.Options['HVDCcsv'], hour = self.hour)
+
+                if not self.Options['linhascsv'] and self.Options['LinhaAnalise']:
+                    self.PWF16_concatenados = self.cases.linesInfo
+                    self.DF_Intercambios = self.cases.DF_Intercambios
+
+                if not self.Options['reservacsv'] and self.Options['ReservaAnalise']:
+                    try:
+                        self.SGN01_concatenados = self.cases.ReserveInfo
+                    except Exception as e:
+                        print(f"Error obtaining Reserve: {e}")
+                        pass
+
+                if not self.Options['HVDCcsv'] and self.Options['HVDCAnalise']:
+                    self.DCLinks_concatenados = self.cases.HVDCInfo
 
 # =============================================================================================================================
 #                                                LEITURA LINHAS E RESERVA
@@ -335,8 +337,8 @@ class AnalyzeStaticCases:
             print('Voltage General BoxPlots: ...')
             def boxplot_barrasGeracao(Df_VF):
                 grouped_UF = Df_VF.groupby('Gen_Type').agg({'BUS_ID': 'unique', 'MODV_PU': list})
-                data_UF = [grouped_UF.at[gen_type, 'MODV_PU'] for gen_type in ['UHE', 'UTE', 'PCH', 'EOL', 'UFV', 'BIO']]
-                Nbarras_UF = [grouped_UF.at[gen_type, 'BUS_ID'] for gen_type in ['UHE', 'UTE', 'PCH', 'EOL', 'UFV', 'BIO']]
+                data_UF = [grouped_UF.at[gen_type, 'MODV_PU'] for gen_type in ['UHE', 'UTE', 'PCH', 'EOL', 'UFV', 'BIO', 'SIN']]
+                Nbarras_UF = [grouped_UF.at[gen_type, 'BUS_ID'] for gen_type in ['UHE', 'UTE', 'PCH', 'EOL', 'UFV', 'BIO', 'SIN']]
                 labels_UF = ['Hydro', 'Thermal', 'SHP', 'Wind', 'Solar', 'Bio']
                 
                 self.plots_static.plot_boxplot(data_UF, labels_UF, 'Bus Voltage Distribution by Type of Generation', 
@@ -352,10 +354,10 @@ class AnalyzeStaticCases:
 
             def boxplot_barrasCarga(Df_Vfpt):
                 grouped_VBASEKV = Df_Vfpt.groupby('VBASEKV').agg({'BUS_ID': 'unique', 'MODV_PU': list})
-                voltage_levels = [138, 230, 345, 440, 500, 525, 765]
+                voltage_levels = [230, 345, 440, 500, 525, 765]
                 data_VBASEKV = [grouped_VBASEKV.at[level, 'MODV_PU'] for level in voltage_levels]
                 Nbarras_VBASEKV = [grouped_VBASEKV.at[level, 'BUS_ID'] for level in voltage_levels]
-                labels_VBASEKV = ['138', '230', '345', '440', '500', '525', '765']
+                labels_VBASEKV = ['230', '345', '440', '500', '525', '765']
                 
                 self.plots_static.plot_boxplot(data_VBASEKV, labels_VBASEKV, 'Bus Voltage Distribution by Voltage Level', 
                                             'Voltage Level (kV)', 'Voltage (pu)', text=True, nbarra=Nbarras_VBASEKV)
@@ -370,7 +372,7 @@ class AnalyzeStaticCases:
 
             def plottensaoG():
                 Df_VF = self.processdata.Df_VF
-                filter_condition = (Df_VF['VBASEKV'].isin([138, 230, 345, 440, 500, 525, 765]) | 
+                filter_condition = (Df_VF['VBASEKV'].isin([230, 345, 440, 500, 525, 765]) | 
                                     Df_VF['Gen_Type'].isin(['UHE', 'UTE', 'PCH', 'EOL', 'UFV', 'BIO']))
                 DFF_Geral = Df_VF[filter_condition]
                 
@@ -387,8 +389,8 @@ class AnalyzeStaticCases:
                                             'Voltage (pu)', 'Bus Voltages', vert=False, text=True, rotation=0)
 
             def plottensaoPR():
-                df_ger = self.df_Final_ger[self.df_Final_ger['Gen_Type'].isin(['UHE', 'UTE', 'PCH', 'EOL', 'UFV', 'BIO'])]
-                df_nt = self.df_Final_nt[self.df_Final_nt['VBASEKV'].isin([138, 230, 345, 440, 500, 525, 765])]
+                df_ger = self.df_Final_ger[self.df_Final_ger['Gen_Type'].isin(['UHE', 'UTE', 'PCH', 'EOL', 'UFV', 'BIO','SIN'])]
+                df_nt = self.df_Final_nt[self.df_Final_nt['VBASEKV'].isin([230, 345, 440, 500, 525, 765])]
 
                 if self.Options['ConvergenceAnalise']:
                     filter_non_converged_ger = ~df_ger[['Dia', 'Hora']].apply(tuple, axis=1).isin(self.bool_PWF_NConv)

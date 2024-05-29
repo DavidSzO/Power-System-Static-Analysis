@@ -84,7 +84,7 @@ class ReadScenarios:
         else:
             files_path = [self.path]
 
-        print('Extracting ...')
+        print('Extracting the Data of ntw files...')
 
         results = []
         with ProcessPoolExecutor() as executor:
@@ -129,6 +129,7 @@ class ReadScenarios:
             ' Mvar:From-To', ' Mvar:Losses', ' MW:To-From', ' Power Factor:From-To', ' Power Factor:To-From'
         ]
         col_list_hvdc = ['Bus #', ' Bus Name', ' Type', ' Pole #', ' P(MW)', ' Q(Mvar)', ' Status']
+        # col_list_hvdc = ['Bus #', ' Bus Name', ' Type', ' Pole #', ' P(MW)', ' Q(Mvar)', ' Satus']  # Esta linha tem uma alteração devido a que tem um erro nos arquivos rodados para 2022 no nome da columna Status
         col_list_reserve = ['Bus', ' Group', ' Bus Name', ' Area', ' Zone', ' V (pu)', ' Pg(MW)', ' Qg(Mvar)', ' Reserve', ' Units']
 
         def add_dia_hora(df, path, dia, hour=None):
@@ -151,12 +152,14 @@ class ReadScenarios:
             filtered_files = [file for file in files_path if pattern in os.path.basename(file)]
             if not filtered_files:
                 return []
-            dfs = [dd.read_csv(file, sep=';', skiprows=[0], usecols=col_list, dtype=dtype_dict)
-                   .pipe(add_dia_hora, file, os.path.basename(os.path.dirname(os.path.dirname(file)))[-2:], hour)
-                   for file in filtered_files]
+            try:
+                dfs = [dd.read_csv(file, sep=';', skiprows=[0], usecols=col_list, dtype=dtype_dict).pipe(add_dia_hora, file, os.path.basename(os.path.dirname(os.path.dirname(file)))[-2:], hour) for file in filtered_files]
+            except ValueError:
+                dfs = [dd.read_csv(file, sep=';', skiprows=[0], dtype=dtype_dict).pipe(add_dia_hora, file, os.path.basename(os.path.dirname(os.path.dirname(file)))[-2:], hour) for file in filtered_files]
+                
             return dfs
 
-        PWFs_sep = read_files('PWF16_', col_list_lines, dtype_dict_linhas) if linhas else []
+        PWFs_sep = read_files('PWF16_', col_list_lines) if linhas else []
         DCLinks_sep = read_files('PWF25_', col_list_hvdc) if Intercambios else []
         SGN01_sep = read_files('SGN01_', col_list_reserve) if Reserva else []
 
@@ -296,18 +299,18 @@ class ReadScenarios:
         EXPNE_grouped = PWF16_concatenados[mask.isin(set(linhas_expNE.index))]
         EXPNE_grouped.loc[EXPNE_grouped[['From#', 'To#']].apply(tuple, axis=1).isin(set(linhas_expNE_flip.index)),'MW:From-To'] *= -1
         EXPNE_grouped = EXPNE_grouped.groupby(['Dia', 'Hora']).agg({'MW:From-To':'sum', 'Mvar:From-To':'sum'})
-        print(f'******')
+
         Fluxo_NS = PWF16_concatenados[mask.isin(set(linhas_FNS.index))]
         Fluxo_NS_grouped = Fluxo_NS.groupby(['Dia', 'Hora']).agg({'MW:From-To':'sum', 'Mvar:From-To':'sum'})
-        print(f'******')
+
         Fluxo_NESE = PWF16_concatenados[mask.isin(set(linhas_FNESE.index))]
         Fluxo_NESE.loc[Fluxo_NESE[['From#', 'To#']].apply(tuple, axis=1).isin(set(linhas_FNESE_flip.index)), 'MW:From-To'] *= -1
         Fluxo_NESE_grouped = Fluxo_NESE.groupby(['Dia', 'Hora']).agg({'MW:From-To':'sum', 'Mvar:From-To':'sum'})
-        print(f'******')
+
         Fluxo_NEN = PWF16_concatenados[mask.isin(set(linhas_FNEN.index))]
         Fluxo_NEN.loc[Fluxo_NEN[['From#', 'To#']].apply(tuple, axis=1).isin(set(linhas_FNEN_flip.index)), 'MW:From-To'] *= -1
         Fluxo_NEN_grouped = Fluxo_NEN.groupby(['Dia', 'Hora']).agg({'MW:From-To':'sum', 'Mvar:From-To':'sum'})
-        print(f'******')
+
         Fluxo_SULSECO = PWF16_concatenados[mask.isin(set(linhas_FSULSECO.index))]
         Fluxo_SULSECO.loc[Fluxo_SULSECO[['From#', 'To#']].apply(tuple, axis=1).isin(set(linhas_FSULSECO_flip.index)), 'MW:From-To'] *= -1
         Fluxo_SULSECO_grouped = Fluxo_SULSECO.groupby(['Dia', 'Hora']).agg({'MW:From-To':'sum', 'Mvar:From-To':'sum'})

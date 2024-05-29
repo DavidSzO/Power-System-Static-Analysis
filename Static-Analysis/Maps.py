@@ -43,7 +43,7 @@ class Maps():
             map = folium.Map(
                 location=[-14.2350, -51.9253],
                 tiles='cartodbpositron',
-                zoom_start=4,
+                zoom_start=5,
                 control_scale=True,
                 min_zoom=4,
                 max_zoom=19,
@@ -64,7 +64,7 @@ class Maps():
                 geo_data=self.state_geo,
                 key_on='feature.properties.GEOCODIGO',
                 fill_color='BuPu',  # Darker color scheme
-                fill_opacity=0.3,   # Decreased transparency
+                fill_opacity=0.4,   # Decreased transparency
                 line_opacity=0.7,
                 line_color='black',
                 # legend_name='Voltage (pu)'
