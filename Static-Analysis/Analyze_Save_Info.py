@@ -135,7 +135,6 @@ class AnalyzeStaticCases:
 # =============================================================================================================================
 #                                                LEITURA LINHAS E RESERVA
 # =============================================================================================================================
-
     def LinhaAnalise(self):
 
         if self.Options['LinhaAnalise']:
@@ -293,7 +292,6 @@ class AnalyzeStaticCases:
 #=============================================================================================================================
 #                                                POTENCIA ATIVA E REATIVA
 #=============================================================================================================================
-
     def ActiveReactivePower(self):
 
         print('Active and Reactive Power Analysis and Plots:...')
@@ -330,7 +328,6 @@ class AnalyzeStaticCases:
 #=============================================================================================================================
 #                                                        TENSÃO
 #=============================================================================================================================
-
     def Plot_Tensao_Geral(self):
 
         if self.Options['Plot_Tensao_Geral']:
@@ -426,13 +423,26 @@ class AnalyzeStaticCases:
     def ComputeDPI(self):
 
         if self.Options['ComputeDPI']:
+
+            df_ger = self.df_Final_ger[self.df_Final_ger['Gen_Type'].isin(['UHE', 'UTE', 'PCH', 'EOL', 'UFV', 'BIO','SIN'])]
+            df_nt = self.df_Final_nt[self.df_Final_nt['VBASEKV'].isin([230, 345, 440, 500, 525, 765])]
+
+            if self.Options['ConvergenceAnalise']:
+                filter_non_converged_ger = ~df_ger[['Dia', 'Hora']].apply(tuple, axis=1).isin(self.bool_PWF_NConv)
+                self.df_Final_ger_PWFC = df_ger[filter_non_converged_ger].copy()
+                filter_non_converged_nt = ~df_nt[['Dia', 'Hora']].apply(tuple, axis=1).isin(self.bool_PWF_NConv)
+                self.df_Final_nt_PWFC = df_nt[filter_non_converged_nt].copy()
+            else:
+                self.df_Final_ger_PWFC = df_ger.copy()
+                self.df_Final_nt_PWFC = df_nt.copy()
+
             print('Computing the DPI for all cases: ...')
             ts, tb, n = 0.8, 1, 2
-            VVI = computeDPI(self.df_Final_nt, self.df_Final_ger, ts, tb, p_norm=n, p_inf=False, NBcv=True)
+            VVI = ComputeDPI(self.df_Final_nt_PWFC, self.df_Final_ger_PWFC, ts, tb, p_norm=n, p_inf=False, NBcv=True)
 
             dfPQ_CSI, dfPV_CSI = VVI.dfPQ_CSI, VVI.dfPV_CSI
             df_PQ_reg, df_PV_reg = VVI.df_PQ_reg, VVI.df_PV_reg
-            df_busPQ, df_busPV = VVI.df_busPQ, VVI.df_busPV
+            df_busPQ_mod, df_busPV_mod = VVI.df_busPQ, VVI.df_busPV
 
             def group_dataframes():
                 return (
@@ -445,19 +455,19 @@ class AnalyzeStaticCases:
             dfPQ_CSI, dfPV_CSI, dffPQgb, dffPVgb = group_dataframes()
 
 
-            if self.Options['ConvergenceAnalise']:
-                for index in self.bool_PWF_NConv:
-                    dfPQ_CSI.drop((index[0], index[1]), inplace=True)
-                    dfPV_CSI.drop((index[0], index[1]), inplace=True)
-                    dffPQgb.drop((index[0], index[1]), inplace=True)
-                    dffPVgb.drop((index[0], index[1]), inplace=True)
-                filtro1 = (df_busPQ[['Dia', 'Hora']].apply(tuple, axis=1).isin(self.bool_PWF_NConv))
-                df_busPQ_mod = df_busPQ[~filtro1].copy()
-                filtro2 = (df_busPV[['Dia', 'Hora']].apply(tuple, axis=1).isin(self.bool_PWF_NConv))
-                df_busPV_mod = df_busPV[~filtro2].copy()
-            else:
-                df_busPQ_mod = df_busPQ
-                df_busPV_mod = df_busPV
+            # if self.Options['ConvergenceAnalise']:
+            #     for index in self.bool_PWF_NConv:
+            #         dfPQ_CSI.drop((index[0], index[1]), inplace=True)
+            #         dfPV_CSI.drop((index[0], index[1]), inplace=True)
+            #         dffPQgb.drop((index[0], index[1]), inplace=True)
+            #         dffPVgb.drop((index[0], index[1]), inplace=True)
+            #     filtro1 = (df_busPQ[['Dia', 'Hora']].apply(tuple, axis=1).isin(self.bool_PWF_NConv))
+            #     df_busPQ_mod = df_busPQ[~filtro1].copy()
+            #     filtro2 = (df_busPV[['Dia', 'Hora']].apply(tuple, axis=1).isin(self.bool_PWF_NConv))
+            #     df_busPV_mod = df_busPV[~filtro2].copy()
+            # else:
+            #     df_busPQ_mod = df_busPQ
+            #     df_busPV_mod = df_busPV
 
             self.dffPQgb = dffPQgb
             self.dffPVgb = dffPVgb
@@ -574,13 +584,10 @@ class AnalyzeStaticCases:
                 def discriminarIndice2(x):
                     if x>1:
                         return 'Inseguro'
-                        # return 3
                     elif (x<=1) & (x>0):
                         return 'Alarme'
-                        # return 2
                     elif x == 0:
                         return 'Seguro'
-                        # return 1
 
                 Df_IndiceT2 = pd.concat([dfPQ_CSI[['CSI_SUP_FINAL','CSI_INF_FINAL']],dfPV_CSI[['CSI_SUP_FINAL','CSI_INF_FINAL']]], axis=0, keys=['DPI_PQ', 'DPI_PV'])
                 Df_IndiceT2['OV condition'] = Df_IndiceT2['CSI_SUP_FINAL'].apply(lambda x: discriminarIndice2(x))
@@ -594,10 +601,10 @@ class AnalyzeStaticCases:
                 
                 self.df_grouped[['PG_MW','QG_MVAR','PL_MW']].to_csv(self.cenario + '/Data/Potencia/Df_MW-MVAR_PO.csv', header=True, index=True)
                 
-                if self.Options['Plot_Tensao_Geral']:
+                if self.Options['ComputeDPI']:
 
-                    self.df_Final_ger_PWFC.to_csv(f'{self.cenario}/Data/Geral/Df_ger.csv', index=False, columns=['BUS_ID', 'ARE', 'MODV_PU', 'ANGV_DEG', 'PG_MW', 'QG_MVAR', 'Dia', 'Hora', 'U_FED', 'Gen_Type', 'REG', 'B0_MVAR', 'ST', 'SHUNT_INST_IND', 'SHUNT_INST_CAP', 'ReservaIND', 'ReservaCAP'])
-                    self.df_Final_nt_PWFC.to_csv(f'{self.cenario}/Data/Geral/Df_nt.csv', index=False, columns=['BUS_ID', 'ARE', 'MODV_PU', 'ANGV_DEG', 'VBASEKV', 'PL_MW', 'QL_MVAR', 'Dia', 'Hora', 'U_FED', 'REG', 'B0_MVAR', 'ST', 'SHUNT_INST_IND', 'SHUNT_INST_CAP', 'ReservaINDshunt', 'ReservaCAPshunt'])
+                    self.df_Final_ger_PWFC.to_csv(f'{self.cenario}/Data/Geral/Df_ger.csv', index=False, columns=['BUS_ID', 'BUS_NAME', 'ARE', 'MODV_PU', 'ANGV_DEG', 'PG_MW', 'QG_MVAR', 'Dia', 'Hora', 'U_FED', 'Gen_Type', 'REG', 'B0_MVAR', 'ST', 'SHUNT_INST_IND', 'SHUNT_INST_CAP', 'ReservaIND', 'ReservaCAP','IndiceInf', 'IndiceSup'])
+                    self.df_Final_nt_PWFC.to_csv(f'{self.cenario}/Data/Geral/Df_nt.csv', index=False, columns=['BUS_ID', 'BUS_NAME', 'ARE', 'MODV_PU', 'ANGV_DEG', 'VBASEKV', 'PL_MW', 'QL_MVAR', 'Dia', 'Hora', 'U_FED', 'REG', 'B0_MVAR', 'ST', 'SHUNT_INST_IND', 'SHUNT_INST_CAP', 'ReservaINDshunt', 'ReservaCAPshunt','IndiceInf', 'IndiceSup'])
 
                 if self.Options['LinhaAnalise']:
 
@@ -615,7 +622,7 @@ class AnalyzeStaticCases:
                     self.dffreservaPO_REG_MW[' Reserve'].to_csv(self.cenario + '/Data/Potencia/Df_Reserva_REG_MW.csv', header=True, index=True)
                     self.dffreservaPO_MW[' Reserve'].to_csv(self.cenario + '/Data/Potencia/Df_Reserva_PO_MW.csv', header=True, index=True)
 
-                if self.Options['ComputeDPI']:
+                if (self.Options['ComputeDPI']) and (self.Options['resumoIndice']):
 
                     self.df_DPI_PO['DPI_PO_final'].to_csv(f"{self.cenario}/Data/Indice/Df_DPI_S4.csv")
                     self.DF_DPI_pq_pv_ul.to_csv(f"{self.cenario}/Data/Indice/Df_DPI_S3.csv")

@@ -13,37 +13,38 @@ if __name__ == '__main__':
         # ---------------------------------------------------
                             'generatescript' : False,
         # ---------------------------------------------------
-                            'extract_fromcsv' : True,
+                            'extract_fromcsv' : False,
                             'savecsv':True,
                             'ConvergenceAnalise' : True,
                             'busdata' : True,
-                            'LinhaAnalise': False,
-                            'HVDCAnalise':False,
-                            'ReservaAnalise':False,
-                            'IntercambiosAnalise':False,
+                            'LinhaAnalise': True,
+                            'HVDCAnalise':True,
+                            'ReservaAnalise':True,
+                            'IntercambiosAnalise':True,
         # ---------------------------------------------------
                             'linhascsv':False,
                             'reservacsv':False,
                             'HVDCcsv': False,
         # ---------------------------------------------------
-                            'ComputeDPI': False,
-                            'resumoIndice': False,
-                            'PlotGeralPotencia': False,
-                            'MapasPlots': False,
+                            'ComputeDPI': True,
+                            'resumoIndice': True,
+                            'PlotGeralPotencia': True,
+                            'MapasPlots': True,
                             'Plot_Tensao_Geral': True,
-                            'plotDPI': False,
-                            'Plot_Boxplot_DPI': False,
-                            'PlotIntercambios': False
+                            'plotDPI': True,
+                            'Plot_Boxplot_DPI': True,
+                            'PlotIntercambios': True
                         }
 
     # ************************************************************************************************
     #                                              PATHS
     # ************************************************************************************************
+    path_folder = 'D:/0 FERV/0 Dados PYTHON/Cenarios HPPA PRE-QUALI/MPV_(FNS Lim)_RC/'
     # path_folder = 'D:/MPV_(FNS Lim)_RC/'
     # path_folder = 'D:/MPV_(FNS Lim)_RC_test/'
     # path_folder = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/TESTE/'
     # path_folder = 'D:/0 FERV/0 Dados PYTHON/CASOS 2022_novos/V1A1F2 FNS Lim 2022/'
-    path_folder = 'D:/0 FERV/0 Dados PYTHON/CASOS 2022_novos/V1A1F2 FNS Lim 2022_ultimos_corrigidos/'
+    # path_folder = 'D:/0 FERV/0 Dados PYTHON/CASOS 2022_novos/V1A1F2 FNS Lim 2022_ultimos_corrigidos/'
     # path_folder =  'D:/0 FERV/0 Dados PYTHON/Cenarios HPPA PRE-QUALI/V1A1F2_REV2_091123/'
 
     # ============================= CASOS 2026 V1A1F_===========================================

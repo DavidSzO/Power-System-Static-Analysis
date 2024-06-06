@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-class computeDPI():
+class ComputeDPI():
 
     def __init__(self, df_Final_nt, df_Final_ger, ts, tb, p_norm = None, p_inf = False, NBcv = False):
 
@@ -89,6 +89,7 @@ class computeDPI():
 
                             df_1.append(grouped1.reset_index())
                 except KeyError:
+                    print('ERROR: No existe la region')
                     pass 
                 
                 try:
@@ -143,9 +144,10 @@ class computeDPI():
 
                             df_2.append(grouped2.reset_index())
                 except KeyError:
+                    print('ERROR: No existe la region')
                     pass
                  
-            self.n = n 
+            self.n =n 
             df_C1 = pd.concat(df_1, axis=0, sort=False) #BARRAS PQ
             df_C2 = pd.concat(df_2, axis=0, sort=False) #BARRAS PV
             df_bus1 = pd.concat(dff1, axis=0, sort=False) #BARRAS PQ
@@ -153,7 +155,6 @@ class computeDPI():
             self.n_maior = n_maior
 
             return df_C1, df_C2, df_bus1, df_bus2
-
 
         def get_number_of_buses(grouped_data, keys):
             data_dict = {}
@@ -169,14 +170,10 @@ class computeDPI():
                     pass
             return data_dict
         
-
         # Filter data
         df_ntbarNTF = df_Final_nt[df_Final_nt['VBASEKV'].isin([230, 345, 440, 500, 525, 765])]
-        # df_ntbarNTF = df_Final_nt[df_Final_nt['VBASEKV']==230]
         df_Final_ger.loc[df_Final_ger['Gen_Type']=='UNE','Gen_Type'] = 'UTE'
-        # df_gerbarNGF = df_Final_ger[df_Final_ger['Gen_Type'].isin(['UHE', 'PCH', 'UTE', 'EOL', 'UFV', 'BIO'])]
         df_gerbarNGF = df_Final_ger[df_Final_ger['Gen_Type'].isin(['UHE', 'PCH', 'UTE', 'EOL', 'UFV', 'BIO', 'SIN'])]
-        # df_gerbarNGF = df_Final_ger[df_Final_ger['Gen_Type']=='UHE']
         # Group data
         GROUPEDntREG = df_ntbarNTF.groupby(by=['Dia', 'Hora', 'REG', 'VBASEKV']).agg({'BUS_ID': 'unique'})
         GROUPEDgerREG = df_gerbarNGF.groupby(by=['Dia', 'Hora', 'REG', 'Gen_Type']).agg({'BUS_ID': 'unique'})   
@@ -205,4 +202,59 @@ class computeDPI():
         dfPV_CSI.loc[:, 'CSI_SUP_FINAL'] = dfPV_CSI['CSI_SUP_POND']/dfPV_CSI['BUS_ID']
         self.dfPV_CSI = dfPV_CSI
                 
+
+
+# def read_data():
+#     def read_and_append(filename, cenario, lst):
+#         df = dd.read_csv(filename)
+#         df['Cenario'] = cenario
+#         lst.append(df.compute())
+#         return lst
+
+#     keys = [i for _, i in filenames]
+#     dfs = {key: [] for key in keys}
+#     for i, j in dic_cenarios.items():
+#         for filename, key in filenames:
+#             dfs[key] = read_and_append(j + filename, i, dfs[key])
+
+#     return dfs
+
+# # Main code execution
+# if __name__ == '__main__':
+
+#     import dask.dataframe as dd
+#     dic_cenarios = {
+#                     'V1A1F2 Scenario 2022 FNS' : 'D:/0 FERV/0 Dados PYTHON/CASOS 2022_novos/Results/V1A1F2 FNS Lim 2022_ultimos_corrigidos/',
+#                     }
+
+#     dirGeral = 'Data/Geral/'
+#     dirIndice = 'Data/Indice/'
+#     dirRamos = 'Data/Fluxo em Ramos/'
+#     dirPotencia = 'Data/Potencia/'
+
+#     filenames = [
+#                     (dirGeral + 'Df_ger.csv', 'ger'), 
+#                     (dirGeral + 'Df_nt.csv', 'nt'), 
+#                 ]
+
+#     print('Reading data...')
+#     dfs = read_data()
+
+#     print('Computing the DPI for all cases: ...')
+#     ts, tb, n = 0.8, 1, 2
+#     VVI = computeDPI(dfs['nt'][0], dfs['ger'][0], ts, tb, p_norm=n, p_inf=False, NBcv=True)
+
+#     dfPQ_CSI, dfPV_CSI = VVI.dfPQ_CSI, VVI.dfPV_CSI
+#     df_PQ_reg, df_PV_reg = VVI.df_PQ_reg, VVI.df_PV_reg
+#     df_busPQ, df_busPV = VVI.df_busPQ, VVI.df_busPV
+
+
+#     # Merge df_PQ_reg and df_PV_reg with dfs['nt'][0] and dfs['ger'][0]
+#     dfs['nt'][0] = dfs['nt'][0].merge(df_PQ_reg[['Dia', 'Hora', 'REG', 'VBASEKV', 'CSI_INF', 'CSI_SUP']], on=['Dia', 'Hora', 'REG', 'VBASEKV'], how='left')
+#     dfs['ger'][0] = dfs['ger'][0].merge(df_PV_reg[['Dia', 'Hora', 'REG', 'Gen_Type', 'CSI_INF', 'CSI_SUP']], on=['Dia', 'Hora', 'REG', 'Gen_Type'], how='left')
+
+#     # Calculate Importance_inf and Importance_sup for dfs['nt'][0]
+#     dfs['nt'][0]['Importance_inf'] = dfs['nt'][0].apply(lambda row: row['IndiceInf'] / row['CSI_INF'] if row['CSI_INF'] != 0 else 0, axis=1)
+#     dfs['nt'][0]['Importance_sup'] = dfs['nt'][0].apply(lambda row: row['IndiceSup'] / row['CSI_SUP'] if row['CSI_SUP'] != 0 else 0, axis=1)
+
 
