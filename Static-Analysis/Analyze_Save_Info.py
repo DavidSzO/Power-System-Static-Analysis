@@ -13,13 +13,13 @@ class AnalyzeStaticCases:
         self.Options = Options
         
 
-        user_specified_dir = input("Please enter the directory path where you want to save the files: ")
-        # user_specified_dir = "D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/REV_1/Simulation Results/p_2/"
-        # user_specified_dir = "D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/REV_1/Simulation Results/p_supremo"
+        # user_specified_dir = input("Please enter the directory path where you want to save the files: ")
+        # user_specified_dir = "D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/Simulation Results/p_2/"
+        user_specified_dir = "D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/Simulation Results/p_supremo/"
         notebook_dir = os.path.abspath(user_specified_dir)
         folder_path = os.path.join(notebook_dir, os.path.basename(os.path.normpath(self.path_folder)))
-        user_question = input("Do you want to read? (1). All cases or (2). Just One Case, Please input the corresponding number:\n")
-        # user_question = '1'
+        # user_question = input("Do you want to read? (1). All cases or (2). Just One Case, Please input the corresponding number:\n")
+        user_question = '1'
         readjustONEcase = True if user_question.strip().replace("(","").replace(")","")  == '2' else False
 
         self.readjustONEcase = readjustONEcase
@@ -438,7 +438,7 @@ class AnalyzeStaticCases:
 
             print('Computing the DPI for all cases: ...')
             ts, tb, n = 0.8, 1, 2
-            VVI = ComputeDPI(self.df_Final_nt_PWFC, self.df_Final_ger_PWFC, ts, tb, p_norm=n, p_inf=False, NBcv=True)
+            VVI = ComputeDPI(self.df_Final_nt_PWFC, self.df_Final_ger_PWFC, ts, tb, p_norm=n, p_inf=True, NBcv=True)
 
             dfPQ_CSI, dfPV_CSI = VVI.dfPQ_CSI, VVI.dfPV_CSI
             df_PQ_reg, df_PV_reg = VVI.df_PQ_reg, VVI.df_PV_reg
@@ -453,21 +453,6 @@ class AnalyzeStaticCases:
                 )
 
             dfPQ_CSI, dfPV_CSI, dffPQgb, dffPVgb = group_dataframes()
-
-
-            # if self.Options['ConvergenceAnalise']:
-            #     for index in self.bool_PWF_NConv:
-            #         dfPQ_CSI.drop((index[0], index[1]), inplace=True)
-            #         dfPV_CSI.drop((index[0], index[1]), inplace=True)
-            #         dffPQgb.drop((index[0], index[1]), inplace=True)
-            #         dffPVgb.drop((index[0], index[1]), inplace=True)
-            #     filtro1 = (df_busPQ[['Dia', 'Hora']].apply(tuple, axis=1).isin(self.bool_PWF_NConv))
-            #     df_busPQ_mod = df_busPQ[~filtro1].copy()
-            #     filtro2 = (df_busPV[['Dia', 'Hora']].apply(tuple, axis=1).isin(self.bool_PWF_NConv))
-            #     df_busPV_mod = df_busPV[~filtro2].copy()
-            # else:
-            #     df_busPQ_mod = df_busPQ
-            #     df_busPV_mod = df_busPV
 
             self.dffPQgb = dffPQgb
             self.dffPVgb = dffPVgb
@@ -595,6 +580,9 @@ class AnalyzeStaticCases:
                 Df_IndiceT2.rename(columns={'CSI_SUP_FINAL':'OV DPI','CSI_INF_FINAL':'UV DPI'}, inplace=True)
                 self.Df_IndiceT2 = Df_IndiceT2
 
+#=============================================================================================================================
+#                                                       SAVE THE DATA
+#=============================================================================================================================
     def save_csv(self):
 
         if not self.readjustONEcase:
@@ -611,7 +599,7 @@ class AnalyzeStaticCases:
                     self.DF_REGIONAL_GER[['PG_MW', 'QG_MVAR', 'PL_MW', 'QL_MVAR','Shunt_Ind', 'Shunt_Cap','SHUNT_INST_IND', 'SHUNT_INST_CAP', 'ReservaIND', 'ReservaCAP','PG_UHE', 'PG_UTE', 'PG_EOL', 'PG_SOL', 'PG_BIO', 'PG_Dist', 'QG/QL', 'PG/PL', 'PG_FERV', 'ReservaINDshunt', 'ReservaCAPshunt']].to_csv(self.cenario + '/Data/Potencia/DF_POT_Reg.csv')
                     self.PWF16_Filt_linhas[['From#','To#','From Name','To Name','% L1', 'L1(MVA)', 'Mvar:Losses','Dia', 'Hora','REG', 'VBASEKV','MVA', 'MW:From-To', 'MW:To-From','Power Factor:From-To','Power Factor:To-From']].to_csv(self.cenario+'/Data/Fluxo em Ramos/Df_Linhas.csv', index=None)
                     self.PWF16_Filt_TRAFO[['From#','To#','From Name','To Name','% L1', 'L1(MVA)', 'Mvar:Losses','Dia', 'Hora','REG', 'VBASEKV','MVA', 'MW:From-To', 'MW:To-From','Power Factor:From-To','Power Factor:To-From']].to_csv(self.cenario+'/Data/Fluxo em Ramos/Df_Trafo.csv', index=None)
-                    print(f'*** ETAPA: Salvando dados dos Intercambios ***')
+
                     self.DF_Intercambios.to_csv(self.cenario + '/Data/Fluxo em Ramos/DF_Intercambios.csv')
                     self.df_HVDC.to_csv(self.cenario + '/Data/Fluxo em Ramos/DF_HVDC.csv')
 
