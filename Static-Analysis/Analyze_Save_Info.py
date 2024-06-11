@@ -12,30 +12,30 @@ class AnalyzeStaticCases:
         self.path_folder = path
         self.Options = Options
         
-
         # user_specified_dir = input("Please enter the directory path where you want to save the files: ")
-        # user_specified_dir = "D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/Simulation Results/p_2/"
-        user_specified_dir = "D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/Simulation Results/p_supremo/"
+        os.makedirs('RESULTS', exist_ok=True)
+        user_specified_dir = f"RESULTS/{str(self.Options['Year'])}/"
+        os.makedirs(user_specified_dir, exist_ok=True)
         notebook_dir = os.path.abspath(user_specified_dir)
+        os.makedirs(notebook_dir, exist_ok=True)
         folder_path = os.path.join(notebook_dir, os.path.basename(os.path.normpath(self.path_folder)))
+        os.makedirs(folder_path, exist_ok=True)
+        folder_path = os.path.join(folder_path, 'StaticAnalysis')
+        os.makedirs(folder_path, exist_ok=True)
         # user_question = input("Do you want to read? (1). All cases or (2). Just One Case, Please input the corresponding number:\n")
         user_question = '1'
         readjustONEcase = True if user_question.strip().replace("(","").replace(")","")  == '2' else False
-
         self.readjustONEcase = readjustONEcase
 
         if readjustONEcase:
-
-            Options['extract_fromcsv'] = False
-            Options['savecsv'] = False
-            Options['linhascsv'] = False
-            Options['reservacsv'] =False
-            Options['HVDCcsv'] = False
-            Options['ConvergenceAnalise'] = False
+            self.Options['extract_fromcsv'] = False
+            self.Options['savecsv'] = False
+            self.Options['linhascsv'] = False
+            self.Options['reservacsv'] =False
+            self.Options['HVDCcsv'] = False
+            self.Options['ConvergenceAnalise'] = False
             self.day = input("Write the specific Day in this format 01:\n")
             self.hour = input("Write the specific Hour in this format 00-00:\n")
-            # self.day = '01'
-            # self.hour = '00-00'
             folder_path = os.path.join(folder_path, self.day + '_'+ self.hour)
             archivos = os.listdir(self.path_folder)
             folder = [nomes_archivos for nomes_archivos in archivos if nomes_archivos.endswith(self.day)][0]
@@ -43,23 +43,30 @@ class AnalyzeStaticCases:
             files_path = [os.path.join(relativepath, file_name) for file_name in os.listdir(relativepath) if file_name.endswith(self.hour+'.ntw')]
             self.path_folder = os.path.join(self.path_folder, files_path[0])
 
+        if self.Options['Norm']==None:
+            self.indexfolder = f'Indice_n_supremo'
+        else:
+            self.indexfolder = f"Indice_n_{str(self.Options['Norm'])}"
 
         if not readjustONEcase:
             subfolders_1 = ['Plots', 'Data']
-            subfolders_11 = ['Indice', 'Perfil Potência Ativa', 'Perfil Potência Reativa', 'Reserva', 'BoxPlot Tensão', 'Intercambios AC-DC', 'Mapas']
-            subfolders_12 = ['Geral', 'Fluxo em Ramos', 'Potencia', 'Indice']
+            subfolders_11 = [self.indexfolder, 'Perfil Potência Ativa', 'Perfil Potência Reativa', 'Reserva', 'BoxPlot Tensão', 'Intercambios AC-DC', 'Mapas']
+            subfolders_12 = ['Geral', 'Fluxo em Ramos', 'Potencia', self.indexfolder]
         else:
             subfolders_1 = ['Plots', 'Data']
-            subfolders_11 = ['Indice', 'Mapas', 'Potencia', 'BoxPlot Tensão']
-            subfolders_12 = ['Geral', 'Fluxo em Ramos', 'Potencia', 'Indice']
+            subfolders_11 = [self.indexfolder, 'Mapas', 'Potencia', 'BoxPlot Tensão']
+            subfolders_12 = ['Geral', 'Fluxo em Ramos', 'Potencia', self.indexfolder]
 
         for subfolder in subfolders_1:
             folders = subfolders_11 if subfolder == 'Plots' else subfolders_12 
             for folder in folders:
                 os.makedirs(os.path.join(folder_path, subfolder, folder), exist_ok=True)
+        
+        os.makedirs(os.path.join(folder_path, f'Plots/{self.indexfolder}/BoxPlot'), exist_ok=True)
             
         print(f"The directories have been created in: {folder_path}")
         self.folder_path = folder_path
+
 
     def extraction_process(self):
 
@@ -339,7 +346,7 @@ class AnalyzeStaticCases:
                 labels_UF = ['Hydro', 'Thermal', 'SHP', 'Wind', 'Solar', 'Bio']
                 
                 self.plots_static.plot_boxplot(data_UF, labels_UF, 'Bus Voltage Distribution by Type of Generation', 
-                                            'Type of Generation', 'Voltage (pu)', text=True, nbarra=Nbarras_UF)
+                                            'Type of Generation', 'Voltage (pu)', text=True, nbarra=Nbarras_UF,pathtosave=f'{self.folder_path}/Plots/BoxPlot Tensão/')
                 
                 grouped_Reg = Df_VF.groupby('REG').agg({'BUS_ID': 'unique', 'MODV_PU': list})
                 data_Reg = [grouped_Reg.at[region, 'MODV_PU'] for region in ['Norte', 'Nordeste', 'Sudeste-Centro-Oeste', 'Sul', 'AC-RO']]
@@ -347,7 +354,7 @@ class AnalyzeStaticCases:
                 labels_Reg = ['North', 'Northeast', 'SE-CW', 'South', 'AC-RO']
                 
                 self.plots_static.plot_boxplot(data_Reg, labels_Reg, 'Bus Voltage Distribution by Region for Voltage-Controlled Buses', 
-                                            'Region', 'Voltage (pu)', text=True, nbarra=Nbarras_Reg)
+                                            'Region', 'Voltage (pu)', text=True, nbarra=Nbarras_Reg, pathtosave=f'{self.folder_path}/Plots/BoxPlot Tensão/')
 
             def boxplot_barrasCarga(Df_Vfpt):
                 grouped_VBASEKV = Df_Vfpt.groupby('VBASEKV').agg({'BUS_ID': 'unique', 'MODV_PU': list})
@@ -357,7 +364,7 @@ class AnalyzeStaticCases:
                 labels_VBASEKV = ['230', '345', '440', '500', '525', '765']
                 
                 self.plots_static.plot_boxplot(data_VBASEKV, labels_VBASEKV, 'Bus Voltage Distribution by Voltage Level', 
-                                            'Voltage Level (kV)', 'Voltage (pu)', text=True, nbarra=Nbarras_VBASEKV)
+                                            'Voltage Level (kV)', 'Voltage (pu)', text=True, nbarra=Nbarras_VBASEKV, pathtosave=f'{self.folder_path}/Plots/BoxPlot Tensão/')
 
                 grouped_Reg = Df_Vfpt.groupby('REG').agg({'BUS_ID': 'unique', 'MODV_PU': list})
                 data_Reg = [grouped_Reg.at[region, 'MODV_PU'] for region in ['Norte', 'Nordeste', 'Sudeste-Centro-Oeste', 'Sul', 'AC-RO']]
@@ -365,7 +372,7 @@ class AnalyzeStaticCases:
                 labels_Reg = ['North', 'Northeast', 'SE-CW', 'South', 'AC-RO']
                 
                 self.plots_static.plot_boxplot(data_Reg, labels_Reg, 'Bus Voltage Distribution by Region for Load Buses', 
-                                            'Region', 'Voltage (pu)', text=True, nbarra=Nbarras_Reg)
+                                            'Region', 'Voltage (pu)', text=True, nbarra=Nbarras_Reg, pathtosave=f'{self.folder_path}/Plots/BoxPlot Tensão/')
 
             def plottensaoG():
                 Df_VF = self.processdata.Df_VF
@@ -383,7 +390,7 @@ class AnalyzeStaticCases:
                 labels = ['G. Sincrona']
                 
                 self.plots_static.plot_boxplot(data, labels, 'Bus Voltage Distribution of the System', 
-                                            'Voltage (pu)', 'Bus Voltages', vert=False, text=True, rotation=0)
+                                            'Voltage (pu)', 'Bus Voltages', vert=False, text=True, rotation=0, pathtosave=f'{self.folder_path}/Plots/BoxPlot Tensão/')
 
             def plottensaoPR():
                 df_ger = self.df_Final_ger[self.df_Final_ger['Gen_Type'].isin(['UHE', 'UTE', 'PCH', 'EOL', 'UFV', 'BIO','SIN'])]
@@ -437,8 +444,12 @@ class AnalyzeStaticCases:
                 self.df_Final_nt_PWFC = df_nt.copy()
 
             print('Computing the DPI for all cases: ...')
-            ts, tb, n = 0.8, 1, 2
-            VVI = ComputeDPI(self.df_Final_nt_PWFC, self.df_Final_ger_PWFC, ts, tb, p_norm=n, p_inf=True, NBcv=True)
+            if self.Options['Norm'] == None:
+                ts, tb, n = 0.8, 1, 1
+                VVI = ComputeDPI(self.df_Final_nt_PWFC, self.df_Final_ger_PWFC, ts, tb, p_norm=n, p_inf=True, NBcv=True)
+            else:
+                ts, tb, n = 0.8, 1, self.Options['Norm']
+                VVI = ComputeDPI(self.df_Final_nt_PWFC, self.df_Final_ger_PWFC, ts, tb, p_norm=n, p_inf=False, NBcv=True)     
 
             dfPQ_CSI, dfPV_CSI = VVI.dfPQ_CSI, VVI.dfPV_CSI
             df_PQ_reg, df_PV_reg = VVI.df_PQ_reg, VVI.df_PV_reg
@@ -482,12 +493,13 @@ class AnalyzeStaticCases:
             df_DPI_PO['DPI_PO_final'] = df_DPI_PO['DPI_PO'].pow(1 / (2 * n))
             self.df_DPI_PO = df_DPI_PO
 
-            self.plots_static.plot_indice_0(df_DPI_PO, r'$\mathrm{DPI}$', 'DPI_PO_final', '', 'DPI_PO_final', order=True, ylimites=[-0.05, 1.5])
+            self.plots_static.plot_indice_0(df_DPI_PO, r'$\mathrm{DPI}$', 'DPI_PO_final', '', 'DPI_PO_final', order=True, ylimites=[-0.05, 1.5], pathtosave= f'{self.folder_path}/Plots/{self.indexfolder}/')
             
             print('Ploting DPI Analysis: ...')
             if self.Options['plotDPI']:
                 def plot_indices(df, prefix, label, column):
-                    self.plots_static.plot_indice(df, label, f'DPI_({prefix})_{label}', '', column, order=True, ylimites=[0, 1])
+                    name = f'{self.folder_path}/Plots/{self.indexfolder}/'
+                    self.plots_static.plot_indice(df, label, f'DPI_({prefix})_{label}', '',  column, pathtosave=name, order=True, ylimites=[0, 1])
 
                 plot_indices(dfPQ_CSI, 'u', 'PQ', 'CSI_SUP_FINAL')
                 plot_indices(dfPQ_CSI, 'l', 'PQ', 'CSI_INF_FINAL')
@@ -495,7 +507,7 @@ class AnalyzeStaticCases:
                 plot_indices(dfPV_CSI, 'l', 'PV', 'CSI_INF_FINAL')
 
                 def plot_indice_1_per_region(df_pq, df_pv, name, region):
-                    self.plots_static.plot_indice_1(df_pv, df_pq, 'DPI', name, region, order=False)
+                    self.plots_static.plot_indice_1(df_pv, df_pq, 'DPI', name, region, order=False, pathtosave= f'{self.folder_path}/Plots/{self.indexfolder}/')
 
                 regions = {
                     'North': 'Norte',
@@ -512,10 +524,10 @@ class AnalyzeStaticCases:
                     region_map = {'Nordeste': 'Northeast', 'Norte': 'North', 'Sudeste-Centro-Oeste': 'SE-CW', 'Sul': 'South', 'AC-RO': 'AC-RO'}
                     for reg in regioes:
                         for indice in ['CSI_INF', 'CSI_SUP']:
-                            self.plots_static.plot_indice_2(dffPQgb, f'$\mathrm{{DPI}}_\mathrm{{PQ}}^\mathrm{{l}}$', f'DPI_(l)_PQ_{region_map[reg]}', region_map[reg], reg, indice, 'VBASEKV', limites=[0, 2.5])
-                            self.plots_static.plot_indice_2(dffPVgb, f'$\mathrm{{DPI}}_\mathrm{{PV}}^\mathrm{{l}}$', f'DPI_(l)_PV_{region_map[reg]}', region_map[reg], reg, indice, 'Gen_Type', limites=[0, 2.5])
-                            self.plots_static.plot_indice_2(dffPQgb, f'$\mathrm{{DPI}}_\mathrm{{PQ}}^\mathrm{{u}}$', f'DPI_(u)_PQ_{region_map[reg]}', region_map[reg], reg, indice, 'VBASEKV', limites=[0, 2.5])
-                            self.plots_static.plot_indice_2(dffPVgb, f'$\mathrm{{DPI}}_\mathrm{{PV}}^\mathrm{{u}}$', f'DPI_(u)_PV_{region_map[reg]}', region_map[reg], reg, indice, 'Gen_Type', limites=[0, 2.5])
+                            self.plots_static.plot_indice_2(dffPQgb, f'$\mathrm{{DPI}}_\mathrm{{PQ}}^\mathrm{{l}}$', f'DPI_(l)_PQ_{region_map[reg]}', region_map[reg], reg, indice, 'VBASEKV', limites=[0, 2.5],pathtosave= f'{self.folder_path}/Plots/{self.indexfolder}/')
+                            self.plots_static.plot_indice_2(dffPVgb, f'$\mathrm{{DPI}}_\mathrm{{PV}}^\mathrm{{l}}$', f'DPI_(l)_PV_{region_map[reg]}', region_map[reg], reg, indice, 'Gen_Type', limites=[0, 2.5],pathtosave= f'{self.folder_path}/Plots/{self.indexfolder}/')
+                            self.plots_static.plot_indice_2(dffPQgb, f'$\mathrm{{DPI}}_\mathrm{{PQ}}^\mathrm{{u}}$', f'DPI_(u)_PQ_{region_map[reg]}', region_map[reg], reg, indice, 'VBASEKV', limites=[0, 2.5],pathtosave= f'{self.folder_path}/Plots/{self.indexfolder}/')
+                            self.plots_static.plot_indice_2(dffPVgb, f'$\mathrm{{DPI}}_\mathrm{{PV}}^\mathrm{{u}}$', f'DPI_(u)_PV_{region_map[reg]}', region_map[reg], reg, indice, 'Gen_Type', limites=[0, 2.5],pathtosave= f'{self.folder_path}/Plots/{self.indexfolder}/')
 
                 main_plot_indice_2(dffPQgb, dffPVgb)
 
@@ -542,7 +554,7 @@ class AnalyzeStaticCases:
                                 minimo  = df_boxplot['MIN'].min() - 0.01
                                 maximo =  df_boxplot['MAX'].max() + 0.01
                                 numbuses =  condition + ' ' + Region + ' - ' + df_ind  + ' - ' +  name[idx] + ' - ' +  str(vb)  + ' - Buses with voltage problems = ' + str(dff.loc[Region,vb].shape[0]) 
-                                self.plots_static.plot_boxplot(df_boxplot['MODV_PU'], df_boxplot.index, numbuses , 'BUSES', 'VOLTAGE (pu)', text = True, rotation=45, limites=[minimo,maximo])
+                                self.plots_static.plot_boxplot(df_boxplot['MODV_PU'], df_boxplot.index, numbuses , 'BUSES', 'VOLTAGE (pu)', text = True, rotation=45, limites=[minimo,maximo], pathtosave=f'{self.folder_path}/Plots/{self.indexfolder}/BoxPlot/')
                                 
                 def boxplot_problematic_buses(df_busPQ,df_busPV):
                     dicIndice = ['IndiceInf','IndiceSup']
@@ -585,7 +597,7 @@ class AnalyzeStaticCases:
 #=============================================================================================================================
     def save_csv(self):
 
-        if not self.readjustONEcase:
+        # if not self.readjustONEcase:
                 
                 self.df_grouped[['PG_MW','QG_MVAR','PL_MW']].to_csv(self.cenario + '/Data/Potencia/Df_MW-MVAR_PO.csv', header=True, index=True)
                 
@@ -612,10 +624,10 @@ class AnalyzeStaticCases:
 
                 if (self.Options['ComputeDPI']) and (self.Options['resumoIndice']):
 
-                    self.df_DPI_PO['DPI_PO_final'].to_csv(f"{self.cenario}/Data/Indice/Df_DPI_S4.csv")
-                    self.DF_DPI_pq_pv_ul.to_csv(f"{self.cenario}/Data/Indice/Df_DPI_S3.csv")
-                    self.dffPQgb.to_csv(f"{self.cenario}/Data/Indice/Df_PQ_DPI_S1.csv", index=True)
-                    self.dffPVgb.to_csv(f"{self.cenario}/Data/Indice/Df_PV_DPI_S1.csv", index=True)
+                    self.df_DPI_PO['DPI_PO_final'].to_csv(f"{self.cenario}/Data/{self.indexfolder}/Df_DPI_S4.csv")
+                    self.DF_DPI_pq_pv_ul.to_csv(f"{self.cenario}/Data/{self.indexfolder}/Df_DPI_S3.csv")
+                    self.dffPQgb.to_csv(f"{self.cenario}/Data/{self.indexfolder}/Df_PQ_DPI_S1.csv", index=True)
+                    self.dffPVgb.to_csv(f"{self.cenario}/Data/{self.indexfolder}/Df_PV_DPI_S1.csv", index=True)
 
                     Df_IndiceT2 = self.Df_IndiceT2
                     Df_PQ_OV = Df_IndiceT2.loc['DPI_PQ'][~((Df_IndiceT2.loc['DPI_PQ']['OV DPI']==0) & (Df_IndiceT2.loc['DPI_PQ']['UV DPI']>0))].sort_values('OV DPI', ascending=False)[['OV condition', 'OV DPI']]
@@ -623,8 +635,8 @@ class AnalyzeStaticCases:
                     Df_PV_OV = Df_IndiceT2.loc['DPI_PV'][~((Df_IndiceT2.loc['DPI_PV']['OV DPI']==0) & (Df_IndiceT2.loc['DPI_PV']['UV DPI']>0))].sort_values('OV DPI', ascending=False)[['OV condition', 'OV DPI']]
                     Df_PV_UV = Df_IndiceT2.loc['DPI_PV'][~((Df_IndiceT2.loc['DPI_PV']['UV DPI']==0) & (Df_IndiceT2.loc['DPI_PV']['OV DPI']>0))].sort_values('UV DPI', ascending=False)[['UV condition', 'UV DPI']]
 
-                    Df_IndiceT2.to_csv(self.cenario + '/Data/Indice/Df_DPI_S2.csv')
-                    path_script_org = self.cenario + "/Data/Indice/RelatorioIndice.txt"
+                    Df_IndiceT2.to_csv(self.cenario + f"/Data/{self.indexfolder}/Df_DPI_S2.csv")
+                    path_script_org = self.cenario + f"/Data/{self.indexfolder}/RelatorioIndice.txt"
                     numeroPO = len(set(Df_IndiceT2.index.to_frame()[['Dia','Hora']].apply(tuple, axis=1).values))
                     with open(path_script_org, 'w') as f:
                         f.write('O numero de pontos de operação analisados são: ' + str(numeroPO) + '\n')
@@ -662,22 +674,30 @@ class AnalyzeStaticCases:
                             except:
                                 pass
 
+                    def list_to_string(lst):
+                        return ', '.join(map(str, lst))
+
                     grouped_pv_nunique = self.df_busPV_mod[(self.df_busPV_mod['IndiceInf'] > 0)].groupby(by=['REG'])['BUS_ID'].nunique()
                     grouped_pq_nunique = self.df_busPQ_mod[(self.df_busPQ_mod['IndiceInf'] > 0)].groupby(by=['REG'])['BUS_ID'].nunique()
                     grouped_pv_unique = self.df_busPV_mod[(self.df_busPV_mod['IndiceInf'] > 0)].groupby(by=['REG'])['BUS_ID'].unique()
                     grouped_pq_unique = self.df_busPQ_mod[(self.df_busPQ_mod['IndiceInf'] > 0)].groupby(by=['REG'])['BUS_ID'].unique()
-                    # Separator string
-                    separator1 = '\n' + '=' * 20 + '\n' + '=' * 20 + '\n'
-                    separator2 = '\n' + '=' * 20 + '\n' + '=' * 20 + '\n'
-                    # 2. Combine with separators and Format
-                    with open(self.cenario + '/Data/Indice/DPI_Critical_Buses.txt', 'w') as f:
-                        f.write(grouped_pv_nunique.rename('Critical_infPVbuses').to_string() + separator1)
-                        f.write(grouped_pq_nunique.rename('Critical_infPQbuses').to_string() + separator2)
-                        f.write(grouped_pv_unique.rename('Critical_infPVbuses_bus').to_string() + separator1)
-                        f.write(grouped_pq_unique.rename('Critical_infPQbuses_bus').to_string())  
 
-                    self.df_DPI_PO[self.df_DPI_PO['DPI_PO_final'] > 1].index.to_frame()[['Dia', 'Hora']].apply(tuple, axis=1).to_csv(f"{self.cenario}/PO_Inseguros.txt", index=None)
+                    # Set up the output data dictionary
+                    data = {
+                        'Critical_infPVbuses': grouped_pv_nunique.to_dict(),
+                        'Critical_infPQbuses': grouped_pq_nunique.to_dict(),
+                        'Critical_infPVbuses_bus': grouped_pv_unique.to_dict(),
+                        'Critical_infPQbuses_bus': grouped_pq_unique.to_dict(),
+                    }
+
+                    # Convert lists to strings with line breaks for "bus" data
+                    for key in ['Critical_infPVbuses_bus', 'Critical_infPQbuses_bus']:
+                        data[key] = {k: list_to_string(v) for k, v in data[key].items()}  # Use the modified list_to_string
+
+                    # Write to JSON file with indentation for readability
+                    with open(self.cenario + f"/Data/{self.indexfolder}/DPI_Critical_Buses.json", 'w') as f:
+                        json.dump(data, f, indent=4)  # indent=4 adds 4 spaces for each level of nesting
+
+
+                    self.df_DPI_PO[self.df_DPI_PO['DPI_PO_final'] > 1].index.to_frame()[['Dia', 'Hora']].apply(tuple, axis=1).to_csv(self.cenario + f"/Data/{self.indexfolder}/PO_Inseguros.txt", index=None)   
                     
-
-
-

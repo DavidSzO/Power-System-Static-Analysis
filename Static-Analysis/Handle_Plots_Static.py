@@ -17,7 +17,7 @@ class Plots_Static():
 
     ## Definição de Funções Gerais =========================================================================================
 
-    def plot_boxplot(self, data, labels, title, xlabel, ylabel, limites=None, vert = True, rotation = 0, text = True, nbarra = None):
+    def plot_boxplot(self, data, labels, title, xlabel, ylabel, pathtosave, limites=None, vert = True, rotation = 0, text = True, nbarra = None):
         
         markerfacecolor = dict(markerfacecolor='gray', marker='o')  # El diccionario que define el color y marcador
         fig1, axs = plt.subplots(figsize=(25, 20))
@@ -58,10 +58,10 @@ class Plots_Static():
         plt.yticks(fontsize=25)
         plt.grid(True, linestyle='--', linewidth=0.5, alpha=0.6)
         axs.xaxis.grid(False)
-        nome = self.cenario + '/Plots/BoxPlot Tensão/' + title + '.png'
+        nome = pathtosave + title + '.png'
         plt.savefig(nome, bbox_inches = 'tight')
         if self.svg:
-            nome = self.cenario + '/Plots/BoxPlot Tensão/BoxPlot/' + title + '.svg'
+            nome = pathtosave + title + '.svg'
             plt.savefig(nome)
         plt.close()
 
@@ -161,7 +161,7 @@ class Plots_Static():
             plt.savefig(nome)
         plt.close()
 
-    def plot_indice_0 (self, df_data, eje_y, name, title, INDICE, xlimites=None,ylimites=None, order = False, ax=None):
+    def plot_indice_0 (self, df_data, eje_y, name, title, INDICE, pathtosave, xlimites=None,ylimites=None, order = False, ax=None):
         
         if ax is None:
             fig, axs = plt.subplots(nrows=1, figsize=(15, 6), sharex=False)
@@ -196,16 +196,16 @@ class Plots_Static():
         axs.grid(True, linestyle='-', linewidth=1.2, alpha=0.4)
         plt.tight_layout()
         if ax is None:
-            nome = self.cenario + '/Plots/Indice/' + name + '.png'
+            nome = pathtosave + name + '.png'
             plt.savefig(nome, bbox_inches = 'tight')
             if self.svg:
-                nome = self.cenario + '/Plots/Indice/' + name + '.svg'
+                nome = pathtosave + name + '.svg'
                 plt.savefig(nome, bbox_inches = 'tight')
             plt.close()
 
         return area_trapezoidal
 
-    def plot_indice (self, df_data, eje_y, name, title, INDICE, xlimites=None,ylimites=None,  order = False):
+    def plot_indice (self, df_data, eje_y, name, title, INDICE, pathtosave, xlimites=None, ylimites=None, order = False):
 
         fig, axs = plt.subplots(nrows=1, figsize=(10, 6), sharex=False)
         colores = [sns.color_palette("Paired")[1], sns.color_palette("Paired")[3], sns.color_palette("Paired")[5],sns.color_palette("Paired")[7],sns.color_palette("Paired")[9]]
@@ -251,14 +251,14 @@ class Plots_Static():
             axs.set_ylim(ylimites)
         axs.grid(True, linestyle='-', linewidth=1.2, alpha=0.4)
         plt.tight_layout()
-        nome = self.cenario + '/Plots/Indice/' + name + '.png'
+        nome = pathtosave + name + '.png'
         plt.savefig(nome, bbox_inches = 'tight')
         if self.svg:
-            nome = self.cenario + '/Plots/Indice/' + name + '.svg'
+            nome = pathtosave + name + '.svg'
             plt.savefig(nome)
         plt.close()     
 
-    def plot_indice_1 (self, df_pv, df_pq, eje_y, title, regiao, limites=None, order = True):
+    def plot_indice_1 (self, df_pv, df_pq, eje_y, title, regiao, pathtosave, limites=None, order = True):
 
         fig, axs = plt.subplots(nrows=1, figsize=(10, 6))
         colores = [self.paletadcolor[4], self.paletadcolor[0], self.paletadcolor[3],self.paletadcolor[2],self.paletadcolor[3]]
@@ -290,14 +290,14 @@ class Plots_Static():
             axs.set_ylim(limites)
         axs.grid(True, linestyle='--', linewidth=1, alpha=0.2)
         plt.tight_layout()
-        nome = self.cenario + '/Plots/Indice/' + title + '.png'
+        nome = pathtosave + title + '.png'
         plt.savefig(nome, bbox_inches = 'tight')
         if self.svg:
-            nome = self.cenario + '/Plots/Indice/' + title + '.svg'
+            nome = pathtosave + title + '.svg'
             plt.savefig(nome)       
         plt.close()
 
-    def plot_indice_2 (self, df, eje_y, name ,title, regiao, INDICE, GB, limites=None, order = True):
+    def plot_indice_2 (self, df, eje_y, name ,title, regiao, INDICE, GB, pathtosave, limites=None, order = True):
 
         fig, axs = plt.subplots(nrows=1, figsize=(10, 6))
         labelG = {'BIO': 'Bio', 'EOL': 'Wind', 'PCH': 'SHP','UFV': 'Solar', 'UHE': 'Hydro','UTE': 'Thermal', 'SIN': 'Synchronous C.'}
@@ -322,11 +322,8 @@ class Plots_Static():
                 axs.bar(str(G_bus), data_.values, color=colores[G_bus], label=label, linewidth=2)
 
         axs.legend(loc='best', fontsize=14)
-        # Calculate the number of data points in a day (assuming each day has 48 data points)
         data_points_per_day = 48
-        # Calculate the number of days based on the length of the data
         num_days = len(data_) // data_points_per_day
-        # Set x-axis ticks and labels for each day
         axs.set_xticks([i * data_points_per_day for i in range(num_days)])
         axs.set_xticklabels([f'{i+1}' for i in range(num_days)], fontsize=18, rotation=0, ha='center')
         axs.tick_params(axis='y', labelsize=18)
@@ -341,10 +338,10 @@ class Plots_Static():
             axs.set_ylim(limites)
         axs.grid(True, linestyle='-', linewidth=1.2, alpha=0.4)
         plt.tight_layout()
-        nome = self.cenario + '/Plots/Indice/' + name + '.png'
+        nome = pathtosave + name + '.png'
         plt.savefig(nome, bbox_inches = 'tight')
         if self.svg:
-            nome = self.cenario + '/Plots/Indice/' + name + '.svg'
+            nome = pathtosave + name + '.svg'
             plt.savefig(nome)
         plt.close()
 
