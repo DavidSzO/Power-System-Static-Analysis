@@ -353,7 +353,7 @@ class CreatePlots:
                     )
         
         if path != None:
-            fig.write_html("../results/plot_flow_profiles.html")
+            fig.write_html(f"{path}/plot_flow_profiles.html")
             
         fig.show()
 
