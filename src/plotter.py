@@ -139,7 +139,6 @@ class CreatePlots:
                 plt.savefig(f'{path}/BoxPlot_{col}_Split') 
             plt.show()
 
-
     def violin_plots(self, dataset, col, split_flows=None, 
                   path=None, ax_fontsize=None, scenario=None):
         if split_flows == False:
