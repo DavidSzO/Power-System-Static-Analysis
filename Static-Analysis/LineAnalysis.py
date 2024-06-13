@@ -12,7 +12,8 @@ class Analise_Linhas:
     def __init__(self, PWF16):
 
         PWF16_concatenados = PWF16
-        PWF16_Filt = PWF16_concatenados[(PWF16_concatenados['Type'] == ' TL') & ~(PWF16_concatenados['REG'].isna())]
+        # PWF16_Filt = PWF16_concatenados[(PWF16_concatenados['Type'] == ' TL') & ~(PWF16_concatenados['REG'].isna())]
+        PWF16_Filt = PWF16_concatenados[~(PWF16_concatenados['REG'].isna())]
         self.PWF16_Filt_NEW = PWF16_Filt[(PWF16_Filt['VBASEKV'] > 138) & (PWF16_Filt['VBASEKV'] != 161)]
         self.VBA = self.PWF16_Filt_NEW[self.PWF16_Filt_NEW['VBASEKV'] >= 138]['VBASEKV'].unique()
 
@@ -799,8 +800,5 @@ class Analise_Linhas:
 
             # Salvar em xlsx
             result_df.to_excel(filename)
-
-
-
 
 

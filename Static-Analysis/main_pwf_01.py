@@ -2,7 +2,10 @@ from plotter import CreatePlots
 import pandas as pd
 import os 
 
-main_path = 'RESULTS/2026/V1A1F2_RESP_FNS_lim_rev1_2026/StaticAnalysis/'
+# trocar só o cenário para o analise correspondente
+scenario = 'MPV_(FNS Lim)_RC'
+main_path = f'RESULTS/{scenario}/StaticAnalysis/'
+
 os.makedirs(main_path + '/Plots/Intercambios AC-DC', exist_ok=True)
 
 df_pwf16 = pd.read_csv(main_path+'Data/Fluxo em Ramos/DF_Intercambios.csv')
@@ -16,28 +19,28 @@ df_pwf = pd.concat([df_pwf16, df_pwf25], axis=0).reset_index().drop('index', axi
 if __name__ == '__main__':
     path =  main_path + '/Plots/Intercambios AC-DC/'
     plotter = CreatePlots()
-    # plotter.persistency_curve(dataset=df_pwf, 
-    #                           col='P(MW)', 
-    #                           k=5, 
-    #                           path=path, 
-    #                           ax_fontsize=13)
-    # plotter.box_plots(dataset=df_pwf, 
-    #                   col='P(MW)', 
-    #                   split_flows=True,
-    #                   path=path,
-    #                   ax_fontsize=11,
-    #                   scenario='V1A1F2')
-    # plotter.violin_plots(dataset=df_pwf, 
-    #                      col='P(MW)', 
-    #                      split_flows=False,
-    #                      path=path,
-    #                      ax_fontsize=11,
-    #                      scenario='V1A1F2')
-    # plotter.create_heatmap(dataset=df_pwf, 
-    #                        col='P(MW)',
-    #                        k=3, 
-    #                        path=path, 
-    #                        ax_fontsize=11)
+    plotter.persistency_curve(dataset=df_pwf, 
+                              col='P(MW)', 
+                              k=5, 
+                              path=path, 
+                              ax_fontsize=13)
+    plotter.box_plots(dataset=df_pwf, 
+                      col='P(MW)', 
+                      split_flows=True,
+                      path=path,
+                      ax_fontsize=11,
+                      scenario='V1A1F2')
+    plotter.violin_plots(dataset=df_pwf, 
+                         col='P(MW)', 
+                         split_flows=False,
+                         path=path,
+                         ax_fontsize=11,
+                         scenario='V1A1F2')
+    plotter.create_heatmap(dataset=df_pwf, 
+                           col='P(MW)',
+                           k=3, 
+                           path=path, 
+                           ax_fontsize=11)
     plotter.flow_profiles(dataset=df_pwf, 
                           col='P(MW)', 
                           scenario="V2A2F2",

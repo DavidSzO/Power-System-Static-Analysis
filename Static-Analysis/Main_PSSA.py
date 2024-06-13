@@ -10,13 +10,13 @@ if __name__ == '__main__':
     #                                       OPÇÕES DE EJECUÇÃO
     # ************************************************************************************************
     Options_ReadProcess= {
-                            'Year': 2026,
-                            'Norm': 2,   #Write None for using infinite norm in voltage analysis
+                            'Norm': 2,          # Write None for using infinite norm in voltage analysis
+                            'OneCase': 1,       # (1) for All cases or (2) for Just One Case analysis
         # ---------------------------------------------------
                             'generatescript' : False,
+                            'extract_fromcsv' : False,
+                            'savedata':True,
         # ---------------------------------------------------
-                            'extract_fromcsv' : True,
-                            'savecsv':True,
                             'ConvergenceAnalise' : True,
                             'busdata' : True,
                             'LinhaAnalise': True,
@@ -26,9 +26,9 @@ if __name__ == '__main__':
                             'ComputeDPI': True,
                             'resumoIndice': True,
         # ---------------------------------------------------
-                            'linhascsv':True,
-                            'reservacsv':True,
-                            'HVDCcsv': True,
+                            'linhascsv':False,
+                            'reservacsv':False,
+                            'HVDCcsv': False,
         # ---------------------------------------------------
                             'PlotGeralPotencia': True,
                             'MapasPlots': True,
@@ -41,30 +41,32 @@ if __name__ == '__main__':
     # ************************************************************************************************
     #                                              PATHS
     # ************************************************************************************************
-    # ============================= CASOS 2022  ===========================================
-    # path_folder = 'D:/MPV_(FNS Lim)_RC/'
+
+    # =============================             CASOS 2022          ===========================================
+    path_folder = 'D:/MPV_(FNS Lim)_RC/'
     # path_folder = 'D:/0 FERV/0 Dados PYTHON/CASOS 2022/Novos com FNS Lim/V1A1F2 FNS Lim 2022/'
     # path_folder = 'D:/0 FERV/0 Dados PYTHON/CASOS 2022/Novos com FNS Lim/V1A1F2 FNS Lim 2022_OPF/'
     # path_folder ='D:/0 FERV/0 Dados PYTHON/CASOS 2022/Antigos/MPV_(FNS Lim)_RC/'
     # path_folder = 'D:/0 FERV/0 Dados PYTHON/CASOS 2022/Novos com FNS Lim/V2A2F2 FNS Lim 2022/'
-    # ============================= CASOS 2026 V1A1 REV01 ===========================================
+
+    # =============================         CASOS 2026 V1A1         ===========================================
     # path_folder_1 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/REV_1_02/V1A1F2_RESP_FNS_lim_rev1_2026/'
     # path_folder_2 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/REV_1_02/V1A1F3_RESP_FNS_lim_rev1_2026/'
     # path_folder_3 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/REV_1_02/V1A1F4_RESP_FNS_lim_rev1_2026/'
     # path_folder_4 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/REV_1_02/V1A1F5_RESP_FNS_lim_rev1_2026/'
-    # ============================= CASOS 2026 V1A1F_REV02===========================================
     # path_folder = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/REV_2/V1A1F2_RESP_FNS_lim_rev2_2026/'
-    # ============================= CASOS 2026 V2A2F_REV02===========================================  
-    path_folder_1 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F2_REV02_2026/'
-    path_folder_2 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F3_REV02_2026/'
-    path_folder_3 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F4_REV02_2026/'
-    path_folder_4 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F5_REV02_2026/'
+
+    # =============================         CASOS 2026 V2A2F       ===========================================  
+    # path_folder_1 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F2_REV02_2026/'
+    # path_folder_2 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F3_REV02_2026/'
+    # path_folder_3 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F4_REV02_2026/'
+    # path_folder_4 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F5_REV02_2026/'
 
 
 
     # ============================= List of PATHS ===========================================
-    path_folders = [path_folder_1, path_folder_2, path_folder_3, path_folder_4]
-    # path_folders = [path_folder]
+    # path_folders = [path_folder_1, path_folder_2, path_folder_3, path_folder_4]
+    path_folders = [path_folder]
 
     for path_folder in path_folders:
 
@@ -76,7 +78,6 @@ if __name__ == '__main__':
         cenarios.Plot_Tensao_Geral()
         cenarios.MapasPlots()
         cenarios.ComputeDPI()
-        print('Saving Dataframes ...')
         cenarios.save_csv()
 
     end_time = time.time()

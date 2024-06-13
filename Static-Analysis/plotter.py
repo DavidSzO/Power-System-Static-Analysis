@@ -357,7 +357,6 @@ class CreatePlots:
             
         fig.show()
 
-
     def create_contourplot(self, dataset, col, k, path=None, ax_fontsize=12):
         df_pwf_elos   = dataset['Nome Elo'].unique()
 

@@ -13,8 +13,7 @@ class AnalyzeStaticCases:
         self.Options = Options
         
         # user_specified_dir = input("Please enter the directory path where you want to save the files: ")
-        os.makedirs('RESULTS', exist_ok=True)
-        user_specified_dir = f"RESULTS/{str(self.Options['Year'])}/"
+        user_specified_dir = "RESULTS"
         os.makedirs(user_specified_dir, exist_ok=True)
         notebook_dir = os.path.abspath(user_specified_dir)
         os.makedirs(notebook_dir, exist_ok=True)
@@ -23,13 +22,12 @@ class AnalyzeStaticCases:
         folder_path = os.path.join(folder_path, 'StaticAnalysis')
         os.makedirs(folder_path, exist_ok=True)
         # user_question = input("Do you want to read? (1). All cases or (2). Just One Case, Please input the corresponding number:\n")
-        user_question = '1'
+        user_question = str(self.Options['OneCase'])
         readjustONEcase = True if user_question.strip().replace("(","").replace(")","")  == '2' else False
         self.readjustONEcase = readjustONEcase
 
         if readjustONEcase:
             self.Options['extract_fromcsv'] = False
-            self.Options['savecsv'] = False
             self.Options['linhascsv'] = False
             self.Options['reservacsv'] =False
             self.Options['HVDCcsv'] = False
@@ -78,6 +76,7 @@ class AnalyzeStaticCases:
             pathcsv2 = os.path.join(self.path_folder, 'ProcessedDataBase.csv')
 
         if self.Options['generatescript']:
+            print('******************** EXTRAÇÃO DE DADOS ********************')
             ReadScenarios(self.path_folder, self.folder_path, PO = self.readjustONEcase,  pathcsv=pathcsv1,  genscript=self.Options['generatescript'])
             sys.exit()
         else:
@@ -88,7 +87,7 @@ class AnalyzeStaticCases:
                 self.cases.get_convergence_data()
 
             print('******************** PROCESSAMENTO DE DADOS ********************')
-            self.processdata = ProcessData(df= self.cases.Df_Cases, cenario = self.cenario, pathcsv = pathcsv2, extract_fromcsv = self.Options['extract_fromcsv'], savecsv=self.Options['savecsv'], busdata = self.Options['busdata'])
+            self.processdata = ProcessData(df= self.cases.Df_Cases, cenario = self.cenario, options = self.Options, pathcsv = pathcsv2,  just_one_case = self.readjustONEcase)
 
         if not self.readjustONEcase:
             if self.Options['ConvergenceAnalise']:
@@ -97,9 +96,6 @@ class AnalyzeStaticCases:
 
         self.df_Final_ger = self.processdata.df_Final_ger
         self.df_Final_nt = self.processdata.df_Final_nt
-        self.dff_Ger_map = self.processdata.dff_Ger_map
-        self.dff_Ger_map.loc[self.dff_Ger_map['Gen_Type']=='UNE','Gen_Type'] = 'UTE' # cambia de designación de usinas nucleares a termicas para ser plotadas en el mapa
-        self.dff_NT_map = self.processdata.dff_NT_map
         self.DF_REGIONAL_GER = self.processdata.DF_REGIONAL_GER
         self.DF_REGIONAL_PQ = self.processdata.DF_REGIONAL_PQ
 
@@ -139,9 +135,9 @@ class AnalyzeStaticCases:
                 if not self.Options['HVDCcsv'] and self.Options['HVDCAnalise']:
                     self.DCLinks_concatenados = self.cases.HVDCInfo
 
-# =============================================================================================================================
-#                                                LEITURA LINHAS E RESERVA
-# =============================================================================================================================
+    # =============================================================================================================================
+    #                                                LEITURA LINHAS E RESERVA
+    # =============================================================================================================================
     def LinhaAnalise(self):
 
         if self.Options['LinhaAnalise']:
@@ -176,13 +172,11 @@ class AnalyzeStaticCases:
 
                 return PWF16_Filt_linhas, PWF16_Filt_TRAFO
 
-            print('Saving CSV of lines and trafos: ...')
             self.PWF16_Filt_linhas, self.PWF16_Filt_TRAFO = Main_linha_addREG(self.PWF16_concatenados)
             
             if self.Options['IntercambiosAnalise']:
 
                 ## ========================================== ELOS SEPARADOS POR BIPOLOS: ==========================================
-
                 # pole_mapping = {1: 'Bipolo1', 2: 'Bipolo1', 3: 'Bipolo2', 4: 'Bipolo2'}
                 # dfelo1 = DCLinks_concatenados[DCLinks_concatenados['Bus #'] == 85].groupby(by=['Dia', 'Hora', ' Pole #']).agg({' P(MW)': sum, ' Q(Mvar)': sum})
                 # dfelo1['Nome Elo'] = 'Elo_FOZ-IBIUNA'
@@ -210,13 +204,13 @@ class AnalyzeStaticCases:
                 dfelo4 = self.DCLinks_concatenados[(self.DCLinks_concatenados['Bus #'] == 8100)].groupby(by=['Dia', 'Hora']).agg({' P(MW)': 'sum', ' Q(Mvar)': 'sum'})
                 dfelo4['Nome Elo'] = 'Elo_XINGU-SE'
 
-                # dfelo4 = self.DCLinks_concatenados[(self.DCLinks_concatenados['Bus #'] == 8100) & (self.DCLinks_concatenados[' Pole #'].isin([1,2]))].groupby(by=['Dia', 'Hora']).agg({' P(MW)': 'sum', ' Q(Mvar)': 'sum'})
-                # dfelo4['Nome Elo'] = 'Elo_XINGU-ESTREI'
-                # dfelo5 = DCLinks_concatenados[(DCLinks_concatenados['Bus #'] == 8100) & (DCLinks_concatenados[' Pole #'].isin([3,4]))].groupby(by=['Dia', 'Hora']).agg({' P(MW)': 'sum', ' Q(Mvar)': 'sum'})
-                # dfelo5['Nome Elo'] = 'Elo_XINGU-T.RIO'
+                # dfelo5 = self.DCLinks_concatenados[(self.DCLinks_concatenados['Bus #'] == 8100) & (self.DCLinks_concatenados[' Pole #'].isin([1,2]))].groupby(by=['Dia', 'Hora']).agg({' P(MW)': 'sum', ' Q(Mvar)': 'sum'})
+                # dfelo5['Nome Elo'] = 'Elo_XINGU-ESTREI'
+
+                # dfelo6 = DCLinks_concatenados[(DCLinks_concatenados['Bus #'] == 8100) & (DCLinks_concatenados[' Pole #'].isin([3,4]))].groupby(by=['Dia', 'Hora']).agg({' P(MW)': 'sum', ' Q(Mvar)': 'sum'})
+                # dfelo6['Nome Elo'] = 'Elo_XINGU-T.RIO'
+
                 # Merge all dataframes
-                # df_HVDC = pd.concat([dfelo1, dfelo2, dfelo3, dfelo4, dfelo5], axis=0, keys=['Elo_FOZ-IBIUNA', 'Elo_PVEL-ARARQ', 'Elo_CPVBTB-PVEL' ,'Elo_XINGU-ESTREI', 'Elo_XINGU-T.RIO'])
-                
                 df_HVDC = pd.concat([dfelo1, dfelo2, dfelo3, dfelo4], axis=0, keys=['Elo_FOZ-IBIUNA', 'Elo_PVEL-ARARQ', 'Elo_CPVBTB-PVEL' ,'Elo_XINGU-SE'])
                 self.df_HVDC = df_HVDC
                 
@@ -227,10 +221,11 @@ class AnalyzeStaticCases:
                     self.plots_static.plot_Intercambio (self.DF_Intercambios, df_HVDC , '(MW)', 'Comparativo Exportação NE-SE e Elo FOZ-IBIUNA', ['Fluxo_NE-SE'], ['Elo_FOZ-IBIUNA'], Xlimites=None)
                     self.plots_static.plot_Intercambio (self.DF_Intercambios, df_HVDC , '(MW)', 'Comparativo Exportação SUL-SECO e Elo FOZ-IBIUNA', ['Fluxo_SUL-SECO'], ['Elo_FOZ-IBIUNA'], Xlimites=None)
 
-#=============================================================================================================================
-#                                                    RESERVA REGIONAL
-#=============================================================================================================================
+    #=============================================================================================================================
+    #                                                    RESERVA REGIONAL
+    #=============================================================================================================================
     def ReservaAnalise(self):
+
         if self.Options['ReservaAnalise'] == True:
 
             print('Reserve Analysis and Plots: ...')
@@ -296,48 +291,52 @@ class AnalyzeStaticCases:
                 hora = self.DF_REGIONAL_GER.index.to_frame()['Hora'].unique()[0]
                 self.plots_static.analise_regiao_plot(self.DF_REGIONAL_GER.loc[dia,hora],'PowerPlot')
 
-#=============================================================================================================================
-#                                                POTENCIA ATIVA E REATIVA
-#=============================================================================================================================
+    #=============================================================================================================================
+    #                                                POTENCIA ATIVA E REATIVA
+    #=============================================================================================================================
     def ActiveReactivePower(self):
 
-        print('Active and Reactive Power Analysis and Plots:...')
-        regioes = self.DF_REGIONAL_GER.reset_index()['REG'].unique()
-        df_pg = self.DF_REGIONAL_GER.reset_index(level=['Dia','Hora', 'REG'])[['PG_MW','PL_MW','PG_EOL','PG_SOL', 'Dia', 'Hora', 'MODV_PU', 'QG_MVAR']]
-        df_pg['PG_FERV'] =  (df_pg['PG_EOL'] + df_pg['PG_SOL'])/df_pg['PL_MW']
-        df_grouped = df_pg.groupby(by = ['Dia', 'Hora'])[['PG_FERV', 'MODV_PU', 'QG_MVAR','PG_MW', 'PL_MW' ]].sum(numeric_only=True)
-        self.df_grouped = df_grouped
+        if self.Options['PlotGeralPotencia']:
 
-        if self.Options['PlotGeralPotencia'] and not self.readjustONEcase:
-            self.plots_static.plot_Potencia(df_grouped['QG_MVAR'], '(MVAR)', 'MW POTÊNCIA REATIVA GERADA - SIN', limites=None)
-            self.plots_static.plot_Potencia(df_grouped['PG_MW'], '(MW)', 'MVAR POTÊNCIA ATIVA GERADA - SIN', limites=None)
-            self.plots_static.plot_Potencia(df_grouped['PL_MW'], '(MW)', 'MW POTÊNCIA ATIVA DEMANDA BRUTA - SIN', limites=None)
+            print('Active and Reactive Power Analysis and Plots:...')
+            regioes = self.DF_REGIONAL_GER.reset_index()['REG'].unique()
+            df_pg = self.DF_REGIONAL_GER.reset_index(level=['Dia','Hora', 'REG'])[['PG_MW','PL_MW','PG_EOL','PG_SOL', 'Dia', 'Hora', 'MODV_PU', 'QG_MVAR']]
+            df_pg['PG_FERV'] =  (df_pg['PG_EOL'] + df_pg['PG_SOL'])/df_pg['PL_MW']
+            df_grouped = df_pg.groupby(by = ['Dia', 'Hora'])[['PG_FERV', 'MODV_PU', 'QG_MVAR','PG_MW', 'PL_MW' ]].sum(numeric_only=True)
+            self.df_grouped = df_grouped
 
-            typeGenDic = {'QG_UHE':'Num_Usinas_UHE', 'QG_UTE':'Num_Usinas_UTE', 'QG_EOL':'Num_Usinas_EOL','QG_SOL':'Num_Usinas_SOL', 'QG_BIO':'Num_Usinas_BIO'}
-            typeGenRegDic = {'Norte':['QG_UHE','QG_EOL','QG_SOL','QG_UTE'],'Nordeste':['QG_UHE','QG_EOL','QG_SOL','QG_UTE'],'Sudeste-Centro-Oeste':['QG_UHE','QG_EOL','QG_SOL','QG_UTE','QG_BIO'],'Sul':['QG_UHE','QG_EOL','QG_UTE','QG_BIO'], 'AC-RO':['QG_UHE','QG_UTE']}
-            typeGenDic_MW = {'PG_UHE':'Num_Usinas_UHE', 'PG_UTE':'Num_Usinas_UTE', 'PG_EOL':'Num_Usinas_EOL','PG_SOL':'Num_Usinas_SOL', 'PG_BIO':'Num_Usinas_BIO'}
-            typeGenRegDic_MW = {'Norte':['PG_UHE','PG_EOL','PG_SOL','PG_UTE'],'Nordeste':['PG_UHE','PG_EOL','PG_SOL','PG_UTE'],'Sudeste-Centro-Oeste':['PG_UHE','PG_EOL','PG_SOL','PG_UTE','PG_BIO'],'Sul':['PG_UHE','PG_EOL','PG_UTE','PG_BIO'], 'AC-RO':['PG_UHE','PG_UTE']}
+            if not self.readjustONEcase:
 
-            for reg in regioes:
-                self.plots_static.plot_Potencia(self.DF_REGIONAL_GER.loc[:,:,reg]['QG_MVAR'], '(MVAR)', 'MVAR POTÊNCIA REATIVA GERADA - ' + reg, limites=None)
-                self.plots_static.plot_Potencia(self.DF_REGIONAL_GER.loc[:,:,reg]['PG_MW'], '(MW)', 'MW POTÊNCIA ATIVA GERADA - ' + reg, limites=None)
-                self.plots_static.plot_Potencia(self.DF_REGIONAL_GER.loc[:,:,reg]['PL_MW'], '(MW)', 'MW POTÊNCIA ATIVA DEMANDA BRUTA - ' + reg, limites=None)
-                for tog in typeGenRegDic[reg]:
-                    numUsinas = self.DF_REGIONAL_GER.loc[:,:,reg][typeGenDic[tog]].iloc[0]
-                    nome = str('MVAR ' + reg.replace('-',' ')  + ' (' + tog.replace('_','-') + ') - Número de Usinas ' + str(int(numUsinas)))
-                    self.plots_static.plot_Potencia(self.DF_REGIONAL_GER.loc[:,:,reg][tog], '(MVAR)', nome , limites=None)
+                self.plots_static.plot_Potencia(df_grouped['QG_MVAR'], '(MVAR)', 'MW POTÊNCIA REATIVA GERADA - SIN', limites=None)
+                self.plots_static.plot_Potencia(df_grouped['PG_MW'], '(MW)', 'MVAR POTÊNCIA ATIVA GERADA - SIN', limites=None)
+                self.plots_static.plot_Potencia(df_grouped['PL_MW'], '(MW)', 'MW POTÊNCIA ATIVA DEMANDA BRUTA - SIN', limites=None)
 
-                for tog in typeGenRegDic_MW[reg]:
-                    numUsinas = self.DF_REGIONAL_GER.loc[:,:,reg][typeGenDic_MW[tog]].iloc[0]
-                    nome = str('MW ' + reg.replace('-',' ')  + ' (' + tog.replace('_','-') + ') - Número de Usinas ' + str(int(numUsinas)))
-                    self.plots_static.plot_Potencia(self.DF_REGIONAL_GER.loc[:,:,reg][tog], '(MW)', nome , limites=None)
+                typeGenDic = {'QG_UHE':'Num_Usinas_UHE', 'QG_UTE':'Num_Usinas_UTE', 'QG_EOL':'Num_Usinas_EOL','QG_SOL':'Num_Usinas_SOL', 'QG_BIO':'Num_Usinas_BIO'}
+                typeGenRegDic = {'Norte':['QG_UHE','QG_EOL','QG_SOL','QG_UTE'],'Nordeste':['QG_UHE','QG_EOL','QG_SOL','QG_UTE'],'Sudeste-Centro-Oeste':['QG_UHE','QG_EOL','QG_SOL','QG_UTE','QG_BIO'],'Sul':['QG_UHE','QG_EOL','QG_UTE','QG_BIO'], 'AC-RO':['QG_UHE','QG_UTE']}
+                typeGenDic_MW = {'PG_UHE':'Num_Usinas_UHE', 'PG_UTE':'Num_Usinas_UTE', 'PG_EOL':'Num_Usinas_EOL','PG_SOL':'Num_Usinas_SOL', 'PG_BIO':'Num_Usinas_BIO'}
+                typeGenRegDic_MW = {'Norte':['PG_UHE','PG_EOL','PG_SOL','PG_UTE'],'Nordeste':['PG_UHE','PG_EOL','PG_SOL','PG_UTE'],'Sudeste-Centro-Oeste':['PG_UHE','PG_EOL','PG_SOL','PG_UTE','PG_BIO'],'Sul':['PG_UHE','PG_EOL','PG_UTE','PG_BIO'], 'AC-RO':['PG_UHE','PG_UTE']}
 
-#=============================================================================================================================
-#                                                        TENSÃO
-#=============================================================================================================================
+                for reg in regioes:
+                    self.plots_static.plot_Potencia(self.DF_REGIONAL_GER.loc[:,:,reg]['QG_MVAR'], '(MVAR)', 'MVAR POTÊNCIA REATIVA GERADA - ' + reg, limites=None)
+                    self.plots_static.plot_Potencia(self.DF_REGIONAL_GER.loc[:,:,reg]['PG_MW'], '(MW)', 'MW POTÊNCIA ATIVA GERADA - ' + reg, limites=None)
+                    self.plots_static.plot_Potencia(self.DF_REGIONAL_GER.loc[:,:,reg]['PL_MW'], '(MW)', 'MW POTÊNCIA ATIVA DEMANDA BRUTA - ' + reg, limites=None)
+                    for tog in typeGenRegDic[reg]:
+                        numUsinas = self.DF_REGIONAL_GER.loc[:,:,reg][typeGenDic[tog]].iloc[0]
+                        nome = str('MVAR ' + reg.replace('-',' ')  + ' (' + tog.replace('_','-') + ') - Número de Usinas ' + str(int(numUsinas)))
+                        self.plots_static.plot_Potencia(self.DF_REGIONAL_GER.loc[:,:,reg][tog], '(MVAR)', nome , limites=None)
+
+                    for tog in typeGenRegDic_MW[reg]:
+                        numUsinas = self.DF_REGIONAL_GER.loc[:,:,reg][typeGenDic_MW[tog]].iloc[0]
+                        nome = str('MW ' + reg.replace('-',' ')  + ' (' + tog.replace('_','-') + ') - Número de Usinas ' + str(int(numUsinas)))
+                        self.plots_static.plot_Potencia(self.DF_REGIONAL_GER.loc[:,:,reg][tog], '(MW)', nome , limites=None)
+
+    #=============================================================================================================================
+    #                                                        TENSÃO
+    #=============================================================================================================================
     def Plot_Tensao_Geral(self):
 
         if self.Options['Plot_Tensao_Geral']:
+
             print('Voltage General BoxPlots: ...')
             def boxplot_barrasGeracao(Df_VF):
                 grouped_UF = Df_VF.groupby('Gen_Type').agg({'BUS_ID': 'unique', 'MODV_PU': list})
@@ -375,7 +374,7 @@ class AnalyzeStaticCases:
                                             'Region', 'Voltage (pu)', text=True, nbarra=Nbarras_Reg, pathtosave=f'{self.folder_path}/Plots/BoxPlot Tensão/')
 
             def plottensaoG():
-                Df_VF = self.processdata.Df_VF
+                Df_VF = self.processdata.Df_VF_SF
                 filter_condition = (Df_VF['VBASEKV'].isin([230, 345, 440, 500, 525, 765]) | 
                                     Df_VF['Gen_Type'].isin(['UHE', 'UTE', 'PCH', 'EOL', 'UFV', 'BIO']))
                 DFF_Geral = Df_VF[filter_condition]
@@ -415,18 +414,24 @@ class AnalyzeStaticCases:
             self.df_Final_ger_PWFC = df_Final_ger_PWFC
             self.df_Final_nt_PWFC = df_Final_nt_PWFC
 
-#=============================================================================================================================
-#                                                         MAPAS
-#=============================================================================================================================
+    #=============================================================================================================================
+    #                                                         MAPAS
+    #=============================================================================================================================
     def MapasPlots(self):
-        if self.Options['MapasPlots']:
-            Df_VF = self.processdata.Df_VF
-            options = {'Limit Violations All': True, 'Mean and Variance': True, 'Limit Violations by Group': True, 'Limit Violations PO': self.readjustONEcase}
-            Maps(Df_VF, self.dff_NT_map, self.dff_Ger_map, self.cenario, options)
 
-#=============================================================================================================================
-#                                             DPI (DECOMPOSED PERFORMANCE INDEX)
-#=============================================================================================================================
+        if self.Options['MapasPlots']:
+
+            dff_Ger_map = self.processdata.dff_Ger_map
+            dff_Ger_map.loc[dff_Ger_map['Gen_Type']=='UNE','Gen_Type'] = 'UTE' # mudança usinas nucleares por termicas
+            dff_NT_map = self.processdata.dff_NT_map
+            Df_VF = self.processdata.Df_VF_SF
+
+            options = {'Limit Violations All': True, 'Mean and Variance': True, 'Limit Violations by Group': True, 'Limit Violations PO': self.readjustONEcase}
+            Maps(Df_VF, dff_NT_map, dff_Ger_map, self.cenario, options)
+
+    #=============================================================================================================================
+    #                                           DPI (DECOMPOSED PERFORMANCE INDEX)
+    #=============================================================================================================================
     def ComputeDPI(self):
 
         if self.Options['ComputeDPI']:
@@ -592,112 +597,115 @@ class AnalyzeStaticCases:
                 Df_IndiceT2.rename(columns={'CSI_SUP_FINAL':'OV DPI','CSI_INF_FINAL':'UV DPI'}, inplace=True)
                 self.Df_IndiceT2 = Df_IndiceT2
 
-#=============================================================================================================================
-#                                                       SAVE THE DATA
-#=============================================================================================================================
+    #=============================================================================================================================
+    #                                                     SAVE THE DATA
+    #=============================================================================================================================
     def save_csv(self):
 
-        # if not self.readjustONEcase:
-                
+        if self.Options['savedata']:
+            print('Saving Dataframes ...')
+
+            if self.Options['PlotGeralPotencia']:
+
                 self.df_grouped[['PG_MW','QG_MVAR','PL_MW']].to_csv(self.cenario + '/Data/Potencia/Df_MW-MVAR_PO.csv', header=True, index=True)
-                
-                if self.Options['ComputeDPI']:
+            
+            if self.Options['ComputeDPI']:
 
-                    self.df_Final_ger_PWFC.to_csv(f'{self.cenario}/Data/Geral/Df_ger.csv', index=False, columns=['BUS_ID', 'BUS_NAME', 'ARE', 'MODV_PU', 'ANGV_DEG', 'PG_MW', 'QG_MVAR', 'Dia', 'Hora', 'U_FED', 'Gen_Type', 'REG', 'B0_MVAR', 'ST', 'SHUNT_INST_IND', 'SHUNT_INST_CAP', 'ReservaIND', 'ReservaCAP','IndiceInf', 'IndiceSup'])
-                    self.df_Final_nt_PWFC.to_csv(f'{self.cenario}/Data/Geral/Df_nt.csv', index=False, columns=['BUS_ID', 'BUS_NAME', 'ARE', 'MODV_PU', 'ANGV_DEG', 'VBASEKV', 'PL_MW', 'QL_MVAR', 'Dia', 'Hora', 'U_FED', 'REG', 'B0_MVAR', 'ST', 'SHUNT_INST_IND', 'SHUNT_INST_CAP', 'ReservaINDshunt', 'ReservaCAPshunt','IndiceInf', 'IndiceSup'])
+                self.df_Final_ger_PWFC.to_csv(f'{self.cenario}/Data/Geral/Df_ger.csv', index=False, columns=['BUS_ID', 'BUS_NAME', 'ARE', 'MODV_PU', 'ANGV_DEG', 'PG_MW', 'QG_MVAR', 'Dia', 'Hora', 'U_FED', 'Gen_Type', 'REG', 'B0_MVAR', 'ST', 'SHUNT_INST_IND', 'SHUNT_INST_CAP', 'ReservaIND', 'ReservaCAP','IndiceInf', 'IndiceSup'])
+                self.df_Final_nt_PWFC.to_csv(f'{self.cenario}/Data/Geral/Df_nt.csv', index=False, columns=['BUS_ID', 'BUS_NAME', 'ARE', 'MODV_PU', 'ANGV_DEG', 'VBASEKV', 'PL_MW', 'QL_MVAR', 'Dia', 'Hora', 'U_FED', 'REG', 'B0_MVAR', 'ST', 'SHUNT_INST_IND', 'SHUNT_INST_CAP', 'ReservaINDshunt', 'ReservaCAPshunt','IndiceInf', 'IndiceSup'])
 
-                if self.Options['LinhaAnalise']:
+            if self.Options['LinhaAnalise']:
 
-                    self.DF_REGIONAL_GER[['PG_MW', 'QG_MVAR', 'PL_MW', 'QL_MVAR','Shunt_Ind', 'Shunt_Cap','SHUNT_INST_IND', 'SHUNT_INST_CAP', 'ReservaIND', 'ReservaCAP','PG_UHE', 'PG_UTE', 'PG_EOL', 'PG_SOL', 'PG_BIO', 'PG_Dist', 'QG/QL', 'PG/PL', 'PG_FERV', 'ReservaINDshunt', 'ReservaCAPshunt']].to_csv(self.cenario + '/Data/Potencia/DF_POT_Reg.csv')
-                    self.PWF16_Filt_linhas[['From#','To#','From Name','To Name','% L1', 'L1(MVA)', 'Mvar:Losses','Dia', 'Hora','REG', 'VBASEKV','MVA', 'MW:From-To', 'MW:To-From','Power Factor:From-To','Power Factor:To-From']].to_csv(self.cenario+'/Data/Fluxo em Ramos/Df_Linhas.csv', index=None)
-                    self.PWF16_Filt_TRAFO[['From#','To#','From Name','To Name','% L1', 'L1(MVA)', 'Mvar:Losses','Dia', 'Hora','REG', 'VBASEKV','MVA', 'MW:From-To', 'MW:To-From','Power Factor:From-To','Power Factor:To-From']].to_csv(self.cenario+'/Data/Fluxo em Ramos/Df_Trafo.csv', index=None)
+                self.DF_REGIONAL_GER[['PG_MW', 'QG_MVAR', 'PL_MW', 'QL_MVAR','Shunt_Ind', 'Shunt_Cap','SHUNT_INST_IND', 'SHUNT_INST_CAP', 'ReservaIND', 'ReservaCAP','PG_UHE', 'PG_UTE', 'PG_EOL', 'PG_SOL', 'PG_BIO', 'PG_Dist', 'QG/QL', 'PG/PL', 'PG_FERV', 'ReservaINDshunt', 'ReservaCAPshunt']].to_csv(self.cenario + '/Data/Potencia/DF_POT_Reg.csv')
+                self.PWF16_Filt_linhas[['From#','To#','From Name','To Name','% L1', 'L1(MVA)', 'Mvar:Losses','Dia', 'Hora','REG', 'VBASEKV','MVA', 'MW:From-To', 'MW:To-From','Power Factor:From-To','Power Factor:To-From']].to_csv(self.cenario+'/Data/Fluxo em Ramos/Df_Linhas.csv', index=None)
+                self.PWF16_Filt_TRAFO[['From#','To#','From Name','To Name','% L1', 'L1(MVA)', 'Mvar:Losses','Dia', 'Hora','REG', 'VBASEKV','MVA', 'MW:From-To', 'MW:To-From','Power Factor:From-To','Power Factor:To-From']].to_csv(self.cenario+'/Data/Fluxo em Ramos/Df_Trafo.csv', index=None)
 
-                    self.DF_Intercambios.to_csv(self.cenario + '/Data/Fluxo em Ramos/DF_Intercambios.csv')
-                    self.df_HVDC.to_csv(self.cenario + '/Data/Fluxo em Ramos/DF_HVDC.csv')
+                self.DF_Intercambios.to_csv(self.cenario + '/Data/Fluxo em Ramos/DF_Intercambios.csv')
+                self.df_HVDC.to_csv(self.cenario + '/Data/Fluxo em Ramos/DF_HVDC.csv')
 
-                if self.Options['ReservaAnalise']:
+            if self.Options['ReservaAnalise']:
 
-                    self.dffreservaPO_MVAR.to_csv(self.cenario + '/Data/Potencia/Df_Reserva_PO_MVAR.csv', header=True, index=True)
-                    self.dffreservaPO_REG_MVAR.to_csv(self.cenario + '/Data/Potencia/Df_Reserva_REG_MVAR.csv', header=True, index=True)
-                    self.dffreservaPO_REG_MW[' Reserve'].to_csv(self.cenario + '/Data/Potencia/Df_Reserva_REG_MW.csv', header=True, index=True)
-                    self.dffreservaPO_MW[' Reserve'].to_csv(self.cenario + '/Data/Potencia/Df_Reserva_PO_MW.csv', header=True, index=True)
+                self.dffreservaPO_MVAR.to_csv(self.cenario + '/Data/Potencia/Df_Reserva_PO_MVAR.csv', header=True, index=True)
+                self.dffreservaPO_REG_MVAR.to_csv(self.cenario + '/Data/Potencia/Df_Reserva_REG_MVAR.csv', header=True, index=True)
+                self.dffreservaPO_REG_MW[' Reserve'].to_csv(self.cenario + '/Data/Potencia/Df_Reserva_REG_MW.csv', header=True, index=True)
+                self.dffreservaPO_MW[' Reserve'].to_csv(self.cenario + '/Data/Potencia/Df_Reserva_PO_MW.csv', header=True, index=True)
 
-                if (self.Options['ComputeDPI']) and (self.Options['resumoIndice']):
+            if (self.Options['ComputeDPI']) and (self.Options['resumoIndice']):
 
-                    self.df_DPI_PO['DPI_PO_final'].to_csv(f"{self.cenario}/Data/{self.indexfolder}/Df_DPI_S4.csv")
-                    self.DF_DPI_pq_pv_ul.to_csv(f"{self.cenario}/Data/{self.indexfolder}/Df_DPI_S3.csv")
-                    self.dffPQgb.to_csv(f"{self.cenario}/Data/{self.indexfolder}/Df_PQ_DPI_S1.csv", index=True)
-                    self.dffPVgb.to_csv(f"{self.cenario}/Data/{self.indexfolder}/Df_PV_DPI_S1.csv", index=True)
+                self.df_DPI_PO['DPI_PO_final'].to_csv(f"{self.cenario}/Data/{self.indexfolder}/Df_DPI_S4.csv")
+                self.DF_DPI_pq_pv_ul.to_csv(f"{self.cenario}/Data/{self.indexfolder}/Df_DPI_S3.csv")
+                self.dffPQgb.to_csv(f"{self.cenario}/Data/{self.indexfolder}/Df_PQ_DPI_S1.csv", index=True)
+                self.dffPVgb.to_csv(f"{self.cenario}/Data/{self.indexfolder}/Df_PV_DPI_S1.csv", index=True)
 
-                    Df_IndiceT2 = self.Df_IndiceT2
-                    Df_PQ_OV = Df_IndiceT2.loc['DPI_PQ'][~((Df_IndiceT2.loc['DPI_PQ']['OV DPI']==0) & (Df_IndiceT2.loc['DPI_PQ']['UV DPI']>0))].sort_values('OV DPI', ascending=False)[['OV condition', 'OV DPI']]
-                    Df_PQ_UV = Df_IndiceT2.loc['DPI_PQ'][~((Df_IndiceT2.loc['DPI_PQ']['UV DPI']==0) & (Df_IndiceT2.loc['DPI_PQ']['OV DPI']>0))].sort_values('UV DPI', ascending=False)[['UV condition', 'UV DPI']]
-                    Df_PV_OV = Df_IndiceT2.loc['DPI_PV'][~((Df_IndiceT2.loc['DPI_PV']['OV DPI']==0) & (Df_IndiceT2.loc['DPI_PV']['UV DPI']>0))].sort_values('OV DPI', ascending=False)[['OV condition', 'OV DPI']]
-                    Df_PV_UV = Df_IndiceT2.loc['DPI_PV'][~((Df_IndiceT2.loc['DPI_PV']['UV DPI']==0) & (Df_IndiceT2.loc['DPI_PV']['OV DPI']>0))].sort_values('UV DPI', ascending=False)[['UV condition', 'UV DPI']]
+                Df_IndiceT2 = self.Df_IndiceT2
+                Df_PQ_OV = Df_IndiceT2.loc['DPI_PQ'][~((Df_IndiceT2.loc['DPI_PQ']['OV DPI']==0) & (Df_IndiceT2.loc['DPI_PQ']['UV DPI']>0))].sort_values('OV DPI', ascending=False)[['OV condition', 'OV DPI']]
+                Df_PQ_UV = Df_IndiceT2.loc['DPI_PQ'][~((Df_IndiceT2.loc['DPI_PQ']['UV DPI']==0) & (Df_IndiceT2.loc['DPI_PQ']['OV DPI']>0))].sort_values('UV DPI', ascending=False)[['UV condition', 'UV DPI']]
+                Df_PV_OV = Df_IndiceT2.loc['DPI_PV'][~((Df_IndiceT2.loc['DPI_PV']['OV DPI']==0) & (Df_IndiceT2.loc['DPI_PV']['UV DPI']>0))].sort_values('OV DPI', ascending=False)[['OV condition', 'OV DPI']]
+                Df_PV_UV = Df_IndiceT2.loc['DPI_PV'][~((Df_IndiceT2.loc['DPI_PV']['UV DPI']==0) & (Df_IndiceT2.loc['DPI_PV']['OV DPI']>0))].sort_values('UV DPI', ascending=False)[['UV condition', 'UV DPI']]
 
-                    Df_IndiceT2.to_csv(self.cenario + f"/Data/{self.indexfolder}/Df_DPI_S2.csv")
-                    path_script_org = self.cenario + f"/Data/{self.indexfolder}/RelatorioIndice.txt"
-                    numeroPO = len(set(Df_IndiceT2.index.to_frame()[['Dia','Hora']].apply(tuple, axis=1).values))
-                    with open(path_script_org, 'w') as f:
-                        f.write('O numero de pontos de operação analisados são: ' + str(numeroPO) + '\n')
-                        f.write('=============================\n Informação Barras PQ:\n=============================\n')
-                        regions = Df_PQ_OV.reset_index('REG')['REG'].unique()
-                        for reg in regions:
-                            f.write('- Sobretensão ' + reg +'\n')
-                            try:
-                                df_reg_sob= Df_PQ_OV.loc[:,:,reg]
-                                f.write('numero de casos Inseguros: '+ str(df_reg_sob[df_reg_sob['OV condition']=='Inseguro'].shape[0])+'\n')
-                                f.write('numero de casos Alarme: '+ str(df_reg_sob[df_reg_sob['OV condition']=='Alarme'].shape[0])+'\n')
-                                f.write('numero de casos Seguros: '+ str(df_reg_sob[df_reg_sob['OV condition']=='Seguro'].shape[0])+'\n')
-                                f.write('- Subtensão '+ reg +'\n')
-                                df_reg_sub = Df_PQ_UV.loc[:,:,reg]
-                                f.write('numero de casos Inseguros: ' + str(df_reg_sub[df_reg_sub['UV condition']=='Inseguro'].shape[0])+'\n')
-                                f.write('numero de casos Alarme: ' + str(df_reg_sub[df_reg_sub['UV condition']=='Alarme'].shape[0])+'\n')
-                                f.write('numero de casos Seguros: ' + str(df_reg_sub[df_reg_sub['UV condition']=='Seguro'].shape[0])+'\n')
-                                f.write('--------------------------\n')
-                            except:
-                                pass
-                        f.write('=============================\n Informação Barras PV:\n=============================\n')
-                        for reg in regions:
-                            f.write('- Sobretensão ' + reg +'\n')
-                            try:
-                                df_reg_sob= Df_PV_OV.loc[:,:,reg]
-                                f.write('numero de casos Inseguros: '+ str(df_reg_sob[df_reg_sob['OV condition']=='Inseguro'].shape[0])+'\n')
-                                f.write('numero de casos Alarme: '+ str(df_reg_sob[df_reg_sob['OV condition']=='Alarme'].shape[0])+'\n')
-                                f.write('numero de casos Seguros: '+ str(df_reg_sob[df_reg_sob['OV condition']=='Seguro'].shape[0])+'\n')
-                                f.write('- Subtensão '+ reg +'\n')
-                                df_reg_sub = Df_PV_UV.loc[:,:,reg]
-                                f.write('numero de casos Inseguros: ' + str(df_reg_sub[df_reg_sub['UV condition']=='Inseguro'].shape[0])+'\n')
-                                f.write('numero de casos Alarme: ' + str(df_reg_sub[df_reg_sub['UV condition']=='Alarme'].shape[0])+'\n')
-                                f.write('numero de casos Seguros: ' + str(df_reg_sub[df_reg_sub['UV condition']=='Seguro'].shape[0])+'\n')
-                                f.write('--------------------------\n')
-                            except:
-                                pass
+                Df_IndiceT2.to_csv(self.cenario + f"/Data/{self.indexfolder}/Df_DPI_S2.csv")
+                path_script_org = self.cenario + f"/Data/{self.indexfolder}/RelatorioIndice.txt"
+                numeroPO = len(set(Df_IndiceT2.index.to_frame()[['Dia','Hora']].apply(tuple, axis=1).values))
+                with open(path_script_org, 'w') as f:
+                    f.write('O numero de pontos de operação analisados são: ' + str(numeroPO) + '\n')
+                    f.write('=============================\n Informação Barras PQ:\n=============================\n')
+                    regions = Df_PQ_OV.reset_index('REG')['REG'].unique()
+                    for reg in regions:
+                        f.write('- Sobretensão ' + reg +'\n')
+                        try:
+                            df_reg_sob= Df_PQ_OV.loc[:,:,reg]
+                            f.write('numero de casos Inseguros: '+ str(df_reg_sob[df_reg_sob['OV condition']=='Inseguro'].shape[0])+'\n')
+                            f.write('numero de casos Alarme: '+ str(df_reg_sob[df_reg_sob['OV condition']=='Alarme'].shape[0])+'\n')
+                            f.write('numero de casos Seguros: '+ str(df_reg_sob[df_reg_sob['OV condition']=='Seguro'].shape[0])+'\n')
+                            f.write('- Subtensão '+ reg +'\n')
+                            df_reg_sub = Df_PQ_UV.loc[:,:,reg]
+                            f.write('numero de casos Inseguros: ' + str(df_reg_sub[df_reg_sub['UV condition']=='Inseguro'].shape[0])+'\n')
+                            f.write('numero de casos Alarme: ' + str(df_reg_sub[df_reg_sub['UV condition']=='Alarme'].shape[0])+'\n')
+                            f.write('numero de casos Seguros: ' + str(df_reg_sub[df_reg_sub['UV condition']=='Seguro'].shape[0])+'\n')
+                            f.write('--------------------------\n')
+                        except:
+                            pass
+                    f.write('=============================\n Informação Barras PV:\n=============================\n')
+                    for reg in regions:
+                        f.write('- Sobretensão ' + reg +'\n')
+                        try:
+                            df_reg_sob= Df_PV_OV.loc[:,:,reg]
+                            f.write('numero de casos Inseguros: '+ str(df_reg_sob[df_reg_sob['OV condition']=='Inseguro'].shape[0])+'\n')
+                            f.write('numero de casos Alarme: '+ str(df_reg_sob[df_reg_sob['OV condition']=='Alarme'].shape[0])+'\n')
+                            f.write('numero de casos Seguros: '+ str(df_reg_sob[df_reg_sob['OV condition']=='Seguro'].shape[0])+'\n')
+                            f.write('- Subtensão '+ reg +'\n')
+                            df_reg_sub = Df_PV_UV.loc[:,:,reg]
+                            f.write('numero de casos Inseguros: ' + str(df_reg_sub[df_reg_sub['UV condition']=='Inseguro'].shape[0])+'\n')
+                            f.write('numero de casos Alarme: ' + str(df_reg_sub[df_reg_sub['UV condition']=='Alarme'].shape[0])+'\n')
+                            f.write('numero de casos Seguros: ' + str(df_reg_sub[df_reg_sub['UV condition']=='Seguro'].shape[0])+'\n')
+                            f.write('--------------------------\n')
+                        except:
+                            pass
 
-                    def list_to_string(lst):
-                        return ', '.join(map(str, lst))
+                def list_to_string(lst):
+                    return ', '.join(map(str, lst))
 
-                    grouped_pv_nunique = self.df_busPV_mod[(self.df_busPV_mod['IndiceInf'] > 0)].groupby(by=['REG'])['BUS_ID'].nunique()
-                    grouped_pq_nunique = self.df_busPQ_mod[(self.df_busPQ_mod['IndiceInf'] > 0)].groupby(by=['REG'])['BUS_ID'].nunique()
-                    grouped_pv_unique = self.df_busPV_mod[(self.df_busPV_mod['IndiceInf'] > 0)].groupby(by=['REG'])['BUS_ID'].unique()
-                    grouped_pq_unique = self.df_busPQ_mod[(self.df_busPQ_mod['IndiceInf'] > 0)].groupby(by=['REG'])['BUS_ID'].unique()
+                grouped_pv_nunique = self.df_busPV_mod[(self.df_busPV_mod['IndiceInf'] > 0)].groupby(by=['REG'])['BUS_ID'].nunique()
+                grouped_pq_nunique = self.df_busPQ_mod[(self.df_busPQ_mod['IndiceInf'] > 0)].groupby(by=['REG'])['BUS_ID'].nunique()
+                grouped_pv_unique = self.df_busPV_mod[(self.df_busPV_mod['IndiceInf'] > 0)].groupby(by=['REG'])['BUS_ID'].unique()
+                grouped_pq_unique = self.df_busPQ_mod[(self.df_busPQ_mod['IndiceInf'] > 0)].groupby(by=['REG'])['BUS_ID'].unique()
 
-                    # Set up the output data dictionary
-                    data = {
-                        'Critical_infPVbuses': grouped_pv_nunique.to_dict(),
-                        'Critical_infPQbuses': grouped_pq_nunique.to_dict(),
-                        'Critical_infPVbuses_bus': grouped_pv_unique.to_dict(),
-                        'Critical_infPQbuses_bus': grouped_pq_unique.to_dict(),
-                    }
+                # Set up the output data dictionary
+                data = {
+                    'Critical_infPVbuses': grouped_pv_nunique.to_dict(),
+                    'Critical_infPQbuses': grouped_pq_nunique.to_dict(),
+                    'Critical_infPVbuses_bus': grouped_pv_unique.to_dict(),
+                    'Critical_infPQbuses_bus': grouped_pq_unique.to_dict(),
+                }
 
-                    # Convert lists to strings with line breaks for "bus" data
-                    for key in ['Critical_infPVbuses_bus', 'Critical_infPQbuses_bus']:
-                        data[key] = {k: list_to_string(v) for k, v in data[key].items()}  # Use the modified list_to_string
+                # Convert lists to strings with line breaks for "bus" data
+                for key in ['Critical_infPVbuses_bus', 'Critical_infPQbuses_bus']:
+                    data[key] = {k: list_to_string(v) for k, v in data[key].items()}  # Use the modified list_to_string
 
-                    # Write to JSON file with indentation for readability
-                    with open(self.cenario + f"/Data/{self.indexfolder}/DPI_Critical_Buses.json", 'w') as f:
-                        json.dump(data, f, indent=4)  # indent=4 adds 4 spaces for each level of nesting
+                # Write to JSON file with indentation for readability
+                with open(self.cenario + f"/Data/{self.indexfolder}/DPI_Critical_Buses.json", 'w') as f:
+                    json.dump(data, f, indent=4)  # indent=4 adds 4 spaces for each level of nesting
 
 
-                    self.df_DPI_PO[self.df_DPI_PO['DPI_PO_final'] > 1].index.to_frame()[['Dia', 'Hora']].apply(tuple, axis=1).to_csv(self.cenario + f"/Data/{self.indexfolder}/PO_Inseguros.txt", index=None)   
-                    
+                self.df_DPI_PO[self.df_DPI_PO['DPI_PO_final'] > 1].index.to_frame()[['Dia', 'Hora']].apply(tuple, axis=1).to_csv(self.cenario + f"/Data/{self.indexfolder}/PO_Inseguros.txt", index=None)   
+                        
