@@ -14,7 +14,7 @@ if __name__ == '__main__':
                             'OneCase': 1,       # (1) for All cases or (2) for Just One Case analysis
         # ---------------------------------------------------
                             'generatescript' : False,
-                            'extract_fromcsv' : False,
+                            'extract_fromcsv' : True,
                             'savedata':True,
         # ---------------------------------------------------
                             'ConvergenceAnalise' : True,
@@ -26,16 +26,16 @@ if __name__ == '__main__':
                             'ComputeDPI': True,
                             'resumoIndice': True,
         # ---------------------------------------------------
-                            'linhascsv':False,
-                            'reservacsv':False,
-                            'HVDCcsv': False,
+                            'linhascsv':True,
+                            'reservacsv':True,
+                            'HVDCcsv': True,
         # ---------------------------------------------------
                             'PlotGeralPotencia': True,
-                            'MapasPlots': True,
-                            'Plot_Tensao_Geral': True,
-                            'plotDPI': True,
-                            'Plot_Boxplot_DPI': True,
-                            'PlotIntercambios': True
+                            'MapasPlots': False,
+                            'Plot_Tensao_Geral': False,
+                            'plotDPI': False,
+                            'Plot_Boxplot_DPI': False,
+                            'PlotIntercambios': False
                         }
     
     # ************************************************************************************************
@@ -61,8 +61,6 @@ if __name__ == '__main__':
     # path_folder_2 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F3_REV02_2026/'
     # path_folder_3 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F4_REV02_2026/'
     # path_folder_4 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F5_REV02_2026/'
-
-
 
     # ============================= List of PATHS ===========================================
     # path_folders = [path_folder_1, path_folder_2, path_folder_3, path_folder_4]
