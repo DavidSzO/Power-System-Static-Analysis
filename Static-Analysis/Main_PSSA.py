@@ -11,7 +11,7 @@ if __name__ == '__main__':
     # ************************************************************************************************
     Options_ReadProcess= {
                             'Norm': 2,          # Write None for using infinite norm in voltage analysis
-                            'OneCase': 1,       # (1) for All cases or (2) for Just One Case analysis
+                            'OneCase': 2,       # (1) for All cases or (2) for Just One Case analysis
         # ---------------------------------------------------
                             'generatescript' : False,
                             'OnlyPWF_datagen': True,
