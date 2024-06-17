@@ -37,7 +37,7 @@ class AnalyzeStaticCases:
                 'linhascsv': False,
                 'reservacsv': False,
                 'HVDCcsv': False,
-                'ConvergenceAnalise': False
+                'ConvergenceData': False
             })
             self.day = input("Write the specific Day in this format 01:\n")
             self.hour = input("Write the specific Hour in this format 00-00:\n")
@@ -52,19 +52,25 @@ class AnalyzeStaticCases:
             subfolders_12 = ['Geral', 'Fluxo em Ramos', 'Potencia', self.indexfolder]
         else:
             self.day = None
+            self.hour = None
             subfolders_1 = ['Plots', 'Data']
             subfolders_11 = [self.indexfolder, 'Perfil Potência Ativa', 'Perfil Potência Reativa', 'Reserva', 'BoxPlot Tensão', 'Intercambios AC-DC', 'Mapas']
             subfolders_12 = ['Geral', 'Fluxo em Ramos', 'Potencia', self.indexfolder]
+
+        if self.Options['OnlyPWF_datagen']:
+            subfolders_11 = ['Intercambios AC-DC']
+            subfolders_12 = ['Fluxo em Ramos']
 
         for subfolder in subfolders_1:
             folders = subfolders_11 if subfolder == 'Plots' else subfolders_12 
             for folder in folders:
                 os.makedirs(os.path.join(folder_path, subfolder, folder), exist_ok=True)
+                if folder == self.indexfolder:
+                    os.makedirs(os.path.join(folder_path, f'Plots/{self.indexfolder}/BoxPlot'), exist_ok=True)
         
-        os.makedirs(os.path.join(folder_path, f'Plots/{self.indexfolder}/BoxPlot'), exist_ok=True)
         print(f"The directories have been created in: {folder_path}")
         self.folder_path = folder_path
-
+        self.cenario = self.folder_path
 
     def extraction_process(self):
 
@@ -75,64 +81,100 @@ class AnalyzeStaticCases:
             pathcsv1 = None
             pathcsv2 = os.path.join(self.path_folder, 'ProcessedDataBase.csv')
 
-        if self.Options['generatescript']:
-            print('******************** EXTRAÇÃO DE DADOS ********************')
-            ReadScenarios(self.path_folder, self.folder_path, PO = self.readjustONEcase,  pathcsv=pathcsv1,  genscript=self.Options['generatescript'], dia = self.day)
-            sys.exit()
+        self.cases = ReadScenarios(self.path_folder, self.folder_path, PO = self.readjustONEcase, pathcsv=pathcsv1)
+        self.processdata = ProcessData(cenario = self.cenario, options = self.Options)
+
+        if not self.readjustONEcase:
+            archivos = os.listdir(self.path_folder)
+            self.cases.folders = sorted([nomes_archivos for nomes_archivos in archivos if 'DS202' in nomes_archivos])
         else:
-            print('******************** EXTRAÇÃO DE DADOS ********************')
-            self.cases = ReadScenarios(self.path_folder, self.folder_path, PO = self.readjustONEcase, pathcsv=pathcsv1, genscript=self.Options['generatescript'], dia = self.day)
-            self.cenario = self.folder_path
-            if self.Options['ConvergenceAnalise']:
+            self.cases.folders = self.day
+
+        if not self.Options['OnlyPWF_datagen']:
+            if not self.Options['generatescript']:
+                print('******************** EXTRAÇÃO DE DADOS ********************')
+                if not self.readjustONEcase:
+                    if pathcsv1:
+                        self.cases.get_dataframes_csv()
+                    else:
+                        self.get_data_extract()
+                else:
+                    self.cases.get_data_extract()
+            else:
+                self.generate_script()
+                sys.exit()
+
+            if self.Options['ConvergenceData']:
                 self.cases.get_convergence_data()
 
             print('******************** PROCESSAMENTO DE DADOS ********************')
-            self.processdata = ProcessData(df= self.cases.Df_Cases, cenario = self.cenario, options = self.Options, pathcsv = pathcsv2,  just_one_case = self.readjustONEcase)
+            if self.Options['extract_fromcsv']:
+                self.processdata.Df_VF_SF = self.cases.Df_Cases
+                self.processdata.get_splitdata_PV_PQ(self.cases.Df_Cases)
+                self.processdata.get_processdata_region()
+            else:
+                if self.Options['busdata']:
+                    file = os.path.abspath("Static-Analysis/RECURSOS/GeoINFO_BusesSIN.csv")
+                    df1 = pd.read_csv(file)
+                    #************************ Merge com o DATA FRAME COMPLETO ***************************
+                    columns = ['BUS_ID', 'BUS_NAME', 'VBASEKV', 'TP', 'ARE', 'MODV_PU', 'ANGV_DEG', 'BASE_MVA', 'PG_MW', 'QG_MVAR', 'PMAX_MW', 'PMIN_MW', 'QMX_MVAR','QMN_MVAR', 'Ger_Units','Ger_Active_Units', 'PL_MW', 'QL_MVAR', 'TC', 'VMAX_PU', 'VMIN_PU', 'BCO_ID', 'B0_MVAR', 'ST', 'SHUNT_INST_IND', 'SHUNT_INST_CAP', 'Dia','Hora']
+                    self.processdata.Df_VF_SF = self.cases.Df_Cases[columns].merge(df1[['BUS_ID','Gen_Type','U_FED','REG', 'Latitude','Longitude']], on='BUS_ID', how='left')
+                    self.processdata.Df_VF_SF.drop(self.Df_VF_SF[self.Df_VF_SF['REG'] == np.nan].index)
+                else:
+                    print("Associating the buses to the states and regions")
+                    self.processdata.get_processdata(self.cases.Df_Cases)
+                
+                self.processdata.get_splitdata_PV_PQ(self.cases.Df_Cases)
+                self.processdata.get_processdata_region()
 
-        if not self.readjustONEcase:
-            if self.Options['ConvergenceAnalise']:
-                self.bool_PWF_NConv = self.cases.PWF_NC[['Dia', 'Hora']].apply(tuple, axis=1)
-            self.hour = None
+                if not self.readjustONEcase:
+                    print(f'*** Salvando Dataframe com Informação locacional ***')
+                    self.processdata.Df_VF_SF.to_csv(pathcsv2, sep=';', index=False)
 
-        self.df_Final_ger = self.processdata.df_Final_ger
-        self.df_Final_nt = self.processdata.df_Final_nt
-        self.DF_REGIONAL_GER = self.processdata.DF_REGIONAL_GER
-        self.DF_REGIONAL_PQ = self.processdata.DF_REGIONAL_PQ
+            if not self.readjustONEcase:
+                if self.Options['ConvergenceData']:
+                    self.bool_PWF_NConv = self.cases.PWF_NC[['Dia', 'Hora']].apply(tuple, axis=1)
+                
 
-        self.plots_static = Plots_Static(self.cenario, svg=False, PO=self.readjustONEcase)
-        
+            self.df_Final_ger = self.processdata.df_Final_ger
+            self.df_Final_nt = self.processdata.df_Final_nt
+            self.DF_REGIONAL_GER = self.processdata.DF_REGIONAL_GER
+            self.DF_REGIONAL_PQ = self.processdata.DF_REGIONAL_PQ
+            self.plots_static = Plots_Static(self.cenario, svg=False, PO=self.readjustONEcase)
+
+
         ## ***************** (O código seguinte obtem as informações das linhas AC e DC e reserva por maquina) *****************
-        if self.Options['LinhaAnalise']:
-
-            if self.Options['linhascsv'] and self.Options['LinhaAnalise']:
+        if self.Options['LinhasData']:
+            print("Starting line and interconnections data generation ...")
+            if self.Options['linhascsv'] and self.Options['LinhasData']:
                 self.PWF16_concatenados = dd.read_csv(self.path_folder + '/LinhasInfo.csv', sep=',').compute()
                 self.PWF16_concatenados['Dia'] = self.PWF16_concatenados['Dia'].astype(str).str.zfill(2)
                 self.cases.get_Intercambios(df=self.PWF16_concatenados)
                 self.DF_Intercambios = self.cases.DF_Intercambios
 
-            if self.Options['HVDCcsv'] and self.Options['HVDCAnalise']:
+            if self.Options['HVDCcsv'] and self.Options['HVDCData']:
                 self.DCLinks_concatenados = dd.read_csv(self.path_folder + '/HVDCInfo.csv', sep=',').compute()
                 self.DCLinks_concatenados['Dia'] = self.DCLinks_concatenados['Dia'].astype(str).str.zfill(2)
 
-            if self.Options['reservacsv'] and self.Options['ReservaAnalise']:
+            if self.Options['reservacsv'] and self.Options['ReservaData']:
                 self.SGN01_concatenados = dd.read_csv(self.path_folder + '/ReservaInfo.csv', sep=',').compute()
                 self.SGN01_concatenados['Dia'] = self.SGN01_concatenados['Dia'].astype(str).str.zfill(2)
 
             if not (self.Options['linhascsv'] and self.Options['reservacsv'] and self.Options['HVDCcsv']):
                 self.cases.get_Networkinfo(linhas=not self.Options['linhascsv'], Reserva=not self.Options['reservacsv'], Intercambios=not self.Options['HVDCcsv'], hour = self.hour)
 
-                if not self.Options['linhascsv'] and self.Options['LinhaAnalise']:
+                if not self.Options['linhascsv'] and self.Options['LinhasData']:
                     self.PWF16_concatenados = self.cases.linesInfo
                     self.DF_Intercambios = self.cases.DF_Intercambios
 
-                if not self.Options['reservacsv'] and self.Options['ReservaAnalise']:
+                if not self.Options['reservacsv'] and self.Options['ReservaData']:
                     try:
                         self.SGN01_concatenados = self.cases.ReserveInfo
                     except Exception as e:
                         print(f"Error obtaining Reserve: {e}")
                         pass
 
-                if not self.Options['HVDCcsv'] and self.Options['HVDCAnalise']:
+                if not self.Options['HVDCcsv'] and self.Options['HVDCData']:
                     self.DCLinks_concatenados = self.cases.HVDCInfo
 
     # =============================================================================================================================
@@ -140,7 +182,7 @@ class AnalyzeStaticCases:
     # =============================================================================================================================
     def LinhaAnalise(self):
 
-        if self.Options['LinhaAnalise']:
+        if self.Options['LinhasData']:
 
             def addUF_linha(from_bus, to_bus, bus_info_map, vbasekv_map):
 
@@ -152,11 +194,23 @@ class AnalyzeStaticCases:
                     return reg1, Vbase1
                 else:
                     return np.nan, np.nan
+                
+            def fromsaveddatainfo():
+
+                file = os.path.abspath("Static-Analysis/RECURSOS/GeoINFO_BusesSIN.csv")
+                df1 = pd.read_csv(file)
+                df1.drop(df1[df1['REG'] == np.nan].index)
+
+                return df1
 
             def Main_linha_addREG(PWF16_concatenados):
+                if not self.Options['OnlyPWF_datagen']:
+                    Df_VF_SF = self.processdata.Df_VF_SF
+                    InfoBarras = Df_VF_SF[(Df_VF_SF['Dia']==Df_VF_SF['Dia'].iloc[0]) & (Df_VF_SF['Hora']==Df_VF_SF['Hora'].iloc[0])][['BUS_ID','BUS_NAME','VBASEKV','REG', 'U_FED', 'Gen_Type','Latitude', 'Longitude', 'key', 'ARE']]
+                else:
+                    InfoBarras = fromsaveddatainfo()
 
-                Df_VF_SF = self.processdata.Df_VF_SF
-                InfoBarras = Df_VF_SF[(Df_VF_SF['Dia']==Df_VF_SF['Dia'].iloc[0]) & (Df_VF_SF['Hora']==Df_VF_SF['Hora'].iloc[0])][['BUS_ID','BUS_NAME', 'ARE','VBASEKV','REG', 'U_FED', 'Gen_Type','Latitude', 'Longitude', 'key']]
+                
                 PWF16_concatenados_d1 = PWF16_concatenados[(PWF16_concatenados['Dia'] == PWF16_concatenados['Dia'].iloc[0]) & (PWF16_concatenados['Hora'] == PWF16_concatenados['Hora'].iloc[0])].groupby(by=['From#','To#']).first().reset_index().copy()
 
                 # Create a dictionary to map 'BUS_ID' to 'REG' and 'VBASEKV'
@@ -177,7 +231,7 @@ class AnalyzeStaticCases:
 
             self.PWF16_Filt_linhas, self.PWF16_Filt_TRAFO = Main_linha_addREG(self.PWF16_concatenados)
             
-            if self.Options['IntercambiosAnalise']:
+            if self.Options['IntercambiosData']:
 
                 ## ========================================== ELOS SEPARADOS POR BIPOLOS: ==========================================
                 # pole_mapping = {1: 'Bipolo1', 2: 'Bipolo1', 3: 'Bipolo2', 4: 'Bipolo2'}
@@ -217,19 +271,19 @@ class AnalyzeStaticCases:
                 df_HVDC = pd.concat([dfelo1, dfelo2, dfelo3, dfelo4], axis=0, keys=['Elo_FOZ-IBIUNA', 'Elo_PVEL-ARARQ', 'Elo_CPVBTB-PVEL' ,'Elo_XINGU-SE'])
                 self.df_HVDC = df_HVDC
                 
-                if self.Options['PlotIntercambios'] == True and not self.readjustONEcase:
-                    self.plots_static.plot_Intercambio (self.DF_Intercambios, df_HVDC , '(MW)', 'Exportação (N-S, NE-SE) e  Elo Xingu-SE', ['Fluxo_N-S', 'Fluxo_NE-SE'], ['Elo_XINGU-SE'], )
-                    self.plots_static.plot_Intercambio (self.DF_Intercambios, df_HVDC , '(MW)', 'Exportação N-S e  Elo Xingu-SE', ['Fluxo_N-S'], ['Elo_XINGU-SE'], )
-                    self.plots_static.plot_Intercambio (self.DF_Intercambios, df_HVDC , '(MW)', 'Comparativo Exportação NE-N e Elo Xingu-SE', ['Fluxo_NE-N'], ['Elo_XINGU-SE'], Xlimites=None)
-                    self.plots_static.plot_Intercambio (self.DF_Intercambios, df_HVDC , '(MW)', 'Comparativo Exportação NE-SE e Elo FOZ-IBIUNA', ['Fluxo_NE-SE'], ['Elo_FOZ-IBIUNA'], Xlimites=None)
-                    self.plots_static.plot_Intercambio (self.DF_Intercambios, df_HVDC , '(MW)', 'Comparativo Exportação SUL-SECO e Elo FOZ-IBIUNA', ['Fluxo_SUL-SECO'], ['Elo_FOZ-IBIUNA'], Xlimites=None)
+                # if self.Options['PlotIntercambios'] == True and not self.readjustONEcase:
+                #     self.plots_static.plot_Intercambio (self.DF_Intercambios, df_HVDC , '(MW)', 'Exportação (N-S, NE-SE) e  Elo Xingu-SE', ['Fluxo_N-S', 'Fluxo_NE-SE'], ['Elo_XINGU-SE'], )
+                #     self.plots_static.plot_Intercambio (self.DF_Intercambios, df_HVDC , '(MW)', 'Exportação N-S e  Elo Xingu-SE', ['Fluxo_N-S'], ['Elo_XINGU-SE'], )
+                #     self.plots_static.plot_Intercambio (self.DF_Intercambios, df_HVDC , '(MW)', 'Comparativo Exportação NE-N e Elo Xingu-SE', ['Fluxo_NE-N'], ['Elo_XINGU-SE'], Xlimites=None)
+                #     self.plots_static.plot_Intercambio (self.DF_Intercambios, df_HVDC , '(MW)', 'Comparativo Exportação NE-SE e Elo FOZ-IBIUNA', ['Fluxo_NE-SE'], ['Elo_FOZ-IBIUNA'], Xlimites=None)
+                #     self.plots_static.plot_Intercambio (self.DF_Intercambios, df_HVDC , '(MW)', 'Comparativo Exportação SUL-SECO e Elo FOZ-IBIUNA', ['Fluxo_SUL-SECO'], ['Elo_FOZ-IBIUNA'], Xlimites=None)
 
     #=============================================================================================================================
     #                                                    RESERVA REGIONAL
     #=============================================================================================================================
     def ReservaAnalise(self):
 
-        if self.Options['ReservaAnalise'] == True:
+        if self.Options['ReservaData'] == True and not self.Options['OnlyPWF_datagen']:
 
             print('Reserve Analysis and Plots: ...')
             if (self.SGN01_concatenados.empty == False):
@@ -295,7 +349,7 @@ class AnalyzeStaticCases:
     #=============================================================================================================================
     def ActiveReactivePower(self):
 
-        if self.Options['PlotGeralPotencia']:
+        if self.Options['PlotGeralPotencia'] and not self.Options['OnlyPWF_datagen']:
 
             print('Active and Reactive Power Analysis and Plots:...')
             regioes = self.DF_REGIONAL_GER.reset_index()['REG'].unique()
@@ -334,7 +388,7 @@ class AnalyzeStaticCases:
     #=============================================================================================================================
     def Plot_Tensao_Geral(self):
 
-        if self.Options['Plot_Tensao_Geral']:
+        if self.Options['Plot_Tensao_Geral'] and not self.Options['OnlyPWF_datagen']:
 
             print('Voltage General BoxPlots: ...')
             def boxplot_barrasGeracao(Df_VF):
@@ -378,7 +432,7 @@ class AnalyzeStaticCases:
                                     Df_VF['Gen_Type'].isin(['UHE', 'UTE', 'PCH', 'EOL', 'UFV', 'BIO']))
                 DFF_Geral = Df_VF[filter_condition]
                 
-                if self.Options['ConvergenceAnalise']:
+                if self.Options['ConvergenceData']:
                     filter_non_converged = ~DFF_Geral[['Dia', 'Hora']].apply(tuple, axis=1).isin(self.bool_PWF_NConv)
                     DFF_Geral_PWFC = DFF_Geral[filter_non_converged]
                 else:
@@ -394,7 +448,7 @@ class AnalyzeStaticCases:
                 df_ger = self.df_Final_ger[self.df_Final_ger['Gen_Type'].isin(['UHE', 'UTE', 'PCH', 'EOL', 'UFV', 'BIO','SIN'])]
                 df_nt = self.df_Final_nt[self.df_Final_nt['VBASEKV'].isin([230, 345, 440, 500, 525, 765])]
 
-                if self.Options['ConvergenceAnalise']:
+                if self.Options['ConvergenceData']:
                     filter_non_converged_ger = ~df_ger[['Dia', 'Hora']].apply(tuple, axis=1).isin(self.bool_PWF_NConv)
                     df_Final_ger_PWFC = df_ger[filter_non_converged_ger]
                     filter_non_converged_nt = ~df_nt[['Dia', 'Hora']].apply(tuple, axis=1).isin(self.bool_PWF_NConv)
@@ -418,7 +472,7 @@ class AnalyzeStaticCases:
     #=============================================================================================================================
     def MapasPlots(self):
 
-        if self.Options['MapasPlots']:
+        if self.Options['MapasPlots'] and not self.Options['OnlyPWF_datagen']:
 
             dff_Ger_map = self.processdata.dff_Ger_map
             dff_Ger_map.loc[dff_Ger_map['Gen_Type']=='UNE','Gen_Type'] = 'UTE' # mudança usinas nucleares por termicas
@@ -433,12 +487,12 @@ class AnalyzeStaticCases:
     #=============================================================================================================================
     def ComputeDPI(self):
 
-        if self.Options['ComputeDPI']:
+        if self.Options['ComputeDPI'] and not self.Options['OnlyPWF_datagen']:
 
             df_ger = self.df_Final_ger[self.df_Final_ger['Gen_Type'].isin(['UHE', 'UTE', 'PCH', 'EOL', 'UFV', 'BIO','SIN'])]
             df_nt = self.df_Final_nt[self.df_Final_nt['VBASEKV'].isin([230, 345, 440, 500, 525, 765])]
 
-            if self.Options['ConvergenceAnalise']:
+            if self.Options['ConvergenceData']:
                 filter_non_converged_ger = ~df_ger[['Dia', 'Hora']].apply(tuple, axis=1).isin(self.bool_PWF_NConv)
                 self.df_Final_ger_PWFC = df_ger[filter_non_converged_ger].copy()
                 filter_non_converged_nt = ~df_nt[['Dia', 'Hora']].apply(tuple, axis=1).isin(self.bool_PWF_NConv)
@@ -605,32 +659,34 @@ class AnalyzeStaticCases:
         if self.Options['savedata']:
             print('Saving Dataframes ...')
 
-            if self.Options['PlotGeralPotencia']:
+            if self.Options['PlotGeralPotencia'] and not self.Options['OnlyPWF_datagen']:
                 self.df_grouped = self.processdata.add_key(self.df_grouped)
                 self.df_grouped.to_csv(self.cenario + '/Data/Potencia/Df_MW-MVAR_PO.csv', header=True, index=True)
             
-            if self.Options['ComputeDPI']:
+            if self.Options['ComputeDPI'] and not self.Options['OnlyPWF_datagen']:
                 self.df_Final_ger_PWFC.to_csv(f'{self.cenario}/Data/Geral/Df_ger.csv', index=False, columns=['key','BUS_ID', 'BUS_NAME', 'ARE', 'MODV_PU', 'ANGV_DEG', 'PG_MW', 'QG_MVAR', 'Dia', 'Hora', 'U_FED', 'Gen_Type', 'REG', 'B0_MVAR', 'ST', 'SHUNT_INST_IND', 'SHUNT_INST_CAP', 'ReservaIND', 'ReservaCAP','IndiceInf', 'IndiceSup'])
                 self.df_Final_nt_PWFC.to_csv(f'{self.cenario}/Data/Geral/Df_nt.csv', index=False, columns=['key','BUS_ID', 'BUS_NAME', 'ARE', 'MODV_PU', 'ANGV_DEG', 'VBASEKV', 'PL_MW', 'QL_MVAR', 'Dia', 'Hora', 'U_FED', 'REG', 'B0_MVAR', 'ST', 'SHUNT_INST_IND', 'SHUNT_INST_CAP', 'ReservaINDshunt', 'ReservaCAPshunt','IndiceInf', 'IndiceSup'])
 
-            if self.Options['LinhaAnalise']:
-                self.DF_REGIONAL_GER[['key','PG_MW', 'QG_MVAR', 'PL_MW', 'QL_MVAR','Shunt_Ind', 'Shunt_Cap','SHUNT_INST_IND', 'SHUNT_INST_CAP', 'ReservaIND', 'ReservaCAP','PG_UHE', 'PG_UTE', 'PG_EOL', 'PG_SOL', 'PG_BIO', 'PG_Dist', 'QG/QL', 'PG/PL', 'PG_FERV', 'ReservaINDshunt', 'ReservaCAPshunt']].to_csv(self.cenario + '/Data/Potencia/DF_POT_Reg.csv')
+            if self.Options['LinhasData']:
+                if not self.Options['OnlyPWF_datagen']:
+                    self.DF_REGIONAL_GER[['key','PG_MW', 'QG_MVAR', 'PL_MW', 'QL_MVAR','Shunt_Ind', 'Shunt_Cap','SHUNT_INST_IND', 'SHUNT_INST_CAP', 'ReservaIND', 'ReservaCAP','PG_UHE', 'PG_UTE', 'PG_EOL', 'PG_SOL', 'PG_BIO', 'PG_Dist', 'QG/QL', 'PG/PL', 'PG_FERV', 'ReservaINDshunt', 'ReservaCAPshunt']].to_csv(self.cenario + '/Data/Potencia/DF_POT_Reg.csv')
                 self.PWF16_Filt_linhas[['key','From#','To#','From Name','To Name','% L1', 'L1(MVA)', 'Mvar:Losses','Dia', 'Hora','REG', 'VBASEKV','MVA', 'MW:From-To', 'MW:To-From','Power Factor:From-To','Power Factor:To-From']].to_csv(self.cenario+'/Data/Fluxo em Ramos/Df_Linhas.csv', index=None)
                 self.PWF16_Filt_TRAFO[['key','From#','To#','From Name','To Name','% L1', 'L1(MVA)', 'Mvar:Losses','Dia', 'Hora','REG', 'VBASEKV','MVA', 'MW:From-To', 'MW:To-From','Power Factor:From-To','Power Factor:To-From']].to_csv(self.cenario+'/Data/Fluxo em Ramos/Df_Trafo.csv', index=None)
+                
+                if self.Options['IntercambiosData']:
+                    self.DF_Intercambios = self.processdata.add_key(self.DF_Intercambios)
+                    self.df_HVDC = self.processdata.add_key(self.df_HVDC)
+                    self.DF_Intercambios.to_csv(self.cenario + '/Data/Fluxo em Ramos/DF_Intercambios.csv', index = False)
+                    self.df_HVDC.to_csv(self.cenario + '/Data/Fluxo em Ramos/DF_HVDC.csv', index = False)
 
-                self.DF_Intercambios = self.processdata.add_key(self.DF_Intercambios)
-                self.df_HVDC = self.processdata.add_key(self.df_HVDC)
-                self.DF_Intercambios.to_csv(self.cenario + '/Data/Fluxo em Ramos/DF_Intercambios.csv', index = False)
-                self.df_HVDC.to_csv(self.cenario + '/Data/Fluxo em Ramos/DF_HVDC.csv', index = False)
-
-            if self.Options['ReservaAnalise']:
+            if self.Options['ReservaData'] and not self.Options['OnlyPWF_datagen']:
 
                 self.dffreservaPO_MVAR.to_csv(self.cenario + '/Data/Potencia/Df_Reserva_PO_MVAR.csv', header=True, index=True)
                 self.dffreservaPO_REG_MVAR.to_csv(self.cenario + '/Data/Potencia/Df_Reserva_REG_MVAR.csv', header=True, index=True)
                 self.dffreservaPO_REG_MW.to_csv(self.cenario + '/Data/Potencia/Df_Reserva_REG_MW.csv', header=True, index=True)
                 self.dffreservaPO_MW.to_csv(self.cenario + '/Data/Potencia/Df_Reserva_PO_MW.csv', header=True, index=True)
 
-            if (self.Options['ComputeDPI']) and (self.Options['resumoIndice']):
+            if (self.Options['ComputeDPI']) and (self.Options['resumoIndice']) and (not self.Options['OnlyPWF_datagen']):
 
                 self.df_DPI_PO['DPI_PO_final'].to_csv(f"{self.cenario}/Data/{self.indexfolder}/Df_DPI_S4.csv")
                 self.DF_DPI_pq_pv_ul.to_csv(f"{self.cenario}/Data/{self.indexfolder}/Df_DPI_S3.csv")

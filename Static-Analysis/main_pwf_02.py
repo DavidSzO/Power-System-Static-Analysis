@@ -5,6 +5,7 @@ main_path = f'RESULTS/{scenario}/StaticAnalysis/'
 path_data = f'RESULTS/{scenario}/StaticAnalysis/Data/Fluxo em Ramos/Df_Linhas.csv'
 path_PWF_NC = f'RESULTS/{scenario}/StaticAnalysis/Data/Geral/PWF_NC.csv'
 pathtosave = main_path + '/Plots/Intercambios AC-DC/Lines_Analysis/'
+os.makedirs(main_path + '/Plots/Intercambios AC-DC', exist_ok=True)
 os.makedirs(pathtosave, exist_ok=True)
 
 if __name__ == '__main__':

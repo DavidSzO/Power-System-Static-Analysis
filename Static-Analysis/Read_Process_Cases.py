@@ -10,26 +10,13 @@ from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_compl
 
 class ReadScenarios:
 
-    def __init__(self, path, cenario, PO, pathcsv=None, genscript=False, dia = None):
+    def __init__(self, path, cenario, PO, pathcsv=None):
         self.path = path
         self.PO = PO
         self.csv = pathcsv
         self.cenario = cenario
         self.folders = []
-
-        if not genscript:
-            if not PO:
-                archivos = os.listdir(path)
-                self.folders = sorted([nomes_archivos for nomes_archivos in archivos if 'DS202' in nomes_archivos])
-                if pathcsv:
-                    self.get_dataframes_csv()
-                else:
-                    self.get_data_extract()
-            else:
-                self.folders = dia
-                self.get_data_extract()
-        else:
-            self.generate_script()
+        pass
 
     @staticmethod
     def get_unique_bus(df):
@@ -117,7 +104,8 @@ class ReadScenarios:
 # ======================================================================================================================
         
     def get_Networkinfo(self, linhas=True, Reserva=False, Intercambios=False, hour=None):
-        print(f'*** ETAPA: LEITURA DE INFORMAÇÃO DAS LINHAS ***')
+
+        print(f'*** LEITURA DOS PWF_.CSV GERADOS ***')
         
         dtype_dict_linhas = {
             'From#': 'int32', ' From Name': 'object', ' To# - Circ#': 'object', ' To Name': 'object', ' Type': 'object',
@@ -129,7 +117,6 @@ class ReadScenarios:
             ' Mvar:From-To', ' Mvar:Losses', ' MW:To-From', ' Power Factor:From-To', ' Power Factor:To-From'
         ]
         col_list_hvdc = ['Bus #', ' Bus Name', ' Type', ' Pole #', ' P(MW)', ' Q(Mvar)', ' Status']
-        # col_list_hvdc = ['Bus #', ' Bus Name', ' Type', ' Pole #', ' P(MW)', ' Q(Mvar)', ' Satus']  # Esta linha tem uma alteração devido a que tem um erro nos arquivos rodados para 2022 no nome da columna Status
         col_list_reserve = ['Bus', ' Group', ' Bus Name', ' Area', ' Zone', ' V (pu)', ' Pg(MW)', ' Qg(Mvar)', ' Reserve', ' Units']
 
         def add_dia_hora(df, path, dia, hour=None):
@@ -272,14 +259,11 @@ class ReadScenarios:
         print('Script para rodar fluxos gerado exitosamente!')
 
     def get_Intercambios(self, df=None):
-        print(f'*** ETAPA: OBTENÇÃO DOS INTERCAMBIOS ***')
+        print(f'*** OBTENÇÃO DOS INTERCAMBIOS ***')
         if df is None:
             PWF16_concatenados = self.linesInfo
         else:
             PWF16_concatenados = df
-
-        # PWF16_concatenados = PWF16_concatenados.set_index(['From#', 'To#'])
-        # PWF16_concatenados = PWF16_concatenados[(PWF16_concatenados['Type'] == ' TL')]  #Importante ver si afecta!!
 
         linhas_expNE = pd.read_csv('Static-Analysis/RECURSOS/LINHAS/buses_EXPNE.csv',sep=';', skipinitialspace=True).set_index(['De', 'Para'])
         linhas_expNE_flip = pd.read_csv('Static-Analysis/RECURSOS/LINHAS/buses_EXPNE_flip.csv',sep=';', skipinitialspace=True).set_index(['De', 'Para'])
@@ -323,7 +307,7 @@ class ReadScenarios:
         print(f'*** Concatenating ... ***')
         self.DF_Intercambios = pd.concat([EXPNE_grouped,Fluxo_NESE_grouped, Fluxo_NS_grouped, Fluxo_SULSECO_grouped, Fluxo_NEN_grouped, Fluxo_RSUL_grouped], axis=0, keys=['EXP_NE', 'Fluxo_NE-SE', 'Fluxo_N-S' ,'Fluxo_SUL-SECO', 'Fluxo_NE-N', 'Fluxo_RSUL'])
 
-        print(f'*** ETAPA: FINAL OBTENÇÃO DOS INTERCAMBIOS ***')
+        print(f'*** FINAL OBTENÇÃO DOS INTERCAMBIOS ***')
 
 # ======================================================================================================================
 #                                                   CONVERGENCE INFO EXTRACTION
@@ -382,38 +366,13 @@ class ReadScenarios:
 
 class ProcessData():
 
-    def __init__(self,  df, cenario, options, pathcsv=None, just_one_case = False):
+    def __init__(self, cenario, options):
         
         self.cenario = cenario
-        extract_fromcsv=options['extract_fromcsv']
-        busdata = options['busdata']
         self.mapsdata = options['MapasPlots']
+        pass
 
-        if extract_fromcsv:
-            self.Df_VF_SF = df
-            self.get_splitdata_PV_PQ(df)
-            self.get_processdata_region()
-        else:
-            self.df  = df
-            if busdata:
-                file = os.path.abspath("Static-Analysis/RECURSOS/GeoINFO_BusesSIN.csv")
-                df1 = pd.read_csv(file, sep=';')
-
-                #************************ Merge com o DATA FRAME COMPLETO ***************************
-                columns = ['BUS_ID', 'BUS_NAME', 'VBASEKV', 'TP', 'ARE', 'MODV_PU', 'ANGV_DEG', 'BASE_MVA', 'PG_MW', 'QG_MVAR', 'PMAX_MW', 'PMIN_MW', 'QMX_MVAR','QMN_MVAR', 'Ger_Units','Ger_Active_Units', 'PL_MW', 'QL_MVAR', 'TC', 'VMAX_PU', 'VMIN_PU', 'BCO_ID', 'B0_MVAR', 'ST', 'SHUNT_INST_IND', 'SHUNT_INST_CAP', 'Dia','Hora']
-                Df_VF_novo = self.df[columns].merge(df1[['BUS_ID','Gen_Type','U_FED','REG', 'Latitude','Longitude']], on='BUS_ID', how='left')
-                Df_VF_novo.drop(Df_VF_novo[Df_VF_novo['REG'] == np.nan].index)
-                self.Df_VF_SF = Df_VF_novo
-            else:
-                self.get_processdata()
-            
-            self.get_splitdata_PV_PQ()
-            self.get_processdata_region()
-            if not just_one_case:
-                print(f'*** Salvando Dataframe com Informação locacional ***')
-                self.Df_VF_SF.to_csv(pathcsv, sep=';', index=False)
-        
-    def get_processdata(self):
+    def get_processdata(self, Df_VF):
 
     # ========================== Define main funtions for this method ===================================================================
         def labelBUS_UF_GT(data, keys, num: int, sf=None):
@@ -476,7 +435,6 @@ class ProcessData():
         BarraGeo = pd.read_excel(file, sheet_name='Planilha1', header=0)
         BarraGeo.rename(columns=column_rename_mapping, inplace=True)
 
-        Df_VF = self.df
         # dataframe com um unico ponto de operação
         Df_ = Df_VF[(Df_VF['Dia']==Df_VF['Dia'].unique()[0]) & (Df_VF['Hora']==Df_VF['Hora'].unique()[0])][['BUS_ID', 'BUS_NAME']].copy()
         Df_.insert(1, 'U_FED', np.nan)
@@ -527,12 +485,9 @@ class ProcessData():
                     'VMAX_PU', 'VMIN_PU', 'BCO_ID', 'B0_MVAR', 'ST', 'SHUNT_INST_IND', 
                     'SHUNT_INST_CAP', 'Dia', 'Hora']
         # Dataframe geral 
-        Df_VF_novo = Df_VF[columns].merge(Df_[['BUS_ID','U_FED','Gen_Type','REG', 'Latitude','Longitude']], on='BUS_ID', how='left')
-        Df_VF_novo.drop(Df_VF_novo[Df_VF_novo['REG'] == np.nan].index)
-        # Dataframe geral sem filtro
-        self.Df_VF_SF = Df_VF_novo
+        self.Df_VF_SF = Df_VF[columns].merge(Df_[['BUS_ID','U_FED','Gen_Type','REG', 'Latitude','Longitude']], on='BUS_ID', how='left')
+        self.Df_VF_SF.drop(self.Df_VF_SF[self.Df_VF_SF['REG'] == np.nan].index)
 
-    
     @staticmethod
     def add_key(data):
         from datetime import datetime, timedelta
@@ -545,7 +500,6 @@ class ProcessData():
         df['Dia'] = df['Dia'].astype(str)
         data = data.merge(df, on=['Dia','Hora'], how='inner')
         return data
-    
     
     def get_splitdata_PV_PQ(self, df):
 
