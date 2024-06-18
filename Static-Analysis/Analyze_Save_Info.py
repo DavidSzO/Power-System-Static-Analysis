@@ -12,8 +12,8 @@ class AnalyzeStaticCases:
         self.path_folder = path
         self.Options = Options
         
-        # user_specified_dir = input("Please enter the directory path where you want to save the files: ")
-        user_specified_dir = "RESULTS"
+        user_specified_dir = input("Please enter the directory path where you want to save the files: ")
+        user_specified_dir = os.path.join(user_specified_dir, "RESULTS") 
         os.makedirs(user_specified_dir, exist_ok=True)
         notebook_dir = os.path.abspath(user_specified_dir)
         os.makedirs(notebook_dir, exist_ok=True)
@@ -21,7 +21,6 @@ class AnalyzeStaticCases:
         os.makedirs(folder_path, exist_ok=True)
         folder_path = os.path.join(folder_path, 'StaticAnalysis')
         os.makedirs(folder_path, exist_ok=True)
-        # user_question = input("Do you want to read? (1). All cases or (2). Just One Case, Please input the corresponding number:\n")
         user_question = str(self.Options['OneCase'])
         readjustONEcase = True if user_question.strip().replace("(","").replace(")","")  == '2' else False
         self.readjustONEcase = readjustONEcase
@@ -674,7 +673,8 @@ class AnalyzeStaticCases:
                 self.PWF16_Filt_TRAFO[['key','From#','To#','From Name','To Name','% L1', 'L1(MVA)', 'Mvar:Losses','Dia', 'Hora','REG', 'VBASEKV','MVA', 'MW:From-To', 'MW:To-From','Power Factor:From-To','Power Factor:To-From']].to_csv(self.cenario+'/Data/Fluxo em Ramos/Df_Trafo.csv', index=None)
                 
                 if self.Options['IntercambiosData']:
-                    self.DF_Intercambios = self.processdata.add_key(self.DF_Intercambios)
+                    self.DF_Intercambios = self.processdata.add_key(self.DF_Intercambios.reset_index())
+                    self.DF_Intercambios.rename(columns={'level_0':'Intercambio AC'}, inplace=True)
                     self.df_HVDC = self.processdata.add_key(self.df_HVDC)
                     self.DF_Intercambios.to_csv(self.cenario + '/Data/Fluxo em Ramos/DF_Intercambios.csv', index = False)
                     self.df_HVDC.to_csv(self.cenario + '/Data/Fluxo em Ramos/DF_HVDC.csv', index = False)
