@@ -12,7 +12,8 @@ class AnalyzeStaticCases:
         self.path_folder = path
         self.Options = Options
         
-        user_specified_dir = input("Please enter the directory path where you want to save the files: ")
+        # user_specified_dir = input("Please enter the directory path where you want to save the files: ")
+        user_specified_dir = "C:/Users/David/OneDrive/Documents/FERV_documentos/"
         user_specified_dir = os.path.join(user_specified_dir, "RESULTS") 
         os.makedirs(user_specified_dir, exist_ok=True)
         notebook_dir = os.path.abspath(user_specified_dir)
@@ -96,11 +97,11 @@ class AnalyzeStaticCases:
                     if pathcsv1:
                         self.cases.get_dataframes_csv()
                     else:
-                        self.get_data_extract()
+                        self.cases.get_data_extract()
                 else:
                     self.cases.get_data_extract()
             else:
-                self.generate_script()
+                self.cases.generate_script()
                 sys.exit()
 
             if self.Options['ConvergenceData']:
@@ -118,7 +119,7 @@ class AnalyzeStaticCases:
                     #************************ Merge com o DATA FRAME COMPLETO ***************************
                     columns = ['BUS_ID', 'BUS_NAME', 'VBASEKV', 'TP', 'ARE', 'MODV_PU', 'ANGV_DEG', 'BASE_MVA', 'PG_MW', 'QG_MVAR', 'PMAX_MW', 'PMIN_MW', 'QMX_MVAR','QMN_MVAR', 'Ger_Units','Ger_Active_Units', 'PL_MW', 'QL_MVAR', 'TC', 'VMAX_PU', 'VMIN_PU', 'BCO_ID', 'B0_MVAR', 'ST', 'SHUNT_INST_IND', 'SHUNT_INST_CAP', 'Dia','Hora']
                     self.processdata.Df_VF_SF = self.cases.Df_Cases[columns].merge(df1[['BUS_ID','Gen_Type','U_FED','REG', 'Latitude','Longitude']], on='BUS_ID', how='left')
-                    self.processdata.Df_VF_SF.drop(self.Df_VF_SF[self.Df_VF_SF['REG'] == np.nan].index)
+                    self.processdata.Df_VF_SF.drop(self.processdata.Df_VF_SF[self.processdata.Df_VF_SF['REG'] == np.nan].index)
                 else:
                     print("Associating the buses to the states and regions")
                     self.processdata.get_processdata(self.cases.Df_Cases)
@@ -629,7 +630,6 @@ class AnalyzeStaticCases:
 
             if self.Options['resumoIndice']:
                 
-                print('Saving DPI Information files:')
                 df_busPQ_mod['BUS_ID'] = df_busPQ_mod['BUS_ID'].astype(int)
                 df_busPV_mod['BUS_ID'] = df_busPV_mod['BUS_ID'].astype(int)
                 self.df_busPQ_mod = df_busPQ_mod

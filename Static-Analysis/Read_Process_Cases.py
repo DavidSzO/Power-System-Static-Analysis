@@ -370,6 +370,7 @@ class ProcessData():
     def __init__(self, cenario, options):
         
         self.cenario = cenario
+        self.options = options
         self.mapsdata = options['MapasPlots']
         pass
 
@@ -518,9 +519,10 @@ class ProcessData():
         print(f"Asignando tipo de geração nas usinas eolicas faltantes: {barra_ids}")
         self.Df_VF_SF['Gen_Type'] = np.where(self.Df_VF_SF['BUS_NAME'].isin(barra_ids), 'EOL', self.Df_VF_SF['Gen_Type'])
         
-        # Asignando Chave
-        print("Asignando uma chave no dataframe ...")
-        self.Df_VF_SF = self.add_key(self.Df_VF_SF)
+        if self.options['extract_fromcsv']==False:
+            # Asignando Chave
+            print("Asignando uma chave no dataframe ...")
+            self.Df_VF_SF = self.add_key(self.Df_VF_SF)
 
         # Drop rows with NaN Latitude
         self.Df_VF_SF = self.Df_VF_SF[self.Df_VF_SF['Latitude'].notna()]
@@ -547,6 +549,9 @@ class ProcessData():
         # Calculate 'ReservaINDshunt' and 'ReservaCAPshunt' using vectorized operations
         df_Final_nt['ReservaINDshunt'] = np.where(df_Final_nt['B0_MVAR'] < 0, df_Final_nt['SHUNT_INST_IND'] - df_Final_nt['B0_MVAR'], df_Final_nt['SHUNT_INST_IND'])
         df_Final_nt['ReservaCAPshunt'] = np.where(df_Final_nt['B0_MVAR'] > 0, df_Final_nt['SHUNT_INST_CAP'] - df_Final_nt['B0_MVAR'], df_Final_nt['SHUNT_INST_CAP'])
+
+        self.df_Final_ger = df_Final_ger
+        self.df_Final_nt = df_Final_nt
 
         if self.mapsdata:
             online = df_Final_ger[df_Final_ger['PG_MW'] != 0].groupby('BUS_ID')['PG_MW'].count().rename('Online').reset_index()
@@ -587,8 +592,6 @@ class ProcessData():
                 SHUNT_INST_CAP=('SHUNT_INST_CAP', 'first'),
             ).reset_index()
 
-        self.df_Final_ger = df_Final_ger
-        self.df_Final_nt = df_Final_nt
 
     def get_processdata_region(self):
 
