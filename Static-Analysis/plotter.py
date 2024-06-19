@@ -73,12 +73,16 @@ class CreatePlots:
     def box_plots(self, dataset, col, split_flows=None, 
                   path=None, ax_fontsize=None, scenario=None):
         
+        widths = 0.5
+        
         if split_flows == False:
             fig, ax = plt.subplots(1, 1, figsize=(15, 6))
             ax = sns.boxplot(
                 data=dataset, 
                 x="Nome Elo", 
                 y=col, 
+                dodge=False,
+                width=widths,
                 flierprops={"marker": "x"}, 
                 hue=dataset['Nome Elo'],
                 palette=sns.color_palette("hls", 8)
@@ -91,6 +95,8 @@ class CreatePlots:
             ax.set_xlabel('Nome Elo', weight='bold', fontsize=13)
             ax.grid(True, alpha=0.3)
             ax.set_xticklabels(dataset['Nome Elo'].unique(), rotation=30)
+            ax.get_legend().set_visible(False) 
+
 
             if scenario != None:
                 ax.set_title(f'{scenario}', weight='bold', fontsize=18)
@@ -102,37 +108,44 @@ class CreatePlots:
             plt.tight_layout()
 
             if path != None:
-                plt.savefig(f'{path}/BoxPlot_{col}_NSplit')
+                plt.savefig(f'{path}/BoxPlot_{col}_NSplit_1')
 
             plt.show()
         else:
-            fig, axes = plt.subplots(2, 1, figsize=(12, 8))
+            fig, ax = plt.subplots(2, 1, figsize=(12, 8))
 
             dataset1 = dataset.iloc[:int(dataset.shape[0]/2+1344), :]
             sns.boxplot(
                 data=dataset1, 
                 x="Nome Elo", 
                 y=col, 
+                width=widths,
+                dodge=False,
                 flierprops={"marker": "x"}, 
                 hue=dataset1['Nome Elo'],
-                ax=axes[0]
+                ax=ax[0]
             )
             dataset2 = dataset.iloc[int(dataset.shape[0]/2)+1344:, :]
             sns.boxplot(
                 data=dataset2, 
                 x="Nome Elo", 
                 y=col, 
+                width=widths,    
+                dodge=False,  
                 flierprops={"marker": "x"}, 
                 hue=dataset2['Nome Elo'],
                 palette=sns.color_palette("hls", 4),
-                ax=axes[1]
+                ax=ax[1]
             )
+            ax[0].get_legend().set_visible(False) 
+            ax[1].get_legend().set_visible(False) 
+
             for i in range(0, 2):
-                axes[i].set_ylabel(f'{col}', weight='bold', fontsize=13)
-                axes[i].set_xlabel('Nome Elo', weight='bold', fontsize=13)
-                axes[i].grid(True, alpha=0.5)
-                axes[i].tick_params(axis='both', which='major', labelsize=ax_fontsize)
-                axes[i].tick_params(axis='both', which='minor', labelsize=ax_fontsize)
+                ax[i].set_ylabel(f'{col}', weight='bold', fontsize=13)
+                ax[i].set_xlabel('Nome Elo', weight='bold', fontsize=13)
+                ax[i].grid(True, alpha=0.5)
+                ax[i].tick_params(axis='both', which='major', labelsize=ax_fontsize)
+                ax[i].tick_params(axis='both', which='minor', labelsize=ax_fontsize)
             
             if scenario != None:
                 plt.suptitle(f'{scenario}', weight='bold', fontsize=20)
@@ -140,17 +153,22 @@ class CreatePlots:
             plt.tight_layout()
 
             if path != None:
-                plt.savefig(f'{path}/BoxPlot_{col}_Split') 
+                plt.savefig(f'{path}/BoxPlot_{col}_Split_2') 
             plt.show()
 
     def violin_plots(self, dataset, col, split_flows=None, 
                   path=None, ax_fontsize=None, scenario=None):
+        widths = 0.5
+
         if split_flows == False:
             fig, ax = plt.subplots(1, 1, figsize=(15, 6))
             ax = sns.violinplot(
                 data=dataset, 
                 x="Nome Elo", 
                 y=col, 
+                dodge=False,
+                width=widths,
+                cut=0,
                 hue=dataset['Nome Elo'],
                 palette=sns.color_palette("hls", 8)
             )
@@ -163,6 +181,8 @@ class CreatePlots:
             ax.grid(True, alpha=0.3)
             ax.set_xticklabels(dataset['Nome Elo'].unique(), rotation=30)
 
+            ax.get_legend().set_visible(False) 
+
             if scenario != None:
                 ax.set_title(f'{scenario}', weight='bold', fontsize=18)
 
@@ -170,39 +190,48 @@ class CreatePlots:
                 ax.tick_params(axis='both', which='major', labelsize=ax_fontsize)
                 ax.tick_params(axis='both', which='minor', labelsize=ax_fontsize)
 
-            plt.tight_layout()
+            plt.tight_layout()      
 
             if path != None:
-                plt.savefig(f'{path}/ViolinPlot_{col}_NSplit')
+                plt.savefig(f'{path}/ViolinPlot_{col}_NSplit_1')
             plt.show()
         else:
-            fig, axes = plt.subplots(2, 1, figsize=(12, 8))
+            fig, ax = plt.subplots(2, 1, figsize=(12, 8))
 
             dataset1 = dataset.iloc[:int(dataset.shape[0]/2+1344), :]
             sns.violinplot(
                 data=dataset1, 
                 x="Nome Elo", 
                 y=col, 
+                dodge=False,
+                cut=0,
+                width=widths,
                 hue=dataset1['Nome Elo'],
-                ax=axes[0]
+                ax=ax[0]
             )
             dataset2 = dataset.iloc[int(dataset.shape[0]/2)+1344:, :]
             sns.violinplot(
                 data=dataset2, 
                 x="Nome Elo", 
                 y=col, 
+                cut=0,
+                dodge=False,
+                width=widths,
                 hue=dataset2['Nome Elo'],
                 palette=sns.color_palette("hls", 4),
-                ax=axes[1]
+                ax=ax[1]
             )
+            ax[0].get_legend().set_visible(False) 
+            ax[1].get_legend().set_visible(False)   
+
             for i in range(0, 2):
-                axes[i].set_ylabel(f'{col}', weight='bold', fontsize=13)
-                axes[i].set_xlabel('Nome Elo', weight='bold', fontsize=13)
-                axes[i].grid(True, alpha=0.5)
+                ax[i].set_ylabel(f'{col}', weight='bold', fontsize=13)
+                ax[i].set_xlabel('Nome Elo', weight='bold', fontsize=13)
+                ax[i].grid(True, alpha=0.5)
 
                 if ax_fontsize != None:
-                    axes[i].tick_params(axis='both', which='major', labelsize=ax_fontsize)
-                    axes[i].tick_params(axis='both', which='minor', labelsize=ax_fontsize)
+                    ax[i].tick_params(axis='both', which='major', labelsize=ax_fontsize)
+                    ax[i].tick_params(axis='both', which='minor', labelsize=ax_fontsize)
 
             if scenario != None:
                 plt.suptitle(f'{scenario}', weight='bold', fontsize=20)
@@ -210,7 +239,7 @@ class CreatePlots:
             plt.tight_layout()
 
             if path != None:
-                plt.savefig(f'{path}/ViolinPlot_{col}_Split') 
+                plt.savefig(f'{path}/ViolinPlot_{col}_Split_2') 
             plt.show()
     
     def create_heatmap(self, dataset, col, path=None, ax_fontsize=None):
@@ -436,7 +465,7 @@ class CreatePlots:
 
             ax.set_xlabel("Hour", weight='bold', fontsize=ax_fontsize)
             ax.set_ylabel("Day", weight='bold', fontsize=ax_fontsize)
-            ax.set_yticks(np.arange(2, 30))
+            ax.set_yticks(np.arange(min(dia), max(dia)+1))
             ax.set_xticks(np.arange(0, 24))
             ax.set_xticklabels(hora, rotation=45)
             ax.set_title(fr'Fluxo {frm}$\rightarrow${to}', weight='bold', fontsize=18)
