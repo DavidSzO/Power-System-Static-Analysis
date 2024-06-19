@@ -183,7 +183,7 @@ class Analise_Linhas:
 
                 plt.figure(figsize=(12, 6))
 
-                ax = sns.heatmap(pivot_percent_L1, cmap='Reds', cbar=True, fmt=".2f")
+                ax = sns.heatmap(pivot_percent_L1, cmap='Reds_r', cbar=True, fmt=".2f")
 
                 cbar = ax.collections[0].colorbar
                 cbar.ax.set_ylabel('% L1', fontsize=16)  # Aumente o tamanho do rótulo da barra de legenda
@@ -352,7 +352,7 @@ class Analise_Linhas:
 
                 # Crie uma figura com dois subplots empilhados verticalmente
                 fig, axes = plt.subplots(2, 1, figsize=(12, 6), sharex=True)
-                plt.suptitle(f'Gráficos VBA para Região: {REG}', fontsize=20, y=0.95)  # Ajuste o valor de y aqui e o tamanho da fonte
+                plt.suptitle(f'Gráficos kV Base para Região: {REG}', fontsize=20, y=0.95)  # Ajuste o valor de y aqui e o tamanho da fonte
 
                 # Gráfico para 'Mvar:Losses'
                 for Mvar_Losses, label in zip(todos_Mvar_Losses, labels):
@@ -396,9 +396,9 @@ class Analise_Linhas:
                     # Crie um gráfico de calor para 'Mvar:Losses'
                     pivot_Mvar_Losses = resultados_agregados_hora.pivot_table(index='Dia', columns='Hora', values='Mvar:Losses')
                     plt.figure(figsize=(12, 6))
-                    plt.title(f'Gráfico de Calor para Mvar:Losses - Região: {REG} - VBA: {VBA}', fontsize=20)
+                    plt.title(f'Gráfico de Calor para Mvar:Losses - Região: {REG} - kV Base: {VBA}', fontsize=20)
 
-                    ax = sns.heatmap(pivot_Mvar_Losses, cmap='Reds', cbar=True, cbar_kws={'label': 'Mvar:Losses'})
+                    ax = sns.heatmap(pivot_Mvar_Losses, cmap='Reds_r', cbar=True, cbar_kws={'label': 'Mvar:Losses'})
                     cbar = ax.collections[0].colorbar
                     cbar.set_label('Mvar:Losses', fontsize=20)  # Alterar o tamanho da fonte da barra de cores
                     cbar.ax.tick_params(labelsize=16)
@@ -414,7 +414,7 @@ class Analise_Linhas:
                     # Crie um gráfico de calor para '% L1'
                     pivot_percent_L1 = resultados_agregados_hora.pivot_table(index='Dia', columns='Hora', values='% L1')
                     plt.figure(figsize=(12, 6))
-                    plt.title(f'Gráfico de Calor para % L1 - Região: {REG} - VBA: {VBA}', fontsize=20)
+                    plt.title(f'Gráfico de Calor para % L1 - Região: {REG} - kV Base: {VBA}', fontsize=20)
 
                     ax = sns.heatmap(pivot_percent_L1, cmap='Reds', cbar=True, cbar_kws={'label': '% L1'})
                     cbar = ax.collections[0].colorbar
