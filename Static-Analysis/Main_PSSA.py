@@ -14,7 +14,7 @@ if __name__ == '__main__':
                             'OneCase': 1,       # (1) for All cases or (2) for Just One Case analysis
         # ---------------------------------------------------
                             'generatescript' : False,
-                            'OnlyPWF_datagen': True,
+                            'OnlyPWF_datagen': False,
                             'extract_fromcsv' : False,
                             'savedata':True,
         # ---------------------------------------------------
@@ -22,7 +22,7 @@ if __name__ == '__main__':
                             'busdata' : True,
                             'LinhasData': True,
                             'HVDCData':True,
-                            'ReservaData':False,
+                            'ReservaData':True,
                             'IntercambiosData':True,
                             'ComputeDPI': True,
                             'resumoIndice': True,
@@ -31,12 +31,12 @@ if __name__ == '__main__':
                             'reservacsv':False,
                             'HVDCcsv': False,
         # ---------------------------------------------------
-                            'PlotGeralPotencia': True,
-                            'MapasPlots': True,
-                            'Plot_Tensao_Geral': True,
-                            'plotDPI': True,
-                            'Plot_Boxplot_DPI': True,
-                            'PlotIntercambios': True
+                            'PlotGeralPotencia': False,
+                            'MapasPlots': False,
+                            'Plot_Tensao_Geral': False,
+                            'plotDPI': False,
+                            'Plot_Boxplot_DPI': False,
+                            'PlotIntercambios': False
                         }
     
     # ************************************************************************************************
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     # =============================             CASOS 2022          ===========================================
     # path_folder = 'D:/MPV_(FNS Lim)_RC/'
     # path_folder_1 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2022/Novos com FNS Lim/V1A1F2 FNS Lim 2022/'
-    path_folder_2 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2022/Novos com FNS Lim/V1A1F2 FNS Lim 2022_OPF/'
+    # path_folder_2 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2022/Novos com FNS Lim/V1A1F2 FNS Lim 2022_OPF/'
     # path_folder ='D:/0 FERV/0 Dados PYTHON/CASOS 2022/Antigos/MPV_(FNS Lim)_RC/'
     # path_folder = 'D:/0 FERV/0 Dados PYTHON/CASOS 2022/Novos com FNS Lim/V2A2F2 FNS Lim 2022/'
 
@@ -58,18 +58,24 @@ if __name__ == '__main__':
     # path_folder = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/REV_2/V1A1F2_RESP_FNS_lim_rev2_2026/'
 
     # =============================         CASOS 2026 V2A2F       ===========================================  
-    # path_folder_1 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F2_REV02_2026/'
-    # path_folder_2 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F3_REV02_2026/'
-    # path_folder_3 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F4_REV02_2026/'
-    # path_folder_4 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F5_REV02_2026/'
+    # path_folder_5 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F2_REV02_2026/'
+    # path_folder_6 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F3_REV02_2026/'
+    # path_folder_7 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F4_REV02_2026/'
+    # path_folder_8 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F5_REV02_2026/'
     # =============================         CASOS 2026 V3A3F       ===========================================
-    # path_folder_1 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F2_REV02_2026/'
-    # path_folder_2 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F3_REV02_2026/'
-    # path_folder_3 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F4_REV02_2026/'
-    # path_folder_4 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F5_REV02_2026/'
+    # path_folder_1 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_0/V3A3F2_REV0_2026/'
+    # path_folder_2 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_0/V3A3F3_REV0_2026/'
+    # path_folder_3 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_0/V3A3F4_REV0_2026/'
+    # path_folder_4 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_0/V3A3F5_REV0_2026/'
+
+    # path_folder_1 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_1/V3A3F2_REV1_2026/'
+    # path_folder_2 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_1/V3A3F3_REV1_2026/'
+    # path_folder_3 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_1/V3A3F4_REV1_2026/'
+    path_folder_9 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_1/V3A3F5_REV1_2026/'
+
     # ============================= List of PATHS ===========================================
-    # path_folders = [path_folder_1, path_folder_2, path_folder_3, path_folder_4]
-    path_folders = [path_folder_2]
+    # path_folders = [path_folder_1, path_folder_2, path_folder_3, path_folder_4,path_folder_5,path_folder_6,path_folder_7,path_folder_8,path_folder_9]
+    path_folders = [path_folder_9]
 
     for path_folder in path_folders:
 

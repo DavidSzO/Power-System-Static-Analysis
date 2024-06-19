@@ -13,7 +13,8 @@ class AnalyzeStaticCases:
         self.Options = Options
         
         # user_specified_dir = input("Please enter the directory path where you want to save the files: ")
-        user_specified_dir = "RESULTS"
+        user_specified_dir = "C:/Users/David/OneDrive/Documents/FERV_documentos/"
+        user_specified_dir = os.path.join(user_specified_dir, "RESULTS") 
         os.makedirs(user_specified_dir, exist_ok=True)
         notebook_dir = os.path.abspath(user_specified_dir)
         os.makedirs(notebook_dir, exist_ok=True)
@@ -21,7 +22,6 @@ class AnalyzeStaticCases:
         os.makedirs(folder_path, exist_ok=True)
         folder_path = os.path.join(folder_path, 'StaticAnalysis')
         os.makedirs(folder_path, exist_ok=True)
-        # user_question = input("Do you want to read? (1). All cases or (2). Just One Case, Please input the corresponding number:\n")
         user_question = str(self.Options['OneCase'])
         readjustONEcase = True if user_question.strip().replace("(","").replace(")","")  == '2' else False
         self.readjustONEcase = readjustONEcase
@@ -97,11 +97,11 @@ class AnalyzeStaticCases:
                     if pathcsv1:
                         self.cases.get_dataframes_csv()
                     else:
-                        self.get_data_extract()
+                        self.cases.get_data_extract()
                 else:
                     self.cases.get_data_extract()
             else:
-                self.generate_script()
+                self.cases.generate_script()
                 sys.exit()
 
             if self.Options['ConvergenceData']:
@@ -119,7 +119,7 @@ class AnalyzeStaticCases:
                     #************************ Merge com o DATA FRAME COMPLETO ***************************
                     columns = ['BUS_ID', 'BUS_NAME', 'VBASEKV', 'TP', 'ARE', 'MODV_PU', 'ANGV_DEG', 'BASE_MVA', 'PG_MW', 'QG_MVAR', 'PMAX_MW', 'PMIN_MW', 'QMX_MVAR','QMN_MVAR', 'Ger_Units','Ger_Active_Units', 'PL_MW', 'QL_MVAR', 'TC', 'VMAX_PU', 'VMIN_PU', 'BCO_ID', 'B0_MVAR', 'ST', 'SHUNT_INST_IND', 'SHUNT_INST_CAP', 'Dia','Hora']
                     self.processdata.Df_VF_SF = self.cases.Df_Cases[columns].merge(df1[['BUS_ID','Gen_Type','U_FED','REG', 'Latitude','Longitude']], on='BUS_ID', how='left')
-                    self.processdata.Df_VF_SF.drop(self.Df_VF_SF[self.Df_VF_SF['REG'] == np.nan].index)
+                    self.processdata.Df_VF_SF.drop(self.processdata.Df_VF_SF[self.processdata.Df_VF_SF['REG'] == np.nan].index)
                 else:
                     print("Associating the buses to the states and regions")
                     self.processdata.get_processdata(self.cases.Df_Cases)
@@ -630,7 +630,6 @@ class AnalyzeStaticCases:
 
             if self.Options['resumoIndice']:
                 
-                print('Saving DPI Information files:')
                 df_busPQ_mod['BUS_ID'] = df_busPQ_mod['BUS_ID'].astype(int)
                 df_busPV_mod['BUS_ID'] = df_busPV_mod['BUS_ID'].astype(int)
                 self.df_busPQ_mod = df_busPQ_mod
@@ -674,7 +673,8 @@ class AnalyzeStaticCases:
                 self.PWF16_Filt_TRAFO[['key','From#','To#','From Name','To Name','% L1', 'L1(MVA)', 'Mvar:Losses','Dia', 'Hora','REG', 'VBASEKV','MVA', 'MW:From-To', 'MW:To-From','Power Factor:From-To','Power Factor:To-From']].to_csv(self.cenario+'/Data/Fluxo em Ramos/Df_Trafo.csv', index=None)
                 
                 if self.Options['IntercambiosData']:
-                    self.DF_Intercambios = self.processdata.add_key(self.DF_Intercambios)
+                    self.DF_Intercambios = self.processdata.add_key(self.DF_Intercambios.reset_index())
+                    self.DF_Intercambios.rename(columns={'level_0':'Intercambio AC'}, inplace=True)
                     self.df_HVDC = self.processdata.add_key(self.df_HVDC)
                     self.DF_Intercambios.to_csv(self.cenario + '/Data/Fluxo em Ramos/DF_Intercambios.csv', index = False)
                     self.df_HVDC.to_csv(self.cenario + '/Data/Fluxo em Ramos/DF_HVDC.csv', index = False)
