@@ -31,12 +31,12 @@ if __name__ == '__main__':
                             'reservacsv':False,
                             'HVDCcsv': False,
         # ---------------------------------------------------
-                            'PlotGeralPotencia': False,
-                            'MapasPlots': False,
-                            'Plot_Tensao_Geral': False,
-                            'plotDPI': False,
-                            'Plot_Boxplot_DPI': False,
-                            'PlotIntercambios': False
+                            'PlotGeralPotencia': True,
+                            'MapasPlots': True,
+                            'Plot_Tensao_Geral': True,
+                            'plotDPI': True,
+                            'Plot_Boxplot_DPI': True,
+                            'PlotIntercambios': True
                         }
     
     # ************************************************************************************************
@@ -68,14 +68,14 @@ if __name__ == '__main__':
     # path_folder_3 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_0/V3A3F4_REV0_2026/'
     # path_folder_4 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_0/V3A3F5_REV0_2026/'
 
-    # path_folder_1 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_1/V3A3F2_REV1_2026/'
-    # path_folder_2 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_1/V3A3F3_REV1_2026/'
-    # path_folder_3 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_1/V3A3F4_REV1_2026/'
-    path_folder_9 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_1/V3A3F5_REV1_2026/'
+    path_folder_1 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_1/V3A3F2_REV1_2026/'
+    path_folder_2 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_1/V3A3F3_REV1_2026/'
+    path_folder_3 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_1/V3A3F4_REV1_2026/'
+    # path_folder_9 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_1/V3A3F5_REV1_2026/'
 
     # ============================= List of PATHS ===========================================
     # path_folders = [path_folder_1, path_folder_2, path_folder_3, path_folder_4,path_folder_5,path_folder_6,path_folder_7,path_folder_8,path_folder_9]
-    path_folders = [path_folder_9]
+    path_folders = [path_folder_1, path_folder_2, path_folder_3]
 
     for path_folder in path_folders:
 

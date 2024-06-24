@@ -68,7 +68,7 @@ class CreatePlots:
             if path != None:
                 plt.savefig(f'{path}/PC_{df_pwf_elos[k]}')
 
-            plt.show()
+            # plt.show()
 
     def box_plots(self, dataset, col, split_flows=None, 
                   path=None, ax_fontsize=None, scenario=None):
@@ -110,7 +110,7 @@ class CreatePlots:
             if path != None:
                 plt.savefig(f'{path}/BoxPlot_{col}_NSplit_1')
 
-            plt.show()
+            # plt.show()
         else:
             fig, ax = plt.subplots(2, 1, figsize=(12, 8))
 
@@ -154,7 +154,7 @@ class CreatePlots:
 
             if path != None:
                 plt.savefig(f'{path}/BoxPlot_{col}_Split_2') 
-            plt.show()
+            # plt.show()
 
     def violin_plots(self, dataset, col, split_flows=None, 
                   path=None, ax_fontsize=None, scenario=None):
@@ -194,7 +194,7 @@ class CreatePlots:
 
             if path != None:
                 plt.savefig(f'{path}/ViolinPlot_{col}_NSplit_1')
-            plt.show()
+            # plt.show()
         else:
             fig, ax = plt.subplots(2, 1, figsize=(12, 8))
 
@@ -240,7 +240,7 @@ class CreatePlots:
 
             if path != None:
                 plt.savefig(f'{path}/ViolinPlot_{col}_Split_2') 
-            plt.show()
+            # plt.show()
     
     def create_heatmap(self, dataset, col, path=None, ax_fontsize=None):
         df_pwf_elos   = dataset['Nome Elo'].unique()
@@ -307,7 +307,7 @@ class CreatePlots:
             plt.tight_layout()
             if path != None:
                 plt.savefig(f'{path}/Heatmap_{frm}_{to}')
-            plt.show()
+            # plt.show()
 
     def flow_profiles(self, dataset, col, scenario, path=None):
         df_pwf_elos = dataset['Nome Elo'].unique()
@@ -478,4 +478,4 @@ class CreatePlots:
 
             if path != None:
                 plt.savefig(f'{path}/ContourPlot_{frm}_{to}')
-            plt.show()  
+            # plt.show()  
