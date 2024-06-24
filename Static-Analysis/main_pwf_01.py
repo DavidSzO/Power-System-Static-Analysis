@@ -8,7 +8,7 @@ main_path = f'C:/Users/David/OneDrive/Documents/FERV_documentos/RESULTS/{scenari
 # scenario = 'MPV_(FNS Lim)_RC'
 # main_path = f'D:/Mestrado/ENGIE/Power-System-Static-Analysis/RESULTS/{scenario}/StaticAnalysis'
 
-folder_plot = 'BoxVioPlots' # mudar para guardar os plots
+folder_plot = 'Intercambios AC-DC/Intercambios' # mudar para guardar os plots
 
 os.makedirs(main_path + f'/Plots/{folder_plot}', exist_ok=True)
 

@@ -1,9 +1,9 @@
 from LineAnalysis import *
 
-scenario = 'MPV_(FNS Lim)_RC'
-main_path = f'RESULTS/{scenario}/StaticAnalysis/'
-path_data = f'RESULTS/{scenario}/StaticAnalysis/Data/Fluxo em Ramos/Df_Linhas.csv'
-path_PWF_NC = f'RESULTS/{scenario}/StaticAnalysis/Data/Geral/PWF_NC.csv'
+scenario = 'V2A2F5_REV02_2026'
+main_path = f'C:/Users/David/OneDrive/Documents/FERV_documentos/RESULTS/{scenario}/StaticAnalysis/'
+path_data = f'C:/Users/David/OneDrive/Documents/FERV_documentos/RESULTS/{scenario}/StaticAnalysis/Data/Fluxo em Ramos/Df_Linhas.csv'
+path_PWF_NC = f'C:/Users/David/OneDrive/Documents/FERV_documentos/RESULTS/{scenario}/StaticAnalysis/Data/Geral/PWF_NC.csv'
 pathtosave = main_path + '/Plots/Intercambios AC-DC/Lines_Analysis/'
 os.makedirs(main_path + '/Plots/Intercambios AC-DC', exist_ok=True)
 os.makedirs(pathtosave, exist_ok=True)
