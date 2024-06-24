@@ -5,6 +5,8 @@ import os
 # trocar só o cenário para o analise correspondente
 scenario = 'V1A1F2_REV2_202610'
 main_path = f'E:\FERV\marck\PTOPER_202610_V1A1F2_rev2\RESULTS\{scenario}\StaticAnalysis'
+# scenario = 'MPV_(FNS Lim)_RC'
+# main_path = f'D:/Mestrado/ENGIE/Power-System-Static-Analysis/RESULTS/{scenario}/StaticAnalysis'
 
 folder_plot = 'BoxVioPlots' # mudar para guardar os plots
 
@@ -21,6 +23,8 @@ df_pwf25.columns = ['Nome Elo', 'Dia', 'Hora', 'P(MW)', 'Q(MVAr)']
 
 df_pwf = pd.concat([df_pwf16, df_pwf25], axis=0).reset_index().drop('index', axis=1)
 
+print(df_pwf)
+
 if __name__ == '__main__':
     path =  main_path + f'/Plots/{folder_plot}/'
     plotter = CreatePlots()
@@ -30,13 +34,13 @@ if __name__ == '__main__':
     #                           ax_fontsize=13)
     # plotter.box_plots(dataset=df_pwf, 
     #                   col='P(MW)', 
-    #                   split_flows=False,
+    #                   split_flows=True,
     #                   path=path,
     #                   ax_fontsize=11,
     #                   scenario=f'{scenario}')
     plotter.violin_plots(dataset=df_pwf, 
                          col='P(MW)', 
-                         split_flows=False,
+                         split_flows=True,
                          path=path,
                          ax_fontsize=11,
                          scenario=f'{scenario}')

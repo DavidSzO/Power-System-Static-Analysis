@@ -95,8 +95,10 @@ class CreatePlots:
             ax.set_xlabel('Nome Elo', weight='bold', fontsize=13)
             ax.grid(True, alpha=0.3)
             ax.set_xticklabels(dataset['Nome Elo'].unique(), rotation=30)
-            ax.get_legend().set_visible(False) 
 
+            legend = ax.get_legend()
+            if legend:
+                legend.set_visible(False)
 
             if scenario != None:
                 ax.set_title(f'{scenario}', weight='bold', fontsize=18)
@@ -137,8 +139,13 @@ class CreatePlots:
                 palette=sns.color_palette("hls", 4),
                 ax=ax[1]
             )
-            ax[0].get_legend().set_visible(False) 
-            ax[1].get_legend().set_visible(False) 
+            legend1 = ax[0].get_legend()
+            legend2 = ax[1].get_legend()
+            if legend1 or legend2:
+                legend1.set_visible(False)
+                legend2.set_visible(False)
+            # ax[0].get_legend().set_visible(False) 
+            # ax[1].get_legend().set_visible(False) 
 
             for i in range(0, 2):
                 ax[i].set_ylabel(f'{col}', weight='bold', fontsize=13)
@@ -181,7 +188,10 @@ class CreatePlots:
             ax.grid(True, alpha=0.3)
             ax.set_xticklabels(dataset['Nome Elo'].unique(), rotation=30)
 
-            ax.get_legend().set_visible(False) 
+            legend = ax.get_legend()
+            if legend:
+                legend.set_visible(False)
+            # ax.get_legend().set_visible(False) 
 
             if scenario != None:
                 ax.set_title(f'{scenario}', weight='bold', fontsize=18)
@@ -221,8 +231,13 @@ class CreatePlots:
                 palette=sns.color_palette("hls", 4),
                 ax=ax[1]
             )
-            ax[0].get_legend().set_visible(False) 
-            ax[1].get_legend().set_visible(False)   
+            legend1 = ax[0].get_legend()
+            legend2 = ax[1].get_legend()
+            if legend1 or legend2:
+                legend1.set_visible(False)
+                legend2.set_visible(False)
+            # ax[0].get_legend().set_visible(False) 
+            # ax[1].get_legend().set_visible(False)   
 
             for i in range(0, 2):
                 ax[i].set_ylabel(f'{col}', weight='bold', fontsize=13)
