@@ -13,13 +13,13 @@ if __name__ == '__main__':
                             'Norm': 2,          # Write None for using infinite norm in voltage analysis
                             'OneCase': 1,       # (1) for All cases or (2) for Just One Case analysis
         # ---------------------------------------------------
-                            'generatescript' : False,
-                            'OnlyPWF_datagen': False,
-                            'extract_fromcsv' : False,
-                            'savedata':True,
+                            'generatescript' : False,  # Put TRUE just for generate the script for simulation and saving the flows in Organon
+                            'OnlyPWF_datagen': False,   # Put TRUE just for generate the data for Interconnection and Line Flow Analysis
+                            'extract_fromcsv' :False,   # Put TRUE just in the first simulation, once the ProcessedDataBase.csv is generated it is not necessary
+                            'savedata':True,            # To save the data of the electric variables in the folders
+                            'busdata' : True,           # Let like TRUE
         # ---------------------------------------------------
-                            'ConvergenceData' : True,
-                            'busdata' : True,
+                            'ConvergenceData' : True,   # To analyze just the converged cases   
                             'LinhasData': True,
                             'HVDCData':True,
                             'ReservaData':True,
@@ -27,16 +27,16 @@ if __name__ == '__main__':
                             'ComputeDPI': True,
                             'resumoIndice': True,
         # ---------------------------------------------------
-                            'linhascsv':False,
-                            'reservacsv':False,
-                            'HVDCcsv': False,
+                            'linhascsv':False,          # Put TRUE once is generated the LinhasInfo file
+                            'reservacsv':False,         # Put TRUE once is generated the ReserveInfo file
+                            'HVDCcsv': True,            # Put TRUE once is generated the HVDCinfo file
         # ---------------------------------------------------
-                            'PlotGeralPotencia': True,
-                            'MapasPlots': True,
-                            'Plot_Tensao_Geral': True,
-                            'plotDPI': True,
-                            'Plot_Boxplot_DPI': True,
-                            'PlotIntercambios': True
+                            'PlotGeralPotencia': False,
+                            'MapasPlots': False,
+                            'Plot_Tensao_Geral': False,
+                            'plotDPI': False,
+                            'Plot_Boxplot_DPI': False,
+                            'PlotIntercambios': False
                         }
     
     # ************************************************************************************************
@@ -57,25 +57,26 @@ if __name__ == '__main__':
     # path_folder_4 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/REV_1_02/V1A1F5_RESP_FNS_lim_rev1_2026/'
     # path_folder = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/REV_2/V1A1F2_RESP_FNS_lim_rev2_2026/'
 
-    # =============================         CASOS 2026 V2A2F       ===========================================  
-    # path_folder_5 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F2_REV02_2026/'
+    # =============================         CASOS 2026 V2A2F       =========================================== 
+    path_folder_5 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F2_REV02_2026/'
     # path_folder_6 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F3_REV02_2026/'
     # path_folder_7 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F4_REV02_2026/'
     # path_folder_8 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F5_REV02_2026/'
+    
     # =============================         CASOS 2026 V3A3F       ===========================================
     # path_folder_1 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_0/V3A3F2_REV0_2026/'
     # path_folder_2 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_0/V3A3F3_REV0_2026/'
     # path_folder_3 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_0/V3A3F4_REV0_2026/'
     # path_folder_4 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_0/V3A3F5_REV0_2026/'
 
-    path_folder_1 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_1/V3A3F2_REV1_2026/'
-    path_folder_2 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_1/V3A3F3_REV1_2026/'
-    path_folder_3 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_1/V3A3F4_REV1_2026/'
+    # path_folder_1 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_1/V3A3F2_REV1_2026/'
+    # path_folder_2 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_1/V3A3F3_REV1_2026/'
+    # path_folder_3 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_1/V3A3F4_REV1_2026/'
     # path_folder_9 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_1/V3A3F5_REV1_2026/'
 
     # ============================= List of PATHS ===========================================
     # path_folders = [path_folder_1, path_folder_2, path_folder_3, path_folder_4,path_folder_5,path_folder_6,path_folder_7,path_folder_8,path_folder_9]
-    path_folders = [path_folder_1, path_folder_2, path_folder_3]
+    path_folders = [path_folder_5]
 
     for path_folder in path_folders:
 

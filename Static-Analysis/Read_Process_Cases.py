@@ -103,7 +103,7 @@ class ReadScenarios:
 #                                                AC & DC LINES & RESERVE INFO EXTRACTION 
 # ======================================================================================================================
         
-    def get_Networkinfo(self, linhas=True, Reserva=False, Intercambios=False, hour=None):
+    def get_Networkinfo(self, linhas=False, Reserva=False, Intercambios=False, hour=None):
 
         print(f'*** LEITURA DOS PWF_.CSV GERADOS ***')
         

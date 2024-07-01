@@ -1,0 +1,22 @@
+REG: Sudeste-Centro-Oeste
+VBASEKV: 230.0 - Quantidade: 144
+VBASEKV: 345.0 - Quantidade: 110
+VBASEKV: 500.0 - Quantidade: 107
+VBASEKV: 440.0 - Quantidade: 54
+
+REG: Sul
+VBASEKV: 230.0 - Quantidade: 261
+VBASEKV: 525.0 - Quantidade: 49
+VBASEKV: 500.0 - Quantidade: 6
+
+REG: Nordeste
+VBASEKV: 230.0 - Quantidade: 240
+VBASEKV: 500.0 - Quantidade: 86
+
+REG: Norte
+VBASEKV: 230.0 - Quantidade: 51
+VBASEKV: 500.0 - Quantidade: 19
+
+REG: AC-RO
+VBASEKV: 230.0 - Quantidade: 13
+

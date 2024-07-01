@@ -226,7 +226,7 @@ class Analise_Linhas:
             boxprops = dict(facecolor='white', color='black')
             bp2 = plt.boxplot([media_por_combinacao[media_por_combinacao['REG'] == reg]['% L1'] for reg in regioes], 
                             vert=True, positions=range(1, len(regioes) + 1), 
-                            widths=0.6, patch_artist=True, showfliers=False, boxprops=boxprops)
+                            widths=0.6, patch_artist=True, showfliers=True, boxprops=boxprops)
 
             # Preencha as caixas com as cores correspondentes
             for box, color in zip(bp2['boxes'], colors):
