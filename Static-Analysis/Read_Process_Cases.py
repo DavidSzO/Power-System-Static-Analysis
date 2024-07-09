@@ -494,12 +494,23 @@ class ProcessData():
     def add_key(data):
         from datetime import datetime, timedelta
         fechas = [dia for dia in range(1, 30)]
-        semihoras_dia = [(datetime(2022, 10, dia, 0, 0) + timedelta(minutes=30*i)).strftime('%d-%H-%M') for dia in fechas for i in range(48)]
+        # semihoras_dia = [(datetime(2022, 10, dia, 0, 0) + timedelta(minutes=30*i)).strftime('%d-%H-%M') for dia in fechas for i in range(48)]
+        semihoras_dia = []
+        for dia in fechas:
+            for i in range(48):
+                timestamp = datetime(2022, 10, dia, 0, 0) + timedelta(minutes=30*i)
+                day = str(timestamp.day)
+                hour = f"{timestamp.hour:02}"
+                minute = f"{timestamp.minute:02}"
+                formatted_time = f"{day}-{hour}-{minute}"
+                semihoras_dia.append(formatted_time)
+
         df = pd.DataFrame({'key': semihoras_dia})
         df[['Dia', 'Hora']] = df['key'].str.split('-', n=1, expand=True)
-        df['key'] = df['key'].str.replace('-','_')
-        df['key'] = 'D_' + df['key'].str.slice(0,2) + '_H' + df['key'].str.slice(2) 
+        df['key'] = df['key'].str.replace('-','_', n=1)
+        df['key'] = 'D_' + df['key'].str[0:-6] + '_H_' + df['key'].str[-5:]
         df['Dia'] = df['Dia'].astype(str)
+        df['Dia'] = df['Dia'].astype(str).str.zfill(2)
         data = data.merge(df, on=['Dia','Hora'], how='inner')
         return data
     
