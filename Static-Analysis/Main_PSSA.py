@@ -14,7 +14,7 @@ if __name__ == '__main__':
                             'OneCase': 1,       # (1) for All cases or (2) for Just One Case analysis
         # ---------------------------------------------------
                             'generatescript' : False,
-                            'OnlyPWF_datagen': False,
+                            'OnlyPWF_datagen': True,
                             'extract_fromcsv' : False,
                             'savedata':True,
         # ---------------------------------------------------
@@ -71,8 +71,8 @@ if __name__ == '__main__':
     # path_folder_1 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_1/V3A3F2_REV1_2026/'
     # path_folder_2 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_1/V3A3F3_REV1_2026/'
     # path_folder_3 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_1/V3A3F4_REV1_2026/'
-    path_folder_9 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_1/V3A3F5_REV1_2026/'
-
+    #path_folder_9 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_1/V3A3F5_REV1_2026/'
+    path_folder_9 = 'C:/Users/bruno/OneDrive/Área de Trabalho/Harvard/IC/2026_V2A2F5/'
     # ============================= List of PATHS ===========================================
     # path_folders = [path_folder_1, path_folder_2, path_folder_3, path_folder_4,path_folder_5,path_folder_6,path_folder_7,path_folder_8,path_folder_9]
     path_folders = [path_folder_9]

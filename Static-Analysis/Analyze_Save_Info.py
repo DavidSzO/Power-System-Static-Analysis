@@ -12,8 +12,8 @@ class AnalyzeStaticCases:
         self.path_folder = path
         self.Options = Options
         
-        # user_specified_dir = input("Please enter the directory path where you want to save the files: ")
-        user_specified_dir = "C:/Users/David/OneDrive/Documents/FERV_documentos/"
+        user_specified_dir = input("Please enter the directory path where you want to save the files: ")
+        #user_specified_dir = "C:/Users/David/OneDrive/Documents/FERV_documentos/"
         user_specified_dir = os.path.join(user_specified_dir, "RESULTS") 
         os.makedirs(user_specified_dir, exist_ok=True)
         notebook_dir = os.path.abspath(user_specified_dir)
