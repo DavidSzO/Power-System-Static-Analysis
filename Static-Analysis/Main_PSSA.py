@@ -1,6 +1,7 @@
 import time
 import sys
 from Analyze_Save_Info import AnalyzeStaticCases
+from Opf_Simulation import Opf_Simulation
 
 if __name__ == '__main__':
 
@@ -15,15 +16,16 @@ if __name__ == '__main__':
         # ---------------------------------------------------
                             'generatescript' : False,  # Put TRUE just for generate the script for simulation and saving the flows in Organon
                             'OnlyPWF_datagen': False,   # Put TRUE just for generate the data for Interconnection and Line Flow Analysis
-                            'extract_fromcsv' :False,   # Put TRUE just in the first simulation, once the ProcessedDataBase.csv is generated it is not necessary
+                            'extract_fromcsv' :True,   # Put TRUE just in the first simulation, once the ProcessedDataBase.csv is generated it is not necessary
                             'savedata':True,            # To save the data of the electric variables in the folders
                             'busdata' : True,           # Let like TRUE
         # ---------------------------------------------------
-                            'ConvergenceData' : True,   # To analyze just the converged cases   
-                            'LinhasData': True,
-                            'HVDCData':True,
-                            'ReservaData':True,
-                            'IntercambiosData':True,
+                            'ConvergenceData' : True,   # To analyze just the converged cases 
+                            'ReadPWF_files':False,
+                            'LinhasData': False,
+                            'HVDCData':False,
+                            'ReservaData':False,
+                            'IntercambiosData':False,
                             'ComputeDPI': True,
                             'resumoIndice': True,
         # ---------------------------------------------------
@@ -36,7 +38,7 @@ if __name__ == '__main__':
                             'Plot_Tensao_Geral': True,
                             'plotDPI': True,
                             'Plot_Boxplot_DPI': True,
-                            'PlotIntercambios': True
+                            'PlotIntercambios': False
                         }
     
     # ************************************************************************************************
@@ -48,35 +50,33 @@ if __name__ == '__main__':
     # path_folder_1 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2022/Novos com FNS Lim/V1A1F2 FNS Lim 2022/'
     # path_folder_2 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2022/Novos com FNS Lim/V1A1F2 FNS Lim 2022_OPF/'
     # path_folder ='D:/0 FERV/0 Dados PYTHON/CASOS 2022/Antigos/MPV_(FNS Lim)_RC/'
-    path_folder = 'D:/0 FERV/0 Dados PYTHON/CASOS 2022/Novos com FNS Lim/V2A2F2 FNS Lim 2022/'
-    # path_folder = 'D:/0 FERV/0 Dados PYTHON/CASOS 2022/Novos com FNS Lim/MPA FNS lim_novos/'
+    # path_folder_3 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2022/Novos com FNS Lim/V2A2F2 FNS Lim 2022/'
+    # path_folder_4 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2022/Novos com FNS Lim/MPA FNS lim_novos/'
 
     # =============================         CASOS 2026 V1A1         ===========================================
     # path_folder_1 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/REV_1_02/V1A1F2_RESP_FNS_lim_rev1_2026/'
+    # path_folder_1 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/REV_2/V1A1F2_RESP_FNS_lim_rev2_2026/'
     # path_folder_2 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/REV_1_02/V1A1F3_RESP_FNS_lim_rev1_2026/'
     # path_folder_3 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/REV_1_02/V1A1F4_RESP_FNS_lim_rev1_2026/'
     # path_folder_4 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/REV_1_02/V1A1F5_RESP_FNS_lim_rev1_2026/'
-    # path_folder = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/REV_2/V1A1F2_RESP_FNS_lim_rev2_2026/'
 
     # =============================         CASOS 2026 V2A2F       =========================================== 
     # path_folder_5 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F2_REV02_2026/'
     # path_folder_6 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F3_REV02_2026/'
     # path_folder_7 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F4_REV02_2026/'
     # path_folder_8 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F5_REV02_2026/'
+
+    # path_folder  = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_5/V2A2F2_rev5/'
+    path_folder  = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/Unicamp/V1A1F2_RESP_in_FNS_lim_Unicamp/'
     
     # =============================         CASOS 2026 V3A3F       ===========================================
-    # path_folder_1 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_0/V3A3F2_REV0_2026/'
-    # path_folder_2 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_0/V3A3F3_REV0_2026/'
-    # path_folder_3 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_0/V3A3F4_REV0_2026/'
-    # path_folder_4 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_0/V3A3F5_REV0_2026/'
-
-    # path_folder_1 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_1/V3A3F2_REV1_2026/'
-    # path_folder_2 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_1/V3A3F3_REV1_2026/'
-    # path_folder_3 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_1/V3A3F4_REV1_2026/'
-    # path_folder_9 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_1/V3A3F5_REV1_2026/'
+    # path_folder_9 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_1/V3A3F2_REV1_2026/'
+    # path_folder_10 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_1/V3A3F3_REV1_2026/'
+    # path_folder_11 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_1/V3A3F4_REV1_2026/'
+    # path_folder_12 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_1/V3A3F5_REV1_2026/'
 
     # ============================= List of PATHS ===========================================
-    # path_folders = [path_folder_1, path_folder_2, path_folder_3, path_folder_4,path_folder_5,path_folder_6,path_folder_7,path_folder_8,path_folder_9]
+    # path_folders = [path_folder_1, path_folder_2, path_folder_3, path_folder_4, path_folder_5, path_folder_6, path_folder_7, path_folder_8, path_folder_9, path_folder_10, path_folder_11, path_folder_12]
     path_folders = [path_folder]
 
     for path_folder in path_folders:
@@ -94,3 +94,10 @@ if __name__ == '__main__':
     end_time = time.time()
     execution_time = end_time - start_time
     print("Tiempo de ejecución:", execution_time, "segundos")
+
+    # ============================================================================================================
+    # path_folder = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/REV_1_02/V1A1F3_RESP_FNS_lim_rev1_2026/'
+    # pathtosave = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/Unicamp/V1A1F3_RESP_in_FNS_lim_Unicamp/'
+    # nomefolder = ''
+    # Opf_Simulation(path_folder, nomefolder, pathtosave) # Para gerar as pastas 
+    # ============================================================================================================

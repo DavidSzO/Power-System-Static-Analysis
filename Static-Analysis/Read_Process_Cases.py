@@ -114,7 +114,7 @@ class ReadScenarios:
         }
         col_list_lines = [
             'From#', ' From Name', ' To# - Circ#', ' To Name', ' Type', ' MVA', ' % L1', ' L1(MVA)', ' MW:From-To',
-            ' Mvar:From-To', ' Mvar:Losses', ' MW:To-From', ' Power Factor:From-To', ' Power Factor:To-From'
+            ' Mvar:From-To', ' Mvar:Losses',' MW:Losses', ' MW:To-From', ' Power Factor:From-To', ' Power Factor:To-From',
         ]
         col_list_hvdc = ['Bus #', ' Bus Name', ' Type', ' Pole #', ' P(MW)', ' Q(Mvar)', ' Status']
         col_list_reserve = ['Bus', ' Group', ' Bus Name', ' Area', ' Zone', ' V (pu)', ' Pg(MW)', ' Qg(Mvar)', ' Reserve', ' Units']
@@ -158,7 +158,7 @@ class ReadScenarios:
         if linhas:
             PWF16_concatenados = concat_and_compute(PWFs_sep)
 
-            PWF16_concatenados.rename(columns={'From#':'From#', ' From Name': 'From Name', ' To# - Circ#':'To# - Circ#', ' To Name':'To Name', ' Type':'Type', ' MVA':'MVA', ' MW:From-To':'MW:From-To', ' Mvar:From-To':'Mvar:From-To',' % L1':'% L1', ' L1(MVA)':'L1(MVA)',  ' Mvar:Losses':'Mvar:Losses', ' MW:To-From':'MW:To-From', ' Power Factor:From-To':'Power Factor:From-To', ' Power Factor:To-From':'Power Factor:To-From'}, inplace=True)
+            PWF16_concatenados.rename(columns={'From#':'From#', ' From Name': 'From Name', ' To# - Circ#':'To# - Circ#', ' To Name':'To Name', ' Type':'Type', ' MVA':'MVA', ' MW:From-To':'MW:From-To', ' Mvar:From-To':'Mvar:From-To',' % L1':'% L1', ' L1(MVA)':'L1(MVA)',  ' Mvar:Losses':'Mvar:Losses', ' MW:Losses':'MW:Losses', ' MW:To-From':'MW:To-From', ' Power Factor:From-To':'Power Factor:From-To', ' Power Factor:To-From':'Power Factor:To-From'}, inplace=True)
 
             if not PWF16_concatenados.empty:
                 print("Concatenação das linhas")
@@ -555,11 +555,16 @@ class ProcessData():
         # Calculate 'Qmin' and 'Qmax' using vectorized operations
         df_Final_ger['Qmin'] = (df_Final_ger['QMN_MVAR'] / df_Final_ger['Ger_Units']) * df_Final_ger['Ger_Active_Units']
         df_Final_ger['Qmax'] = (df_Final_ger['QMX_MVAR'] / df_Final_ger['Ger_Units']) * df_Final_ger['Ger_Active_Units']
-        df_Final_ger['ReservaIND'] = np.where(df_Final_ger['QG_MVAR'] < 0, df_Final_ger['Qmin'] - df_Final_ger['QG_MVAR'], df_Final_ger['Qmin'])
-        df_Final_ger['ReservaCAP'] = np.where(df_Final_ger['QG_MVAR'] > 0, df_Final_ger['Qmax'] - df_Final_ger['QG_MVAR'], df_Final_ger['Qmax'])
+        df_Final_ger['ReservaIND'] = np.where(df_Final_ger['QG_MVAR'] < 0,  np.round(np.abs(df_Final_ger['QG_MVAR']/df_Final_ger['Qmin']),4), 0)
+        df_Final_ger['ReservaCAP'] = np.where(df_Final_ger['QG_MVAR'] > 0, np.round(df_Final_ger['QG_MVAR']/df_Final_ger['Qmax'],4), 0)
+        # df_Final_ger['ReservaIND'] = np.where(df_Final_ger['QG_MVAR'] < 0, np.abs(df_Final_ger['Qmin'] - df_Final_ger['QG_MVAR']), 0)
+        # df_Final_ger['ReservaCAP'] = np.where(df_Final_ger['QG_MVAR'] > 0, df_Final_ger['Qmax'] - df_Final_ger['QG_MVAR'], 0)
+
         # Calculate 'ReservaINDshunt' and 'ReservaCAPshunt' using vectorized operations
-        df_Final_nt['ReservaINDshunt'] = np.where(df_Final_nt['B0_MVAR'] < 0, df_Final_nt['SHUNT_INST_IND'] - df_Final_nt['B0_MVAR'], df_Final_nt['SHUNT_INST_IND'])
-        df_Final_nt['ReservaCAPshunt'] = np.where(df_Final_nt['B0_MVAR'] > 0, df_Final_nt['SHUNT_INST_CAP'] - df_Final_nt['B0_MVAR'], df_Final_nt['SHUNT_INST_CAP'])
+        # df_Final_nt['ReservaINDshunt'] = np.where(df_Final_nt['B0_MVAR'] < 0, df_Final_nt['SHUNT_INST_IND'] - df_Final_nt['B0_MVAR'], df_Final_nt['SHUNT_INST_IND'])
+        # df_Final_nt['ReservaCAPshunt'] = np.where(df_Final_nt['B0_MVAR'] > 0, df_Final_nt['SHUNT_INST_CAP'] - df_Final_nt['B0_MVAR'], df_Final_nt['SHUNT_INST_CAP'])
+        df_Final_nt['ReservaINDshunt'] = np.where(df_Final_nt['B0_MVAR'] < 0, np.round(df_Final_nt['B0_MVAR']/df_Final_nt['SHUNT_INST_IND'],4), 0)
+        df_Final_nt['ReservaCAPshunt'] = np.where(df_Final_nt['B0_MVAR'] > 0, np.round(df_Final_nt['B0_MVAR']/df_Final_nt['SHUNT_INST_CAP'],4), 0)
 
         self.df_Final_ger = df_Final_ger
         self.df_Final_nt = df_Final_nt

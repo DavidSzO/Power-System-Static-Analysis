@@ -83,9 +83,16 @@ class ComputeDPI():
                             if NBcv == False:
                                 grouped1.loc[:, 'CSI_INF_POND'] = grouped1['CSI_INF']*grouped1['BUS_ID']*(NT/500)
                                 grouped1.loc[:, 'CSI_SUP_POND'] = grouped1['CSI_SUP']*grouped1['BUS_ID']*(NT/500)
+                                # grouped1.loc[:, 'CSI_INF_POND'] = grouped1['CSI_INF']*grouped1['BUS_ID']
+                                # grouped1.loc[:, 'CSI_SUP_POND'] = grouped1['CSI_SUP']*grouped1['BUS_ID']
                             else:
                                 grouped1.loc[:, 'CSI_INF_POND'] = grouped1['CSI_INF']*num_nonzeros_inf['BUS_ID']*(NT/500)
                                 grouped1.loc[:, 'CSI_SUP_POND'] = grouped1['CSI_SUP']*num_nonzeros_sup['BUS_ID']*(NT/500)
+                                # grouped1.loc[:, 'CSI_INF_POND'] = grouped1['CSI_INF']*num_nonzeros_inf['BUS_ID']
+                                # grouped1.loc[:, 'CSI_SUP_POND'] = grouped1['CSI_SUP']*num_nonzeros_sup['BUS_ID']
+                            
+                            # grouped1.loc[:, 'CSI_INF_POND'] = grouped1['CSI_INF']*(NT/500)
+                            # grouped1.loc[:, 'CSI_SUP_POND'] = grouped1['CSI_SUP']*(NT/500)
 
                             df_1.append(grouped1.reset_index())
                 except KeyError:
@@ -142,6 +149,9 @@ class ComputeDPI():
                                 grouped2.loc[:, 'CSI_INF_POND'] = grouped2['CSI_INF']*num_nonzeros_inf['BUS_ID']
                                 grouped2.loc[:, 'CSI_SUP_POND'] = grouped2['CSI_SUP']*num_nonzeros_sup['BUS_ID']
 
+                            # grouped2.loc[:, 'CSI_INF_POND'] = grouped2['CSI_INF']
+                            # grouped2.loc[:, 'CSI_SUP_POND'] = grouped2['CSI_SUP']
+
                             df_2.append(grouped2.reset_index())
                 except KeyError:
                     print('ERROR: No existe la region')
@@ -193,11 +203,13 @@ class ComputeDPI():
         self.df_PV_reg = df_PV_reg
 
         dfPQ_CSI = df_PQ_reg.groupby(['Dia' , 'Hora', 'REG']).agg({'BUS_ID':'sum', 'CSI_INF_POND': 'sum', 'CSI_SUP_POND': 'sum'})
+        # dfPQ_CSI = df_PQ_reg.groupby(['Dia' , 'Hora', 'REG']).agg({'BUS_ID':'count', 'CSI_INF_POND': 'sum', 'CSI_SUP_POND': 'sum'}) # solo para teste
         dfPQ_CSI.loc[:, 'CSI_INF_FINAL'] = dfPQ_CSI['CSI_INF_POND']/dfPQ_CSI['BUS_ID']
         dfPQ_CSI.loc[:, 'CSI_SUP_FINAL'] = dfPQ_CSI['CSI_SUP_POND']/dfPQ_CSI['BUS_ID']
         self.dfPQ_CSI = dfPQ_CSI
 
         dfPV_CSI = df_PV_reg.groupby(['Dia' , 'Hora', 'REG']).agg({'BUS_ID':'sum', 'CSI_INF_POND': 'sum', 'CSI_SUP_POND': 'sum'})
+        # dfPV_CSI = df_PV_reg.groupby(['Dia' , 'Hora', 'REG']).agg({'BUS_ID':'count', 'CSI_INF_POND': 'sum', 'CSI_SUP_POND': 'sum'}) # solo para teste
         dfPV_CSI.loc[:, 'CSI_INF_FINAL'] = dfPV_CSI['CSI_INF_POND']/dfPV_CSI['BUS_ID']
         dfPV_CSI.loc[:, 'CSI_SUP_FINAL'] = dfPV_CSI['CSI_SUP_POND']/dfPV_CSI['BUS_ID']
         self.dfPV_CSI = dfPV_CSI

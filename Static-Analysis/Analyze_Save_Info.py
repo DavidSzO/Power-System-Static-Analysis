@@ -145,39 +145,40 @@ class AnalyzeStaticCases:
 
         ## ***************** (O código seguinte obtem as informações das linhas AC e DC e reserva por maquina) *****************
         
-        
-        if self.Options['linhascsv'] and self.Options['LinhasData']:
-            self.PWF16_concatenados = dd.read_csv(self.path_folder + '/LinhasInfo.csv', sep=',').compute()
-            self.PWF16_concatenados['Dia'] = self.PWF16_concatenados['Dia'].astype(str).str.zfill(2)
-            self.cases.get_Intercambios(df=self.PWF16_concatenados)
-            self.DF_Intercambios = self.cases.DF_Intercambios
+        if self.Options['ReadPWF_files']:
 
-        if self.Options['HVDCcsv'] and self.Options['HVDCData']:
-            self.DCLinks_concatenados = dd.read_csv(self.path_folder + '/HVDCInfo.csv', sep=',').compute()
-            self.DCLinks_concatenados['Dia'] = self.DCLinks_concatenados['Dia'].astype(str).str.zfill(2)
+            if self.Options['linhascsv'] and self.Options['LinhasData']:
+                self.PWF16_concatenados = dd.read_csv(self.path_folder + '/LinhasInfo.csv', sep=',').compute()
+                self.PWF16_concatenados['Dia'] = self.PWF16_concatenados['Dia'].astype(str).str.zfill(2)
+                self.cases.get_Intercambios(df=self.PWF16_concatenados)
+                self.DF_Intercambios = self.cases.DF_Intercambios
 
-        if self.Options['reservacsv'] and self.Options['ReservaData']:
-            self.SGN01_concatenados = dd.read_csv(self.path_folder + '/ReservaInfo.csv', sep=',').compute()
-            self.SGN01_concatenados['Dia'] = self.SGN01_concatenados['Dia'].astype(str).str.zfill(2)
-            
-        if self.Options['LinhasData'] | self.Options['HVDCData'] | self.Options['ReservaData']:
-            print("Starting line and interconnections data generation ...")
-            if not (self.Options['linhascsv'] and self.Options['reservacsv'] and self.Options['HVDCcsv']):
-                self.cases.get_Networkinfo(linhas=not self.Options['linhascsv'], Reserva=not self.Options['reservacsv'], Intercambios=not self.Options['HVDCcsv'], hour = self.hour)
+            if self.Options['HVDCcsv'] and self.Options['HVDCData']:
+                self.DCLinks_concatenados = dd.read_csv(self.path_folder + '/HVDCInfo.csv', sep=',').compute()
+                self.DCLinks_concatenados['Dia'] = self.DCLinks_concatenados['Dia'].astype(str).str.zfill(2)
 
-                if not self.Options['linhascsv'] and self.Options['LinhasData']:
-                    self.PWF16_concatenados = self.cases.linesInfo
-                    self.DF_Intercambios = self.cases.DF_Intercambios
+            if self.Options['reservacsv'] and self.Options['ReservaData']:
+                self.SGN01_concatenados = dd.read_csv(self.path_folder + '/ReservaInfo.csv', sep=',').compute()
+                self.SGN01_concatenados['Dia'] = self.SGN01_concatenados['Dia'].astype(str).str.zfill(2)
+                
+            if self.Options['LinhasData'] | self.Options['HVDCData'] | self.Options['ReservaData']:
+                print("Starting line and interconnections data generation ...")
+                if not (self.Options['linhascsv'] and self.Options['reservacsv'] and self.Options['HVDCcsv']):
+                    self.cases.get_Networkinfo(linhas=not self.Options['linhascsv'], Reserva=not self.Options['reservacsv'], Intercambios=not self.Options['HVDCcsv'], hour = self.hour)
 
-                if not self.Options['reservacsv'] and self.Options['ReservaData']:
-                    try:
-                        self.SGN01_concatenados = self.cases.ReserveInfo
-                    except Exception as e:
-                        print(f"Error obtaining Reserve: {e}")
-                        pass
+                    if not self.Options['linhascsv'] and self.Options['LinhasData']:
+                        self.PWF16_concatenados = self.cases.linesInfo
+                        self.DF_Intercambios = self.cases.DF_Intercambios
 
-                if not self.Options['HVDCcsv'] and self.Options['HVDCData']:
-                    self.DCLinks_concatenados = self.cases.HVDCInfo
+                    if not self.Options['reservacsv'] and self.Options['ReservaData']:
+                        try:
+                            self.SGN01_concatenados = self.cases.ReserveInfo
+                        except Exception as e:
+                            print(f"Error obtaining Reserve: {e}")
+                            pass
+
+                    if not self.Options['HVDCcsv'] and self.Options['HVDCData']:
+                        self.DCLinks_concatenados = self.cases.HVDCInfo
 
     # =============================================================================================================================
     #                                                LEITURA LINHAS E RESERVA
@@ -333,6 +334,7 @@ class AnalyzeStaticCases:
                 self.SGN01_concatenados.rename(columns={'Bus':'BUS_ID', }, inplace=True)
                 self.SGN01_concatenados['BUS_ID'] = self.SGN01_concatenados['BUS_ID'].astype(float)
                 Df_Reserva = self.SGN01_concatenados.merge(df_Final_ger_mod, how = 'left', on='BUS_ID')
+                Df_Reserva = Df_Reserva[Df_Reserva['BUS_ID'] != 1100] #RETIRANDO ITAIPU 50HZ DA RESERVA
 
                 REG_groupReserve = Df_Reserva.groupby(by = ['Dia','Hora', 'REG']).agg({'key':'first',' Reserve': 'sum'})
                 GroupReserve = Df_Reserva.groupby(by = ['Dia','Hora']).agg({'key':'first',' Reserve': 'sum'})
@@ -347,44 +349,44 @@ class AnalyzeStaticCases:
             # ===========================================================================================================================
             self.df_Final_ger = self.df_Final_ger.merge(self.SGN01_concatenados[['BUS_ID',' Reserve',' Units','Dia','Hora']], on=['BUS_ID','Dia', 'Hora'], how='left')
 
-            dff_reserva = self.SGN01_concatenados.merge(self.df_Final_ger[['BUS_ID','Dia', 'Hora', 'ReservaIND', 'ReservaCAP', 'Ger_Active_Units', 'Ger_Units', 'QG_MVAR', 'key', 'REG']], on=['BUS_ID','Dia', 'Hora'], how='left')
-            # ============================================================================================================================
-            dffreservaPO = dff_reserva.groupby(['Dia', 'Hora']).agg({'key':'first','QG_MVAR': 'sum', 'ReservaIND':'sum', 'ReservaCAP':'sum'})
-            dffreservaPO_REG = dff_reserva.groupby(['Dia', 'Hora', 'REG']).agg({'key':'first','QG_MVAR': 'sum', 'ReservaIND':'sum', 'ReservaCAP':'sum'})
-            self.dffreservaPO_MVAR = dffreservaPO
-            self.dffreservaPO_REG_MVAR = dffreservaPO_REG
             #=============================================================================================================================
             #                                                                   PLOTS RESERVA MVAR
             #=============================================================================================================================
-            if not self.readjustONEcase:
-                self.plots_static.plot_reserva_reg (dffreservaPO_REG, '(MVAR)', 'Reserva Capacitiva por Região MVAR', 'RESERVA CAPACITIVA POR REGIÃO MVAR', 'ReservaCAP', xlimites=None,ylimites=None, order = False)
-                self.plots_static.plot_reserva_reg (dffreservaPO_REG, '(MVAR)', 'Reserva Indutiva por Região MVAR', 'RESERVA INDUTIVA POR REGIÃO MVAR', 'ReservaIND', xlimites=None,ylimites=None, order = False)
+            # dff_reserva = self.SGN01_concatenados.merge(self.df_Final_ger[['BUS_ID','Dia', 'Hora', 'ReservaIND', 'ReservaCAP', 'Ger_Active_Units', 'Ger_Units', 'QG_MVAR', 'key', 'REG']], on=['BUS_ID','Dia', 'Hora'], how='left')
+            # ============================================================================================================================
+            # dffreservaPO = dff_reserva.groupby(['Dia', 'Hora']).agg({'key':'first','QG_MVAR': 'sum', 'ReservaIND':'sum', 'ReservaCAP':'sum'})
+            # dffreservaPO_REG = dff_reserva.groupby(['Dia', 'Hora', 'REG']).agg({'key':'first','QG_MVAR': 'sum', 'ReservaIND':'sum', 'ReservaCAP':'sum'})
+            # self.dffreservaPO_MVAR = dffreservaPO
+            # self.dffreservaPO_REG_MVAR = dffreservaPO_REG
+            # if not self.readjustONEcase:
+            #     self.plots_static.plot_reserva_reg (dffreservaPO_REG, '(MVAR)', 'Reserva Capacitiva por Região MVAR', 'RESERVA CAPACITIVA POR REGIÃO MVAR', 'ReservaCAP', xlimites=None,ylimites=None, order = False)
+            #     self.plots_static.plot_reserva_reg (dffreservaPO_REG, '(MVAR)', 'Reserva Indutiva por Região MVAR', 'RESERVA INDUTIVA POR REGIÃO MVAR', 'ReservaIND', xlimites=None,ylimites=None, order = False)
 
-                fig, ax = plt.subplots(figsize=(20,10))
-                dffreservaPO['ReservaCAP'].plot(figsize=(20,10), grid=True, title='RESERVA CAPACITIVA (Mvar)',legend='RESERVA')
-                ax.tick_params(axis='x', labelsize=15)
-                ax.tick_params(axis='y', labelsize=15)
-                ax.set_xlabel('PO',fontsize = 15)
-                ax.set_ylabel('(MVAR)',fontsize = 15)
-                ax.set_title('RESERVA CAPACITIVA (Mvar)', fontsize = 20)
-                ax.legend(fontsize = 15)
-                nome = self.cenario + '/Plots/Reserva/Reserva_cap_mvar.png'
-                plt.savefig(nome, bbox_inches = 'tight')
+            #     fig, ax = plt.subplots(figsize=(20,10))
+            #     dffreservaPO['ReservaCAP'].plot(figsize=(20,10), grid=True, title='RESERVA CAPACITIVA (Mvar)',legend='RESERVA')
+            #     ax.tick_params(axis='x', labelsize=15)
+            #     ax.tick_params(axis='y', labelsize=15)
+            #     ax.set_xlabel('PO',fontsize = 15)
+            #     ax.set_ylabel('(MVAR)',fontsize = 15)
+            #     ax.set_title('RESERVA CAPACITIVA (Mvar)', fontsize = 20)
+            #     ax.legend(fontsize = 15)
+            #     nome = self.cenario + '/Plots/Reserva/Reserva_cap_mvar.png'
+            #     plt.savefig(nome, bbox_inches = 'tight')
 
-                fig, ax = plt.subplots(figsize=(20,10))
-                dffreservaPO['ReservaIND'].plot(figsize=(20,10), grid=True, title='RESERVA INDUTIVA (Mvar)',legend='RESERVA')
-                ax.tick_params(axis='x', labelsize=15)
-                ax.tick_params(axis='y', labelsize=15)
-                ax.set_xlabel('PO',fontsize = 15)
-                ax.set_ylabel('(MVAR)',fontsize = 15)
-                ax.set_title('RESERVA INDUTIVA (Mvar)', fontsize = 20)
-                ax.legend(fontsize = 15)
-                nome = self.cenario + '/Plots/Reserva/Reserva_ind_mvar.png'
-                plt.savefig(nome, bbox_inches = 'tight')
-            else: 
-                dia= self.day
-                hora = self.DF_REGIONAL_GER.index.to_frame()['Hora'].unique()[0]
-                self.plots_static.analise_regiao_plot(self.DF_REGIONAL_GER.loc[dia,hora],'PowerPlot')
+            #     fig, ax = plt.subplots(figsize=(20,10))
+            #     dffreservaPO['ReservaIND'].plot(figsize=(20,10), grid=True, title='RESERVA INDUTIVA (Mvar)',legend='RESERVA')
+            #     ax.tick_params(axis='x', labelsize=15)
+            #     ax.tick_params(axis='y', labelsize=15)
+            #     ax.set_xlabel('PO',fontsize = 15)
+            #     ax.set_ylabel('(MVAR)',fontsize = 15)
+            #     ax.set_title('RESERVA INDUTIVA (Mvar)', fontsize = 20)
+            #     ax.legend(fontsize = 15)
+            #     nome = self.cenario + '/Plots/Reserva/Reserva_ind_mvar.png'
+            #     plt.savefig(nome, bbox_inches = 'tight')
+            # else: 
+            #     dia= self.day
+            #     hora = self.DF_REGIONAL_GER.index.to_frame()['Hora'].unique()[0]
+            #     self.plots_static.analise_regiao_plot(self.DF_REGIONAL_GER.loc[dia,hora],'PowerPlot')
 
     #=============================================================================================================================
     #                                                POTENCIA ATIVA E REATIVA
@@ -707,14 +709,14 @@ class AnalyzeStaticCases:
             
             if self.Options['ComputeDPI'] and not self.Options['OnlyPWF_datagen']:
                 if self.Options['ReservaData']:
-                    self.df_Final_ger_PWFC.to_csv(f'{self.cenario}/Data/Geral/Df_ger.csv', index=False, columns=['key','BUS_ID', 'BUS_NAME', 'ARE', 'MODV_PU', 'ANGV_DEG', 'PG_MW', 'QG_MVAR', 'Dia', 'Hora', 'U_FED', 'Gen_Type', 'REG', 'B0_MVAR', 'ST', 'SHUNT_INST_IND', 'SHUNT_INST_CAP', 'ReservaIND', 'ReservaCAP','IndiceInf', 'IndiceSup',' Reserve',' Units'])
+                    self.df_Final_ger_PWFC.to_csv(f'{self.cenario}/Data/Geral/Df_ger.csv', index=False, columns=['key','BUS_ID', 'BUS_NAME', 'ARE', 'MODV_PU', 'ANGV_DEG', 'PG_MW', 'QG_MVAR', 'Dia', 'Hora', 'U_FED', 'Gen_Type', 'REG', 'B0_MVAR', 'ST', 'SHUNT_INST_IND', 'SHUNT_INST_CAP', 'ReservaIND', 'ReservaCAP','IndiceInf', 'IndiceSup',' Reserve','Ger_Active_Units','Ger_Units',' Units', 'Qmin', 'Qmax'])
                 self.df_Final_nt_PWFC.to_csv(f'{self.cenario}/Data/Geral/Df_nt.csv', index=False, columns=['key','BUS_ID', 'BUS_NAME', 'ARE', 'MODV_PU', 'ANGV_DEG', 'VBASEKV', 'PL_MW', 'QL_MVAR', 'Dia', 'Hora', 'U_FED', 'REG', 'B0_MVAR', 'ST', 'SHUNT_INST_IND', 'SHUNT_INST_CAP', 'ReservaINDshunt', 'ReservaCAPshunt','IndiceInf', 'IndiceSup'])
 
             if self.Options['LinhasData']:
                 if not self.Options['OnlyPWF_datagen']:
                     self.DF_REGIONAL_GER[['key','PG_MW', 'QG_MVAR', 'PL_MW', 'QL_MVAR','Shunt_Ind', 'Shunt_Cap','SHUNT_INST_IND', 'SHUNT_INST_CAP', 'ReservaIND', 'ReservaCAP','PG_UHE', 'PG_UTE', 'PG_EOL', 'PG_SOL', 'PG_BIO', 'PG_Dist', 'QG/QL', 'PG/PL', 'PG_FERV', 'ReservaINDshunt', 'ReservaCAPshunt']].to_csv(self.cenario + '/Data/Potencia/DF_POT_Reg.csv')
-                self.PWF16_Filt_linhas[['key','From#','To#','From Name','To Name','% L1', 'L1(MVA)', 'Mvar:Losses','Dia', 'Hora','REG', 'VBASEKV','MVA', 'MW:From-To', 'MW:To-From','Power Factor:From-To','Power Factor:To-From']].to_csv(self.cenario+'/Data/Fluxo em Ramos/Df_Linhas.csv', index=None)
-                self.PWF16_Filt_TRAFO[['key','From#','To#','From Name','To Name','% L1', 'L1(MVA)', 'Mvar:Losses','Dia', 'Hora','REG', 'VBASEKV','MVA', 'MW:From-To', 'MW:To-From','Power Factor:From-To','Power Factor:To-From']].to_csv(self.cenario+'/Data/Fluxo em Ramos/Df_Trafo.csv', index=None)
+                self.PWF16_Filt_linhas[['key','From#','To#','From Name','To Name','% L1', 'L1(MVA)', 'Mvar:Losses','MW:Losses', 'Dia', 'Hora','REG', 'VBASEKV','MVA', 'MW:From-To', 'MW:To-From','Power Factor:From-To','Power Factor:To-From']].to_csv(self.cenario+'/Data/Fluxo em Ramos/Df_Linhas.csv', index=None)
+                self.PWF16_Filt_TRAFO[['key','From#','To#','From Name','To Name','% L1', 'L1(MVA)', 'Mvar:Losses','MW:Losses','Dia', 'Hora','REG', 'VBASEKV','MVA', 'MW:From-To', 'MW:To-From','Power Factor:From-To','Power Factor:To-From']].to_csv(self.cenario+'/Data/Fluxo em Ramos/Df_Trafo.csv', index=None)
                 
             if self.Options['IntercambiosData']:
                 self.DF_Intercambios = self.processdata.add_key(self.DF_Intercambios.reset_index())
@@ -727,8 +729,8 @@ class AnalyzeStaticCases:
 
             if self.Options['ReservaData'] and not self.Options['OnlyPWF_datagen']:
 
-                self.dffreservaPO_MVAR.to_csv(self.cenario + '/Data/Potencia/Df_Reserva_PO_MVAR.csv', header=True, index=True)
-                self.dffreservaPO_REG_MVAR.to_csv(self.cenario + '/Data/Potencia/Df_Reserva_REG_MVAR.csv', header=True, index=True)
+                # self.dffreservaPO_MVAR.to_csv(self.cenario + '/Data/Potencia/Df_Reserva_PO_MVAR.csv', header=True, index=True)
+                # self.dffreservaPO_REG_MVAR.to_csv(self.cenario + '/Data/Potencia/Df_Reserva_REG_MVAR.csv', header=True, index=True)
                 self.dffreservaPO_REG_MW.to_csv(self.cenario + '/Data/Potencia/Df_Reserva_REG_MW.csv', header=True, index=True)
                 self.dffreservaPO_MW.to_csv(self.cenario + '/Data/Potencia/Df_Reserva_PO_MW.csv', header=True, index=True)
 

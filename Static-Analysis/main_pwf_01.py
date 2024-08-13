@@ -3,7 +3,7 @@ import pandas as pd
 import os 
 
 # trocar só o cenário para o analise correspondente
-scenario = 'V2A2F2_REV02_2026'
+scenario = 'MPA FNS lim_novos'
 main_path = f'C:/Users/David/OneDrive/Documents/FERV_documentos/RESULTS/{scenario}/StaticAnalysis'
 # scenario = 'MPV_(FNS Lim)_RC'
 # main_path = f'D:/Mestrado/ENGIE/Power-System-Static-Analysis/RESULTS/{scenario}/StaticAnalysis'
