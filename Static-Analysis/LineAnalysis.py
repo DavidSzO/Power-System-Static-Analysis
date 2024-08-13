@@ -567,7 +567,7 @@ class Analise_Linhas:
         
         if self.plotar_grafico_por_reg_VBA:
             def plotar_grafico_por_reg_VBA(REG):
-                PWF16_Filt_Reg = self.self.PWF16_Filt_NEW[self.PWF16_Filt_NEW['REG'] == REG]
+                PWF16_Filt_Reg = self.PWF16_Filt_NEW[self.PWF16_Filt_NEW['REG'] == REG]
                 valores_VBA = PWF16_Filt_Reg['VBASEKV'].unique()
                 valores_VBA.sort()
 

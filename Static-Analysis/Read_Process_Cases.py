@@ -110,11 +110,11 @@ class ReadScenarios:
         dtype_dict_linhas = {
             'From#': 'int32', ' From Name': 'object', ' To# - Circ#': 'object', ' To Name': 'object', ' Type': 'object',
             ' MVA': 'float32', ' % L1': 'float32', ' L1(MVA)': 'float32', ' MW:From-To': 'float32', ' Mvar:From-To': 'float32',
-            ' Mvar:Losses': 'float32', ' MW:To-From': 'float32', ' Power Factor:From-To': 'float32', ' Power Factor:To-From': 'float32'
+            ' Mvar:Losses': 'float32', ' MW:To-From': 'float32', ' Power Factor:From-To': 'float32', ' Power Factor:To-From': 'float32', ' MW:Losses': 'float32'
         }
         col_list_lines = [
             'From#', ' From Name', ' To# - Circ#', ' To Name', ' Type', ' MVA', ' % L1', ' L1(MVA)', ' MW:From-To',
-            ' Mvar:From-To', ' Mvar:Losses', ' MW:To-From', ' Power Factor:From-To', ' Power Factor:To-From'
+            ' Mvar:From-To', ' Mvar:Losses', ' MW:To-From', ' Power Factor:From-To', ' Power Factor:To-From', ' MW:Losses'
         ]
         col_list_hvdc = ['Bus #', ' Bus Name', ' Type', ' Pole #', ' P(MW)', ' Q(Mvar)', ' Status']
         col_list_reserve = ['Bus', ' Group', ' Bus Name', ' Area', ' Zone', ' V (pu)', ' Pg(MW)', ' Qg(Mvar)', ' Reserve', ' Units']
