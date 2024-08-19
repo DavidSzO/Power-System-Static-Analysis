@@ -13,7 +13,7 @@ class AnalyzeStaticCases:
         self.Options = Options
         
         # user_specified_dir = input("Please enter the directory path where you want to save the files: ")
-        user_specified_dir = "C:/Users/David/OneDrive/Documents/FERV_documentos/"
+        user_specified_dir = self.Options['SavePath']
         user_specified_dir = os.path.join(user_specified_dir, "RESULTS") 
         os.makedirs(user_specified_dir, exist_ok=True)
         notebook_dir = os.path.abspath(user_specified_dir)
@@ -100,9 +100,9 @@ class AnalyzeStaticCases:
                         self.cases.get_data_extract()
                 else:
                     self.cases.get_data_extract()
-            else:
-                self.cases.generate_script()
-                sys.exit()
+            # else:
+            #     self.cases.generate_script()
+            #     sys.exit()
 
             if self.Options['ConvergenceData']:
                 self.cases.get_convergence_data()
@@ -127,9 +127,9 @@ class AnalyzeStaticCases:
                 self.processdata.get_splitdata_PV_PQ(self.cases.Df_Cases)
                 self.processdata.get_processdata_region()
 
-                if not self.readjustONEcase:
-                    print(f'*** Salvando Dataframe com Informação locacional ***')
-                    self.processdata.Df_VF_SF.to_csv(pathcsv2, sep=';', index=False)
+                # if not self.readjustONEcase:
+                #     print(f'*** Salvando Dataframe com Informação locacional ***')
+                #     self.processdata.Df_VF_SF.to_csv(pathcsv2, sep=';', index=False)
 
             if not self.readjustONEcase:
                 if self.Options['ConvergenceData']:
@@ -238,27 +238,27 @@ class AnalyzeStaticCases:
 
             # ========================================== ELOS SEPARADOS POR BIPOLOS: ==========================================
             pole_mapping = {1: 'Bipolo1', 2: 'Bipolo1', 3: 'Bipolo2', 4: 'Bipolo2'}
-            dfelo1 = self.DCLinks_concatenados[self.DCLinks_concatenados['Bus #'] == 85].groupby(by=['Dia', 'Hora', ' Pole #']).agg({' P(MW)': sum, ' Q(Mvar)': sum})
+            dfelo1 = self.DCLinks_concatenados[self.DCLinks_concatenados['Bus #'] == 85].groupby(by=['Dia', 'Hora', ' Pole #']).agg({' P(MW)': 'sum', ' Q(Mvar)': 'sum'})
             dfelo1['Nome Elo'] = 'Elo_FOZ-IBIUNA'
             dfelo1['Bipole'] = dfelo1.index.get_level_values(' Pole #').map(pole_mapping)
-            dfelo2 = self.DCLinks_concatenados[self.DCLinks_concatenados['Bus #'] == 7055].groupby(by=['Dia', 'Hora', ' Pole #']).agg({' P(MW)': sum, ' Q(Mvar)': sum})
+            dfelo2 = self.DCLinks_concatenados[self.DCLinks_concatenados['Bus #'] == 7055].groupby(by=['Dia', 'Hora', ' Pole #']).agg({' P(MW)': 'sum', ' Q(Mvar)': 'sum'})
             dfelo2['Nome Elo'] = 'Elo_PVEL-ARARQ'
             dfelo2['Bipole'] = dfelo2.index.get_level_values(' Pole #').map(pole_mapping)
-            dfelo3 = self.DCLinks_concatenados[self.DCLinks_concatenados['Bus #'] == 7059].groupby(by=['Dia', 'Hora', ' Pole #']).agg({' P(MW)': sum, ' Q(Mvar)': sum})
+            dfelo3 = self.DCLinks_concatenados[self.DCLinks_concatenados['Bus #'] == 7059].groupby(by=['Dia', 'Hora', ' Pole #']).agg({' P(MW)': 'sum', ' Q(Mvar)': 'sum'})
             dfelo3['Nome Elo'] = 'Elo_CPVBTB-PVEL'
             dfelo3['Bipole'] = dfelo3.index.get_level_values(' Pole #').map(pole_mapping)
-            dfelo4 = self.DCLinks_concatenados[(self.DCLinks_concatenados['Bus #'] == 8100) & (self.DCLinks_concatenados[' Pole #'].isin([1,2]))].groupby(by=['Dia', 'Hora', ' Pole #']).agg({' P(MW)': sum, ' Q(Mvar)': sum})
+            dfelo4 = self.DCLinks_concatenados[(self.DCLinks_concatenados['Bus #'] == 8100) & (self.DCLinks_concatenados[' Pole #'].isin([1,2]))].groupby(by=['Dia', 'Hora', ' Pole #']).agg({' P(MW)': 'sum', ' Q(Mvar)': 'sum'})
             dfelo4['Nome Elo'] = 'Elo_XINGU-EST'
             dfelo4['Bipole'] = dfelo4.index.get_level_values(' Pole #').map(pole_mapping)
-            dfelo5 = self.DCLinks_concatenados[(self.DCLinks_concatenados['Bus #'] == 8100) & (self.DCLinks_concatenados[' Pole #'].isin([3,4]))].groupby(by=['Dia', 'Hora', ' Pole #']).agg({' P(MW)': sum, ' Q(Mvar)': sum})
+            dfelo5 = self.DCLinks_concatenados[(self.DCLinks_concatenados['Bus #'] == 8100) & (self.DCLinks_concatenados[' Pole #'].isin([3,4]))].groupby(by=['Dia', 'Hora', ' Pole #']).agg({' P(MW)': 'sum', ' Q(Mvar)': 'sum'})
             dfelo5['Nome Elo'] = 'Elo_XINGU-T_RIO'
             dfelo5['Bipole'] = dfelo5.index.get_level_values(' Pole #').map(pole_mapping)
 
-            dfelo1 = dfelo1.reset_index().groupby(['Dia', 'Hora', 'Bipole']).agg({' P(MW)': sum, 'Nome Elo': 'first'})
-            dfelo2 = dfelo2.reset_index().groupby(['Dia', 'Hora', 'Bipole']).agg({' P(MW)': sum, 'Nome Elo': 'first'})
-            dfelo3 = dfelo3.reset_index().groupby(['Dia', 'Hora', 'Bipole']).agg({' P(MW)': sum, 'Nome Elo': 'first'})
-            dfelo4 = dfelo4.reset_index().groupby(['Dia', 'Hora', 'Bipole']).agg({' P(MW)': sum, 'Nome Elo': 'first'})
-            dfelo5 = dfelo5.reset_index().groupby(['Dia', 'Hora', 'Bipole']).agg({' P(MW)': sum, 'Nome Elo': 'first'})
+            dfelo1 = dfelo1.reset_index().groupby(['Dia', 'Hora', 'Bipole']).agg({' P(MW)': 'sum', 'Nome Elo': 'first'})
+            dfelo2 = dfelo2.reset_index().groupby(['Dia', 'Hora', 'Bipole']).agg({' P(MW)': 'sum', 'Nome Elo': 'first'})
+            dfelo3 = dfelo3.reset_index().groupby(['Dia', 'Hora', 'Bipole']).agg({' P(MW)': 'sum', 'Nome Elo': 'first'})
+            dfelo4 = dfelo4.reset_index().groupby(['Dia', 'Hora', 'Bipole']).agg({' P(MW)': 'sum', 'Nome Elo': 'first'})
+            dfelo5 = dfelo5.reset_index().groupby(['Dia', 'Hora', 'Bipole']).agg({' P(MW)': 'sum', 'Nome Elo': 'first'})
 
             df_HVDC = pd.concat([dfelo1, dfelo2, dfelo3, dfelo4, dfelo5], axis=0).reset_index().set_index(['Dia', 'Hora','Nome Elo', 'Bipole'])
             df_HVDC = self.processdata.add_key(df_HVDC.reset_index())
@@ -266,27 +266,27 @@ class AnalyzeStaticCases:
 
             # ========================================== ELOS SEPARADOS POR POLOS: ==========================================
             pole_mapping = {1: 'Polo 1', 2: 'Polo 2', 3: 'Polo 3', 4: 'Polo 4'}
-            dfelo1 = self.DCLinks_concatenados[self.DCLinks_concatenados['Bus #'] == 85].groupby(by=['Dia', 'Hora', ' Pole #']).agg({' P(MW)': sum, ' Q(Mvar)': sum})
+            dfelo1 = self.DCLinks_concatenados[self.DCLinks_concatenados['Bus #'] == 85].groupby(by=['Dia', 'Hora', ' Pole #']).agg({' P(MW)': 'sum', ' Q(Mvar)': 'sum'})
             dfelo1['Nome Elo'] = 'Elo_FOZ-IBIUNA'
             dfelo1['pole'] = dfelo1.index.get_level_values(' Pole #').map(pole_mapping)
-            dfelo2 = self.DCLinks_concatenados[self.DCLinks_concatenados['Bus #'] == 7055].groupby(by=['Dia', 'Hora', ' Pole #']).agg({' P(MW)': sum, ' Q(Mvar)': sum})
+            dfelo2 = self.DCLinks_concatenados[self.DCLinks_concatenados['Bus #'] == 7055].groupby(by=['Dia', 'Hora', ' Pole #']).agg({' P(MW)': 'sum', ' Q(Mvar)': 'sum'})
             dfelo2['Nome Elo'] = 'Elo_PVEL-ARARQ'
             dfelo2['pole'] = dfelo2.index.get_level_values(' Pole #').map(pole_mapping)
-            dfelo3 = self.DCLinks_concatenados[self.DCLinks_concatenados['Bus #'] == 7059].groupby(by=['Dia', 'Hora', ' Pole #']).agg({' P(MW)': sum, ' Q(Mvar)': sum})
+            dfelo3 = self.DCLinks_concatenados[self.DCLinks_concatenados['Bus #'] == 7059].groupby(by=['Dia', 'Hora', ' Pole #']).agg({' P(MW)': 'sum', ' Q(Mvar)': 'sum'})
             dfelo3['Nome Elo'] = 'Elo_CPVBTB-PVEL'
             dfelo3['pole'] = dfelo3.index.get_level_values(' Pole #').map(pole_mapping)
-            dfelo4 = self.DCLinks_concatenados[(self.DCLinks_concatenados['Bus #'] == 8100) & (self.DCLinks_concatenados[' Pole #'].isin([1,2]))].groupby(by=['Dia', 'Hora', ' Pole #']).agg({' P(MW)': sum, ' Q(Mvar)': sum})
+            dfelo4 = self.DCLinks_concatenados[(self.DCLinks_concatenados['Bus #'] == 8100) & (self.DCLinks_concatenados[' Pole #'].isin([1,2]))].groupby(by=['Dia', 'Hora', ' Pole #']).agg({' P(MW)': 'sum', ' Q(Mvar)': 'sum'})
             dfelo4['Nome Elo'] = 'Elo_XINGU-EST'
             dfelo4['pole'] = dfelo4.index.get_level_values(' Pole #').map(pole_mapping)
-            dfelo5 = self.DCLinks_concatenados[(self.DCLinks_concatenados['Bus #'] == 8100) & (self.DCLinks_concatenados[' Pole #'].isin([3,4]))].groupby(by=['Dia', 'Hora', ' Pole #']).agg({' P(MW)': sum, ' Q(Mvar)': sum})
+            dfelo5 = self.DCLinks_concatenados[(self.DCLinks_concatenados['Bus #'] == 8100) & (self.DCLinks_concatenados[' Pole #'].isin([3,4]))].groupby(by=['Dia', 'Hora', ' Pole #']).agg({' P(MW)': 'sum', ' Q(Mvar)': 'sum'})
             dfelo5['Nome Elo'] = 'Elo_XINGU-T_RIO'
             dfelo5['pole'] = dfelo5.index.get_level_values(' Pole #').map(pole_mapping)
 
-            dfelo1 = dfelo1.reset_index().groupby(['Dia', 'Hora', 'pole']).agg({' P(MW)': sum, 'Nome Elo': 'first'})
-            dfelo2 = dfelo2.reset_index().groupby(['Dia', 'Hora', 'pole']).agg({' P(MW)': sum, 'Nome Elo': 'first'})
-            dfelo3 = dfelo3.reset_index().groupby(['Dia', 'Hora', 'pole']).agg({' P(MW)': sum, 'Nome Elo': 'first'})
-            dfelo4 = dfelo4.reset_index().groupby(['Dia', 'Hora', 'pole']).agg({' P(MW)': sum, 'Nome Elo': 'first'})
-            dfelo5 = dfelo5.reset_index().groupby(['Dia', 'Hora', 'pole']).agg({' P(MW)': sum, 'Nome Elo': 'first'})
+            dfelo1 = dfelo1.reset_index().groupby(['Dia', 'Hora', 'pole']).agg({' P(MW)': 'sum', 'Nome Elo': 'first'})
+            dfelo2 = dfelo2.reset_index().groupby(['Dia', 'Hora', 'pole']).agg({' P(MW)': 'sum', 'Nome Elo': 'first'})
+            dfelo3 = dfelo3.reset_index().groupby(['Dia', 'Hora', 'pole']).agg({' P(MW)': 'sum', 'Nome Elo': 'first'})
+            dfelo4 = dfelo4.reset_index().groupby(['Dia', 'Hora', 'pole']).agg({' P(MW)': 'sum', 'Nome Elo': 'first'})
+            dfelo5 = dfelo5.reset_index().groupby(['Dia', 'Hora', 'pole']).agg({' P(MW)': 'sum', 'Nome Elo': 'first'})
 
             df_HVDC = pd.concat([dfelo1, dfelo2, dfelo3, dfelo4, dfelo5], axis=0).reset_index().set_index(['Dia', 'Hora','Nome Elo', 'pole'])
             df_HVDC = self.processdata.add_key(df_HVDC.reset_index())
@@ -336,8 +336,8 @@ class AnalyzeStaticCases:
                 Df_Reserva = self.SGN01_concatenados.merge(df_Final_ger_mod, how = 'left', on='BUS_ID')
                 Df_Reserva = Df_Reserva[Df_Reserva['BUS_ID'] != 1100] #RETIRANDO ITAIPU 50HZ DA RESERVA
 
-                REG_groupReserve = Df_Reserva.groupby(by = ['Dia','Hora', 'REG']).agg({'key':'first',' Reserve': 'sum'})
-                GroupReserve = Df_Reserva.groupby(by = ['Dia','Hora']).agg({'key':'first',' Reserve': 'sum'})
+                REG_groupReserve = Df_Reserva.groupby(by = ['Dia','Hora', 'REG']).agg({' Reserve': 'sum'})
+                GroupReserve = Df_Reserva.groupby(by = ['Dia','Hora']).agg({' Reserve': 'sum'})
                 self.dffreservaPO_REG_MW = REG_groupReserve
                 self.dffreservaPO_MW = GroupReserve
 
@@ -354,10 +354,11 @@ class AnalyzeStaticCases:
             #=============================================================================================================================
             # dff_reserva = self.SGN01_concatenados.merge(self.df_Final_ger[['BUS_ID','Dia', 'Hora', 'ReservaIND', 'ReservaCAP', 'Ger_Active_Units', 'Ger_Units', 'QG_MVAR', 'key', 'REG']], on=['BUS_ID','Dia', 'Hora'], how='left')
             # ============================================================================================================================
-            # dffreservaPO = dff_reserva.groupby(['Dia', 'Hora']).agg({'key':'first','QG_MVAR': 'sum', 'ReservaIND':'sum', 'ReservaCAP':'sum'})
-            # dffreservaPO_REG = dff_reserva.groupby(['Dia', 'Hora', 'REG']).agg({'key':'first','QG_MVAR': 'sum', 'ReservaIND':'sum', 'ReservaCAP':'sum'})
+            # dffreservaPO = dff_reserva.groupby(['Dia', 'Hora']).agg({'QG_MVAR': 'sum', 'ReservaIND':'sum', 'ReservaCAP':'sum'})
+            # dffreservaPO_REG = dff_reserva.groupby(['Dia', 'Hora', 'REG']).agg({'QG_MVAR': 'sum', 'ReservaIND':'sum', 'ReservaCAP':'sum'})
             # self.dffreservaPO_MVAR = dffreservaPO
             # self.dffreservaPO_REG_MVAR = dffreservaPO_REG
+
             # if not self.readjustONEcase:
             #     self.plots_static.plot_reserva_reg (dffreservaPO_REG, '(MVAR)', 'Reserva Capacitiva por Região MVAR', 'RESERVA CAPACITIVA POR REGIÃO MVAR', 'ReservaCAP', xlimites=None,ylimites=None, order = False)
             #     self.plots_static.plot_reserva_reg (dffreservaPO_REG, '(MVAR)', 'Reserva Indutiva por Região MVAR', 'RESERVA INDUTIVA POR REGIÃO MVAR', 'ReservaIND', xlimites=None,ylimites=None, order = False)
@@ -694,7 +695,6 @@ class AnalyzeStaticCases:
                 Df_IndiceT2.rename(columns={'CSI_SUP_FINAL':'OV DPI','CSI_INF_FINAL':'UV DPI'}, inplace=True)
                 self.Df_IndiceT2 = Df_IndiceT2
 
-
     #=============================================================================================================================
     #                                                     SAVE THE DATA
     #=============================================================================================================================
@@ -728,9 +728,11 @@ class AnalyzeStaticCases:
                 self.df_HVDC.to_csv(self.cenario + '/Data/Fluxo em Ramos/DF_HVDC.csv', index = False)
 
             if self.Options['ReservaData'] and not self.Options['OnlyPWF_datagen']:
-
                 # self.dffreservaPO_MVAR.to_csv(self.cenario + '/Data/Potencia/Df_Reserva_PO_MVAR.csv', header=True, index=True)
                 # self.dffreservaPO_REG_MVAR.to_csv(self.cenario + '/Data/Potencia/Df_Reserva_REG_MVAR.csv', header=True, index=True)
+
+                self.dffreservaPO_REG_MW = self.processdata.add_key(self.dffreservaPO_REG_MW.reset_index())
+                self.dffreservaPO_MW = self.processdata.add_key(self.dffreservaPO_MW.reset_index())
                 self.dffreservaPO_REG_MW.to_csv(self.cenario + '/Data/Potencia/Df_Reserva_REG_MW.csv', header=True, index=True)
                 self.dffreservaPO_MW.to_csv(self.cenario + '/Data/Potencia/Df_Reserva_PO_MW.csv', header=True, index=True)
 

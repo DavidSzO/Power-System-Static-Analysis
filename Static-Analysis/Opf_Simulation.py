@@ -4,15 +4,15 @@ import re
 
 class Opf_Simulation():
 
-    def __init__(self, path, nome, pathtosave):
+    def __init__(self, path, nome, pathtosave, copypwf):
         
         self.path_folder = path
         self.nome = nome
         self.path_main = pathtosave
         
-        self.OPFnoConvergidos()
+        self.OPFnoConvergidos(copypwf)
 
-    def OPFnoConvergidos(self):
+    def OPFnoConvergidos(self, copypwf):
 
         path_folder = self.path_folder
         files_and_directories = os.listdir(path_folder)
@@ -41,15 +41,16 @@ class Opf_Simulation():
             nomespwf = [i for i in os.listdir(path_to_output)  if (i.startswith('PTOPER_')) & (i.endswith('.pwf')) ]
 
             # Copia cada arquivo ao directorio de destino
-            for archivo in nomespwf:
-                try: 
-                    ruta_archivo_origen = os.path.join(path_to_output, archivo)
-                    ruta_archivo_destino = os.path.join(path_to, archivo)
-                    shutil.copy(ruta_archivo_origen, ruta_archivo_destino)
-                except:
-                    print('No se encontrou o ' + archivo + ' no directorio')
+            if copypwf:
+                for archivo in nomespwf:
+                    try: 
+                        ruta_archivo_origen = os.path.join(path_to_output, archivo)
+                        ruta_archivo_destino = os.path.join(path_to, archivo)
+                        shutil.copy(ruta_archivo_origen, ruta_archivo_destino)
+                    except:
+                        print('No se encontrou o ' + archivo + ' no directorio')
 
-            for archivo in ['ORGANON.prm','DCShunt_Revisado.def', 'BNT1.dat', 'TENSAO_FPO.opf', 'Model.dyn', 'Novo.scd', 'SEP_BMONTE_ITAIPU_CORB.sps', 'SelectedEvents.evt']: #'TENSAO_FPO.opf'
+            for archivo in ['ORGANON.prm','DCShunt_Revisado.def', 'BNT1.dat', 'TENSAO_FPO.opf', 'Model.dyn', 'SEP_BMONTE_ITAIPU_CORB.sps', 'SelectedEvents.evt']: #'TENSAO_FPO.opf' 'Novo.scd',
                 try: 
                     ruta_archivo_origen = os.path.join(path_from, archivo)
                     ruta_archivo_destino = os.path.join(path_to, archivo)
@@ -73,7 +74,7 @@ class Opf_Simulation():
                 idx2 = idx1 + 1
                 text.append([semi_hours[idx1],semi_hours[idx2],i])
 
-            SCNpath = path_to + "/Scenarios.scd" 
+            SCNpath = path_to + "/Novo.scd" 
             with open(SCNpath, 'w') as f:
                 for idx2, filespwf in enumerate(text):
                     f.write('REF ' + filespwf[0] +', '+ filespwf[1] + ', "' + filespwf[2] +'"')

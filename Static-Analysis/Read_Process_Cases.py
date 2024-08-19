@@ -135,29 +135,29 @@ class ReadScenarios:
                 folder = os.path.join(self.path, day, 'Output')
                 files_path.extend(get_files_path(folder, ''))
 
+        def concat_and_compute(dfs):
+            if len(dfs) > 0:
+                return dd.concat(dfs, ignore_index=True).compute()
+            return pd.DataFrame()
+
         def read_files(pattern, col_list, dtype_dict=None):
             filtered_files = [file for file in files_path if pattern in os.path.basename(file)]
             if not filtered_files:
                 return []
             try:
                 dfs = [dd.read_csv(file, sep=';', skiprows=[0], usecols=col_list, dtype=dtype_dict).pipe(add_dia_hora, file, os.path.basename(os.path.dirname(os.path.dirname(file)))[-2:], hour) for file in filtered_files]
+                dfs = concat_and_compute(dfs)
+            except UnicodeDecodeError:
+                dfs = [dd.read_csv(file, sep=';', skiprows=[0], usecols=col_list, dtype=dtype_dict, encoding='latin1').pipe(add_dia_hora, file, os.path.basename(os.path.dirname(os.path.dirname(file)))[-2:], hour) for file in filtered_files]
+                dfs = concat_and_compute(dfs)
             except ValueError:
                 dfs = [dd.read_csv(file, sep=';', skiprows=[0], dtype=dtype_dict).pipe(add_dia_hora, file, os.path.basename(os.path.dirname(os.path.dirname(file)))[-2:], hour) for file in filtered_files]
-                
+                dfs = concat_and_compute(dfs)
+
             return dfs
-
-        PWFs_sep = read_files('PWF16_', col_list_lines) if linhas else []
-        DCLinks_sep = read_files('PWF25_', col_list_hvdc) if Intercambios else []
-        SGN01_sep = read_files('SGN01_', col_list_reserve) if Reserva else []
-
-        def concat_and_compute(dfs):
-            if dfs:
-                return dd.concat(dfs, ignore_index=True).compute()
-            return pd.DataFrame()
-
+        
         if linhas:
-            PWF16_concatenados = concat_and_compute(PWFs_sep)
-
+            PWF16_concatenados = read_files('PWF16_', col_list_lines) 
             PWF16_concatenados.rename(columns={'From#':'From#', ' From Name': 'From Name', ' To# - Circ#':'To# - Circ#', ' To Name':'To Name', ' Type':'Type', ' MVA':'MVA', ' MW:From-To':'MW:From-To', ' Mvar:From-To':'Mvar:From-To',' % L1':'% L1', ' L1(MVA)':'L1(MVA)',  ' Mvar:Losses':'Mvar:Losses', ' MW:Losses':'MW:Losses', ' MW:To-From':'MW:To-From', ' Power Factor:From-To':'Power Factor:From-To', ' Power Factor:To-From':'Power Factor:To-From'}, inplace=True)
 
             if not PWF16_concatenados.empty:
@@ -167,26 +167,26 @@ class ReadScenarios:
                 PWF16_concatenados['To#'] = PWF16_concatenados['To#'].astype('int32')
                 PWF16_concatenados.drop(columns=["To# - Circ#"], inplace=True)
                 self.linesInfo = PWF16_concatenados
-                if not self.PO:
-                    print("Salvando Dataframe das linhas")
-                    PWF16_concatenados.to_csv(os.path.join(self.path, 'LinhasInfo.csv'), index=None)
-                    print("Final da leitura das Linhas")
+                # if not self.PO:
+                #     print("Salvando Dataframe das linhas")
+                #     PWF16_concatenados.to_csv(os.path.join(self.path, 'LinhasInfo.csv'), index=None)
+                #     print("Final da leitura das Linhas")
                 if Intercambios:
                     self.get_Intercambios()
 
         if Intercambios:
             print("Concatenação da info do HVDC")
-            DCLinks_concatenados = concat_and_compute(DCLinks_sep)
+            DCLinks_concatenados = read_files('PWF25_', col_list_hvdc) 
             if not DCLinks_concatenados.empty:
                 self.HVDCInfo = DCLinks_concatenados
-                if not self.PO:
-                    print("Salvando Dataframe do HVDC")
-                    DCLinks_concatenados.to_csv(os.path.join(self.path, 'HVDCInfo.csv'), index=None)
-                    print("Final da leitura do HVDC")
+                # if not self.PO:
+                    # print("Salvando Dataframe do HVDC")
+                    # DCLinks_concatenados.to_csv(os.path.join(self.path, 'HVDCInfo.csv'), index=None)
+                    # print("Final da leitura do HVDC")
 
         if Reserva:
             print("Concatenação da Reserva")
-            SGN01_concatenados = concat_and_compute(SGN01_sep)
+            SGN01_concatenados = read_files('SGN01_', col_list_reserve) 
             if not SGN01_concatenados.empty:
                 SGN01_concatenados['Bus'] = SGN01_concatenados['Bus'].astype(int)
                 SGN01_concatenados[' Pg(MW)'] = SGN01_concatenados[' Pg(MW)'].astype(float)
@@ -194,10 +194,10 @@ class ReadScenarios:
                 SGN01_concatenados[' Reserve'] = SGN01_concatenados[' Reserve'].astype(float)
                 SGN01_concatenados[' Units'] = SGN01_concatenados[' Units'].astype(int)
                 self.ReserveInfo = SGN01_concatenados
-                if not self.PO:
-                    print("Salvando Dataframe da Reserva")
-                    SGN01_concatenados.to_csv(os.path.join(self.path, 'ReservaInfo.csv'), index=None)
-                    print("Final da leitura da Reserva")
+                # if not self.PO:
+                #     print("Salvando Dataframe da Reserva")
+                #     SGN01_concatenados.to_csv(os.path.join(self.path, 'ReservaInfo.csv'), index=None)
+                #     print("Final da leitura da Reserva")
 
     def generate_script(self, path = None):
 
@@ -308,7 +308,6 @@ class ReadScenarios:
         self.DF_Intercambios = pd.concat([EXPNE_grouped,Fluxo_NESE_grouped, Fluxo_NS_grouped, Fluxo_SULSECO_grouped, Fluxo_NEN_grouped, Fluxo_RSUL_grouped], axis=0, keys=['EXP_NE', 'Fluxo_NE-SE', 'Fluxo_N-S' ,'Fluxo_SUL-SECO', 'Fluxo_NE-N', 'Fluxo_RSUL'])
 
         print(f'*** FINAL OBTENÇÃO DOS INTERCAMBIOS ***')
-
 
 # ======================================================================================================================
 #                                                   CONVERGENCE INFO EXTRACTION
