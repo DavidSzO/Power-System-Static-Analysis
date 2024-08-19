@@ -1,2 +1,2 @@
 # Power System Static Analysis
- Contém o material necessário para analisar varios casos operacionais do SIN braisleiro que estejam salvados em formato .ntw
+This Python library is used to analyze various operational cases of the Brazilian Power System, with files in the .ntw format generated as output by the Organon software.
