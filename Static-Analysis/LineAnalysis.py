@@ -51,7 +51,8 @@ class Analise_Linhas:
         self.grafico_calor_linha = True
         self.boxplot_linha = True
         self.histograma_linha = True
-
+        self.MvarLosses_por_MWLosses = True
+        self.MvarLosses_por_MWLosses_reg = True
 
     def Remover_e_salvar_L1MVA9999(self,Pasta):
         
@@ -95,10 +96,10 @@ class Analise_Linhas:
     
     def Graficos_Por_REG(self, Pasta):
         import matplotlib.pyplot as plt
-
+        sns.set_theme(style="darkgrid")
         if self.Grafico_Maior_L1:
             def Grafico_Maior_L1(REG):
-                sns.set_theme(style="darkgrid")
+                
                 df_sul = self.PWF16_Filt_NEW[self.PWF16_Filt_NEW['REG'] == REG]
 
                 # Agrupando por 'From#' e 'To#', e calculando a média de '% L1'
@@ -561,13 +562,94 @@ class Analise_Linhas:
                 # Salvar o gráfico em formato HTML
                 fig.write_html(os.path.join(Pasta, f'Histograma_{reg}.html'))
 
+        if self.MvarLosses_por_MWLosses:
+            df_grouped = self.PWF16_Filt_NEW.groupby(['Hora','Dia']).agg({'MW:Losses': 'sum', 'Mvar:Losses': 'sum', '% L1': 'mean'}).reset_index()
+
+            # Agrupar o DataFrame por '% L1' e calcular a méMW:Losses dos valores de 'Mvar:Losses' e 'MW:Losses'
+            
+
+            # Ordenar o DataFrame pelos % L1s para garantir a gradação de cores correta
+            grouped_df = df_grouped.sort_values('% L1')
+
+            # Normalizar os valores dos % L1s para usar como cores
+            norm = plt.Normalize(grouped_df['% L1'].min(), grouped_df['% L1'].max())
+
+            # Usar o mapa de cores 'coolwarm'
+            cmap = plt.get_cmap('coolwarm')
+
+            # Criar as cores para cada ponto
+            colors = cmap(norm(grouped_df['% L1']))
+
+            # Plotar os dados
+            plt.scatter(grouped_df['Mvar:Losses'], grouped_df['MW:Losses'], c=colors, s=15, edgecolors='b', linewidth=0.5)
+
+            # Adicionar barra de cores
+            sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+            sm.set_array([])
+            cbar = plt.colorbar(sm)
+            cbar.set_label('% L1')
+
+            # Adicionar rótulos e título
+            plt.xlabel('Mvar:Losses')
+            plt.ylabel('MW:Losses')
+            plt.title(' Mvar:Losses por MW:Losses por ponto de operação(semi-hora)')
+            nome_arquivo = f'{Pasta}% L1rLosses_por_MW'
+            plt.tight_layout()  # Ajuste o layout antes de salvar
+            plt.savefig(nome_arquivo)
+
+        if self.MvarLosses_por_MWLosses_reg:
+            
+            # Iterar sobre cada região única em 'REG'
+            for reg in self.PWF16_Filt_NEW['REG'].unique():
+                # Filtrar o DataFrame pela região atual
+                df_reg = self.PWF16_Filt_NEW[self.PWF16_Filt_NEW['REG'] == reg]
+                
+                # Agrupar o DataFrame filtrado
+                df_grouped = df_reg.groupby(['Hora', 'Dia']).agg({
+                    'MW:Losses': 'sum', 
+                    'Mvar:Losses': 'sum', 
+                    '% L1': 'mean'
+                }).reset_index()
+
+                # Ordenar o DataFrame pelos % L1s para garantir a gradação de cores correta
+                grouped_df = df_grouped.sort_values('% L1')
+
+                # Normalizar os valores dos % L1s para usar como cores
+                norm = plt.Normalize(grouped_df['% L1'].min(), grouped_df['% L1'].max())
+
+                # Usar o mapa de cores 'coolwarm'
+                cmap = plt.get_cmap('coolwarm')
+
+                # Criar as cores para cada ponto
+                colors = cmap(norm(grouped_df['% L1']))
+
+                # Plotar os dados
+                plt.figure(figsize=(10, 6))
+                plt.scatter(grouped_df['Mvar:Losses'], grouped_df['MW:Losses'], c=colors, s=20, edgecolors='b', linewidth=0.5)
+
+                # Adicionar barra de cores
+                sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+                sm.set_array([])
+                cbar = plt.colorbar(sm)
+                cbar.set_label('% L1')
+
+                # Adicionar rótulos e título
+                plt.xlabel('Mvar:Losses')
+                plt.ylabel('MW:Losses')
+                plt.title(f'Mvar:Losses por MW:Losses com Graduação de Cores por % L1 - Região {reg}')
+
+                # Salvar o gráfico com o nome da região
+                nome_arquivo = f'{Pasta}% L1rLosses_por_MW_{reg}.png'
+                plt.tight_layout()  # Ajuste o layout antes de salvar
+                plt.savefig(nome_arquivo)
+                plt.close()
 
     def Graficos_Por_VBA(self, Pasta):
         sns.set_theme(style="darkgrid")
         
         if self.plotar_grafico_por_reg_VBA:
             def plotar_grafico_por_reg_VBA(REG):
-                PWF16_Filt_Reg = self.self.PWF16_Filt_NEW[self.PWF16_Filt_NEW['REG'] == REG]
+                PWF16_Filt_Reg = self.PWF16_Filt_NEW[self.PWF16_Filt_NEW['REG'] == REG]
                 valores_VBA = PWF16_Filt_Reg['VBASEKV'].unique()
                 valores_VBA.sort()
 
