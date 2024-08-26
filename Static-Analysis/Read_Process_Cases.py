@@ -44,6 +44,11 @@ class ReadScenarios:
             Load = NetData.load_data[['BUS_ID', 'PL_MW', 'QL_MVAR']]
             Shunt = NetData.DF_shunt
 
+            # Lines = NetData.transmission_data
+            # Lines.to_csv('linhas.dat', sep=' ', index=False)
+            # Trafos = NetData.transformer_data
+            # Trafos.to_csv('trafos.dat', sep=' ', index=False)
+
             df = [Bus, Gen, Load]
             BUS_grouped, GEN_grouped, LOAD_grouped = self.get_unique_bus(df)
 

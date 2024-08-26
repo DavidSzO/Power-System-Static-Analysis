@@ -49,7 +49,8 @@ if __name__ == '__main__':
     # ************************************************************************************************
 
     # =============================             CASOS 2022          ===========================================
-    path_folder = 'D:/MPV_(FNS Lim)_RC/'
+    # path_folder = 'D:/MPV_(FNS Lim)_RC/'
+    # path_folder = 'C:/Users/david/OneDrive/Documents/test organon/Sistema Brasileiro'
     # path_folder_1 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2022/Novos com FNS Lim/V1A1F2 FNS Lim 2022/'
     # path_folder_2 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2022/Novos com FNS Lim/V1A1F2 FNS Lim 2022_OPF/'
     # path_folder ='D:/0 FERV/0 Dados PYTHON/CASOS 2022/Antigos/MPV_(FNS Lim)_RC/'
@@ -63,6 +64,11 @@ if __name__ == '__main__':
     # path_folder_3 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/REV_1_02/V1A1F4_RESP_FNS_lim_rev1_2026/'
     # path_folder_4 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/REV_1_02/V1A1F5_RESP_FNS_lim_rev1_2026/'
 
+    # path_folder_0  = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/REV_5/V1A1F2_rev5/'
+    # path_folder_1 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/REV_5/V1A1F3_rev5/'
+    # path_folder_2  = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/REV_5/V1A1F4_rev5/'
+    # path_folder_3 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/REV_5/V1A1F5_rev5/'
+
     # =============================         CASOS 2026 V2A2F       =========================================== 
     # path_folder_5 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F2_REV02_2026/'
     # path_folder_6 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F3_REV02_2026/'
@@ -70,8 +76,10 @@ if __name__ == '__main__':
     # path_folder_8 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F5_REV02_2026/'
 
     # path_folder  = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_5/V2A2F2_rev5/'
-    # path_folder = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_5/V2A2F3_rev5/'
-    
+    path_folder_11 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_5/V2A2F3_rev5/'
+    # path_folder_2  = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_5/V2A2F4_rev5/'
+    # path_folder_3 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_5/V2A2F5_rev5/'
+    #     
     # =============================         CASOS 2026 V3A3F       ===========================================
     # path_folder_9 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_1/V3A3F2_REV1_2026/'
     # path_folder_10 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_1/V3A3F3_REV1_2026/'
@@ -87,20 +95,33 @@ if __name__ == '__main__':
     # path_folder_33  = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/Unicamp/V1A1F4_RESP_in_FNS_lim_Unicamp/'
     # path_folder_44  = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/Unicamp/V1A1F5_RESP_in_FNS_lim_Unicamp/'
 
+    # path_folder_11 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/Unicamp/V2A2F2_RESP_in_FNS_lim_Unicamp/'
+    # path_folder_22 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/Unicamp/V2A2F3_RESP_in_FNS_lim_Unicamp/'
+    # path_folder_33 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/Unicamp/V2A2F4_RESP_in_FNS_lim_Unicamp/'
+    # path_folder_44 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/Unicamp/V2A2F5_RESP_in_FNS_lim_Unicamp/'
+
+    # path_folder_11 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/Unicamp/V3A3F2_RESP_in_FNS_lim_Unicamp/'
+    # path_folder_22 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/Unicamp/V3A3F3_RESP_in_FNS_lim_Unicamp/'
+    # path_folder_33 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/Unicamp/V3A3F4_RESP_in_FNS_lim_Unicamp/'
+    # path_folder_44 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/Unicamp/V3A3F5_RESP_in_FNS_lim_Unicamp/'
+
     # ============================= List of PATHS ===========================================
     # path_folders = [path_folder_1, path_folder_2, path_folder_3, path_folder_4, path_folder_5, path_folder_6, path_folder_7, path_folder_8, path_folder_9, path_folder_10, 
-    path_folders = [path_folder]
-
+    # path_folders = [path_folder_22, path_folder_33, path_folder_44]
+    path_folders = [path_folder_11]
     for path_folder in path_folders:
 
         if Options_ReadProcess['generatescript']:
-            ReadScenarios.generate_script()
+            cases = ReadScenarios(path_folder, '', PO = False)
+            cases.generate_script()
         elif Options_ReadProcess['OPFsimulation']:
             # =============== PARA GERAR O SCRIPT PARA RODAR O OPF E PWF DOS CASOS NO ORGANON ==================
             # ==================================================================================================
             path_folderFrom = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_5/V2A2F2_rev5/'  #Ese path deve conter as ultimas modificações dos arquivos necesarios para rodar o OPF no Organon (Ex: file.prm, file.def, file.opf, ...)
             nomefolder = ''
-            Opf_Simulation(path_folderFrom, nomefolder, path_folder, False) # Para gerar as pastas 
+            OPF = Opf_Simulation(path_folderFrom, nomefolder, path_folder, copypwf=False) # Para gerar as pastas
+            # OPF.OPF_Process()
+            OPF.HVDCchanger()
         else:
             cenarios = AnalyzeStaticCases(path=path_folder, Options = Options_ReadProcess)
             cenarios.extraction_process()

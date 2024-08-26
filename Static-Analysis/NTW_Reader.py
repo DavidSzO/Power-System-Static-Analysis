@@ -34,6 +34,7 @@ class NTW_Reader():
         self._get_load_data()
         self._get_gen_data()
         self.getShuntDataFrame()
+
         # self._get_transmission_data()
         # self._get_transformer_data()
 
