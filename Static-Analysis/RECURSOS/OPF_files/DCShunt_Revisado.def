@@ -1,0 +1,704 @@
+!
+! FORMATO DOS DADOS PARA CADA ELO CC
+!
+
+!==============================================================================================================================
+!  --- PRIMEIRO REGISTRO DE DADOS PARA UM ELO CC ---
+!  DCSHUNT #BRET  #BINV  1 BP1T1 BP2T1 BP3T1 BP4T1
+!  ou
+!  DCSHUNT #BRET  #BINV  2 BP1T1 BP2T1 BP1T2 BP2T2
+!==============================================================================================================================
+
+!==============================================================================================================================
+!  --- REGISTROS DE DADOS SEGUINTES PARA UM ELO CC: UM REGISTRO PARA CADA VALOR DE NUMERO DE CONVERSORAS POR BIPOLO ---
+!  #CONV  TPBP    MWRET1, MVARRET1, MVARINV1,   MWRET2, MVARRET2, MVARINV2, ...   MWRETX, MVARRETX, MVARINVX 
+!  #CONV  TPBP    MWRET1, MVARRET1, MVARINV1,   MWRET2, MVARRET2, MVARINV2, ...   MWRETX, MVARRETX, MVARINVX 
+!  ...
+!  #CONV  TPBP    MWRET1, MVARRET1, MVARINV1,   MWRET2, MVARRET2, MVARINV2, ...   MWRETX, MVARRETX, MVARINVX 
+!==============================================================================================================================
+!  END
+
+!==============================================================================================================================
+! DETALHES DO PRIMEIRO REGISTRO DE DADOS PARA O ELO CC
+
+! #BRET:  NUMERO DA BARRA DO RETIFICADOR
+! #BINV:  NUMERO DA BARRA DO INVERSOR
+! #TBP:   NUMERO DE TIPOS DE BIPOLOS (VALOR = 2 PARA ELO CC DO MADEIRA E 1 PARA OS OUTROS)
+! #BP1T1: IDENTIFICADOR DO POLO #1 DO TIPO 1 DE BIPOLO
+! #BP2T1: IDENTIFICADOR DO POLO #2 DO TIPO 1 DE BIPOLO
+! #BP3T1: IDENTIFICADOR DO POLO #3 DO TIPO 1 DE BIPOLO
+! #BP4T1: IDENTIFICADOR DO POLO #4 DO TIPO 1 DE BIPOLO
+
+! #BP1T2: IDENTIFICADOR DO POLO #1 DO TIPO 2 DE BIPOLO
+! #BP2T2: IDENTIFICADOR DO POLO #2 DO TIPO 2 DE BIPOLO
+!==============================================================================================================================
+
+
+!==============================================================================================================================
+! DETALHES DE CADA REGISTRO DE DADOS SEGUINTES PARA O ELO CC *** OBS: 1 REGISTRO PARA CADA COMBINACAO DE NUMERO DE CONVERSORAS POR BIPOLO  ***
+
+! #1CONV/BIP: NUMERO DE CONVERSORAS POR BIPOLO
+! TPBP:     TIPO DO BIPOLO (VALOR =1 OU 2 PARA ELO CC DO MADEIRA E 1 PARA TODOS OS OUTROS ELOS)
+! MWRET1:   PRIMEIRO VALOR DE REFERENCIA PARA O DESPACHO EM MW NO RETIFICADOR
+! MVARRET1: PRIMEIRO VALOR MÍNIMO DE MVAR PARA OS FILTROS NO RETIFICADOR
+! MVARINV1: PRIMERIO VALOR MÍNIMO DE MVAR PARA OS FILTROS NO INVERSOR
+! MWRET2:   SEGUNDO VALOR DE REFERENCIA PARA O DESPACHO EM MW NO RETIFICADOR
+! MVARRET2: SEGUNDO VALOR MÍNIMO DE MVAR PARA OS FILTROS NO RETIFICADOR
+! MVARINV2: SEGUNDO VALOR MÍNIMO DE MVAR PARA OS FILTROS NO INVERSOR
+
+! MWRETX    XESIMO VALOR DE REFERENCIA PARA O DESPACHO EM MW NO RETIFICADOR  *** OBS LIMITADO A 20 CONJUNTOS DE 3 VALORES MWRET, MVARRET, MVARINV
+! MVARRETX: XESIMO VALOR MÍNIMO DE MVAR PARA OS FILTROS NO RETIFICADOR
+! MVARINVX: XESIMO VALOR MÍNIMO DE MVAR PARA OS FILTROS NO INVERSOR
+!==============================================================================================================================
+
+!==============================================================================================================================
+! OBS:  COMO INTERPRETAR OS VALORES DA TABELA COM 4 CONJUNTOS MWRET, MVARRET, MVARINV
+
+!              1                   2                    3                    4
+!#CONV  TPBP   560.,1330.,1330.,   1950.,1567.,1667.,   3850.,1804.,1804.,   5600.,2104.,2114. /
+
+! INTERVALO DE DESPACHO DO ELO         MVAR RETIFICADORA    MVAR INVERSORA
+!  ABAIXO DE 1949 MW                   1330.                1330.
+!  1950  A   3849 MW                   1567.                1667.
+!  3850  A   5599 MW                   1804.                1804.
+!  5600 MW E ACIMA                     2104.                2114.
+!==============================================================================================================================
+
+!
+! DADOS PARA CADA ELO CC DO SIN
+!
+
+!==============================================================================================================================
+!
+! Itaipu (Potência em Foz do Iguaçu) - Ibiuna
+!
+!         #BRET  #BINV  #TBP BP1T1 BP2T1 BP3T1 BP4T1
+DCSHUNT      85     86     1     1     2     3     4  /
+
+! Operação com 5 conversores
+!       1                   2                   3                    4
+4   1   392.,698.,871.8,    945.,698.,1092.6,   2360.,978.3,1092.6,  2520.,978.3,1389. /
+
+! Operação com 6 conversores
+!       1                   2                   3                    4
+8   1   469.8,698.,1092.6,  1355.,978.3,871.8,  1890.,978.3,1389.,   3150.,978.3,1626. /
+
+! Operação com 7 conversores
+!       1                   2                   3                    4                     5
+12  1   548.1,698.,1389.,   1040.,978.3,1389.,  1890.,978.3,1626.,   3310.,1258.6,1626.,   3780.,1258.6,1863. /
+
+! Operação com 8 conversores
+!       1                   2                   3                    4                     5
+16  1   626.4,698.,1389.,   880.,978.3,1389.,   1260.,978.3,1626.,   2520.,1258.6,1846.8,  3780., 1258.6, 2083.8 /
+
+END /
+!==============================================================================================================================
+
+!==============================================================================================================================
+!
+! Xingu-Estreito (Potência em Xingu)
+!
+!         #BRET  #BINV  #TBP BP1T1 BP2T1 BP3T1 BP4T1
+DCSHUNT   8100   3010     1     1     2     0     0  /
+
+! RPC Auto (condições normais)
+
+! Operação monopolar
+!       1                   2                   3                   4                   5                    6                    7
+2  1    200.,400.,400.,     1100.,620.,400.,    1260.,620.,620.,    1400.,800.,620.,    1700.,1020.,620.,    2260.,1200.,620.,    2300.,1200.,800.  /
+
+! Operação bipolar
+!       1                   2                   3                   4                   5                    6                    7                     8                     9                     10                    11                    12                    13
+4  1    400.,400.,400.,     1200.,620.,620.,    1400.,620.,800.,    1480.,800.,800.,    2880.,1020.,800.,    3360.,1200.,800.,    3480.,1200.,1020.,    3800.,1400.,1200.,    4000.,1600.,1200.,    4200.,1600.,1475.,    4400.,1600.,1750.,    5000.,1600.,2025.,    5320.,1600.,2300.  /
+
+! RPC Manual (não usado)
+
+! Operação monopolar
+!         1                   2                   3
+! 2  1    200.,400.,400.,     1520.,400.,620.,    1640.,620.,620.  /
+
+! Operação bipolar
+!         1                   2                   3                   4                   5                    6                    7                     8                     9                     10                    11                    12
+! 4  1    400.,400.,400.,     1200.,620.,620.,    1400.,620.,800.,    1600.,800.,800.,    3040.,1020.,800.,    3480.,1020.,1020.,   3720.,1200.,1020.,    3800.,1200.,1200.,    4200.,1200.,1475.,    4600.,1200.,1750.,    5000.,1200.,2025.,    5320.,1200.,2300.  /
+
+END /
+!==============================================================================================================================
+
+!==============================================================================================================================
+!
+! Xingu-T.Rio (Potência em Xingu)
+!
+!         #BRET  #BINV  #TBP BP1T1 BP2T1 BP3T1 BP4T1
+DCSHUNT   8100   9605     1     3     4     0     0  /
+
+! RPC Auto (condições normais)
+
+! Operação monopolar
+!       1                   2                    3                    4                    5                    6
+2  1    200.,400.,450.,     1000.,620.,450.,     1308.,620.,675.,     1400.,800.,675.,     1731.,800.,900.,     1800.,1020.,900.  /
+
+! Operação bipolar
+!       1                   2                    3                    4                    5                    6                     7                      8                      9                      10                     11                     12
+4  1    400.,400.,450.,     800.,620.,450.,      988.,620.,675.,      1200.,800.,675.,     2143.,800.,900.,     2521.,800.,1125.,     2800.,1020.,1125.,     3200.,1200.,1125.,     3265.,1200.,1350.,     3600.,1400.,1350.,     4518.,1400.,1575.,     4861.,1400.,1800.  /
+
+! RPC Manual (condições excepcionais para controle de tensão)
+
+! Operação monopolar
+!       1                   2                    3                    4                    5                    6
+2  1    200.,400.,450.,     1100.,620.,450.,     1731.,620.,675.,     2118.,620.,900.,     2200.,800.,900.,     2600.,1020.,900.  /
+
+! Operação bipolar
+!       1                   2                    3                    4                    5                    6                     7                      8                      9                      10                     11                     12                     13
+4  1    400.,400.,450.,     800.,620.,450.,      988.,620.,675.,      1200.,800.,675.,     2143.,800.,900.,     2800.,1020.,900.,     3265.,1020.,1125.,     3991.,1020.,1350.,     4000.,1200.,1350.,     4518.,1200.,1575.,     4518.,1200.,1575.,     4861.,1200.,1800.,     5000.,1400.,1800.  /
+
+END /
+!==============================================================================================================================
+
+!==============================================================================================================================
+!
+! Madeira Bipolo I e II (potência em Porto Velho) - Araraquara
+!
+!         #BRET  #BINV  #TBP BP1T1 BP2T1 BP1T2 BP2T2
+DCSHUNT    7055   7057     2     1     2     3     4  /
+
+! BIPOLO I (Eletronorte)
+
+! RPC Auto (condições normais)
+
+! Operação monopolar
+!       1                    2                   3                   4                   5                     6
+2  1    157.5,263.,305.,     236.,526.,305.,     473.,526.,610.,     788.,789.,610.,     1418.,1052.,610.,     1575.,1052.,915.  /
+
+! Operação bipolar
+!       1                   2                    3                   4                   5                     6                     7
+4  1    315.,526.,305.,     473.,526.,610.,      788.,789.,610.,     1103.,789.,915.,    1418.,1052.,915.,     2363.,1235.,915.,     3150.,1498.,1220.  /
+
+! RPC Manual (condições excepcionais para controle de tensão)
+
+! Operação monopolar
+!       1                    2                   3                    4
+!2  1    157.5,263.,305.,     236.,526.,305.,     1260.,526.,610.,     1890.,789.,610.  /
+
+! Operação bipolar
+!       1                   2                   3
+!4  1    315.,526.,305.,     788.,789.,610.,     2993.,1052.,610.  /
+
+! BIPOLO II (IE Madeira)
+
+! RPC Auto (condições normais)
+
+! Operação monopolar
+!       1                    2                   3                    4                     5
+2  2    157.5,494.,305.,     315.,494.,610.,     787.5,741.,610.,     1102.5,741.,915.,     1417.5,988.,915.  /
+
+! Operação bipolar
+!       1                    2                   3                    4
+4  2    315.,494.,610.,      945.,741.,610.,     1260.,741.,915.,     1575.,988.,915.  /
+
+! RPC Manual (condições excepcionais para controle de tensão)
+
+! Operação monopolar
+!       1                    2                   3                    4
+!2  2    157.5,494.,305.,     787.5,741.,305.,    1417.5,988.,610.,    1575,988.,915.  /
+
+! Operação bipolar
+!       1                    2                   3                    4                     5
+!4  2    315.,494.,305.,      945,741.,305.,      1260,741.,610.,      1575,988.,610.,       1890,988.,915.  /
+
+END /
+!==============================================================================================================================
+
+!==============================================================================================================================
+!
+! Back-to-back Porto Velho
+!
+!         #BRET  #BINV  #TBP BP1T1 BP2T1 BP1T2 BP2T2
+DCSHUNT    7055   7054     1     9    10     0     0  /
+
+! RPC Auto (condições normais)
+
+! Operação 1 Bloco
+!      1                2
+2  1   20.,142.,59.,    80.,142.,118.  /
+
+! Operação 2 Blocos
+!      1                2
+4  1   40.,284.,118.,   210.,284.,177. /
+
+! RPC Manual (condições excepcionais)
+
+! Operação 1 Bloco
+!      1                2
+!2  1   20.,142.,59.,    80.,142.,118.  /
+
+! Operação 2 Blocos
+!      1                2                 3
+!4  1   40.,142.,118.,   200.,142.,177.,   400.,284.,177. /
+
+
+END /
+
+!********************************************************************
+!                 VARIÁVEIS DE MONITORAÇÃO                          *
+!********************************************************************
+UDV FNS      PFLOW                                                                       
+  7238      299    1   1.00  /
+  7237     7103    2  -1.00  /
+  7236     7101    1  -1.00  /  
+    END   
+UDV FNESE    PFLOW             
+  4349     6444    1  -1.00  /
+   299     6444    1  -1.00  /
+  4351     5860    2  -1.00  /
+  4351     5860    1  -1.00  /
+  6220     4350    2   1.00  /
+  6220     4350    1   1.00  /
+  6349     4350    1   1.00  /
+  3050     6442    1  -1.00  /
+!Medeiros Neto II - Joao Neiva II C1 e C2  
+  7995      3034   1   1.00  /
+!  7995      3034   2   1.00  / 
+    END
+UDT FLUXOS     UDV         
+     FNS            1.0000     0.0000     0.0000
+     FNESE          1.0000     0.0000     0.0000 
+END 
+!==============================================================================================================================
+
+GNRGROUP NORDESTE
+5006	 PAFO1GUHE000
+5009	 PAF2G1UHE000
+5010	 PAF2G2UHE000
+5011	 PAF2G3UHE000
+5012	 PAF2G4UHE000
+5013	 PAF2G5UHE000
+5014	 PAF2G6UHE000
+5015	 PAF3G1UHE000
+5016	 PAF3G2UHE000
+5022	 PAFO-4UHE002
+5030	 ASALG1UHE000
+5032	 ASALG3UHE000
+5051	 LGONG1UHE001
+5054	 LGONG4UHE001
+5061	 XINGO-UHE002
+5134	 TCB---UTE000
+5145	 RCDSIESIN001
+5147	 RCDALSSIN001
+5151	 TERPEGUTE002
+5154	 TERPEVUTE001
+5178	 PEIII-UTE000
+5187	 PFERROUTE000
+5188	 TMANAUUTE000
+5205	 GNNT1-SIN000
+5218	 UTEPB-UTE000
+5219	 UTENE-UTE000
+5220	 CGRAN-UTE000
+5240	 POT1--UTE000
+5242	 POT3--UTE000
+5460	 MRU---UTE000
+5466	 UJSP--UTE000
+5654	 T.FTZGUTE002
+5655	 T.FTZVUTE001
+5658	 PPECEMUTE000
+5659	 PPD---UTE000
+5660	 TERMOCUTE000
+5700	 PSE-G-UTE000
+5746	 CSP---UTE002
+5762	 AREMBEUTE000
+5764	 MURICIUTE000
+5778	 CMDBP1SIN002
+5799	 CSP---UTE001
+5800	 PSE-V-UTE000
+5820	 GLOBA1UTE000
+5823	 GLOBA2UTE000
+5827	 CFURTAUTE000
+5888	 P.CAVAUHE000
+6021	 SUP1--UTE000
+6022	 SUP2--UTE000
+6023	 SUP3--UTE000
+6024	 SUP4--UTE000
+6025	 SUP5--UTE000
+6026	 SUP6--UTE000
+6104	 PROSP-UTE000
+6294	 SOBRADUHE003
+6295	 SOBRADSIN000
+6314	 PET---UTE000
+6347	 IRECE-SIN001
+END
+
+GNRGROUP MARANHAO
+5557	 TOC.I1UTE000
+5558	 TOC.I2UTE000
+5609	 PITAQUUTE000
+5642	 PARNIVUTE000
+5646	 MAR3-GUTE000
+5647	 MARIV-UTE000
+5648	 MARV--UTE000
+5650	 NVNC2-UTE000
+5815	 MAR3-VUTE000
+6447	 NOLI1-UTE000
+6448	 NOLI2-UTE000
+8159	 PARNV-UTE001
+44929	 PORTOCUTE000
+5509	 TERESISIN001
+5586	 PDUTRASIN001
+44074	 PDUTR2SIN001
+45017	 CRATEUSIN001
+
+END
+
+GNRGROUP NORTE
+6405  MARABASIN001
+6411  GA1TUCUHE000
+6412  GA2TUCUHE000
+6419  TUCUR1UHE005
+6420  TUCUR2UHE003
+6421  TUCUR2SIN000
+6422  TUCUR3UHE004
+6423  TUCUR3SIN000
+6424  TUCUR5UHE004
+6425  TUCUR6UHE007
+6555  PMTBL1UHE002
+6556  PMTBL2UHE002
+6559  PMTBL3UHE002
+6728  BMONTESIN000
+6729  BMONTEUHE018
+END
+
+GNRGROUP SUDESTE
+12	 LCBARRUHE005
+14	 FUNIL-UHE003
+16	 FURNASUHE006
+18	 ITUMBIUHE005
+20	 MARIMBUHE006
+22	 M.MORAUHE005
+24	 M.MORBUHE003
+28	 PCOLOMUHE003
+35	 CORUMBUHE003
+250	 NPECA2UHE002
+253	 FONTE2UHE002
+255	 PPASSOUHE002
+257	 I.POMBUHE004
+296	 S.BRANUHE002
+300	 EMBORCUHE003
+301	 JAGUARUHE003
+302	 NPONTEUHE003
+303	 SSIMAOUHE005
+304	 T.MAR-UHE005
+305	 V.GRD-UHE003
+306	 GUILMAUHE003
+312	 MIRANDUHE003
+317	 SOBRAGUHE003
+343	 IGARAPUHE004
+500	 A.VERMUHE005
+501	 I.SOLTUHE012
+502	 JUPIA-UHE009
+503	 JUPI--UHE002
+505	 ROSAN2UHE002
+506	 JURUMIUHE002
+507	 CAPIVAUHE003
+508	 CANOA1UHE003
+509	 CANOA2UHE003
+510	 PPRIMAUHE010
+511	 ROSAN1UHE002
+512	 S.GRD-UHE003
+513	 TAQUARUHE004
+514	 CHAVANUHE003
+515	 BARIRIUHE002
+516	 BBONITUHE003
+517	 IBITINUHE003
+518	 N.AVANUHE003
+519	 PROMISUHE003
+520	 3IRMAOUHE004
+521	 CACONDUHE002
+522	 ECUNHAUHE003
+523	 LIMOEIUHE002
+524	 BARIR2UHE001
+525	 JAGUA-UHE002
+526	 PARAIBUHE002
+614	 PIRAJUUHE002
+750	 C.DO11UHE002
+751	 C.DO13UHE002
+752	 C.DOU1UHE001
+753	 C.D13NUHE003
+754	 C.D13KUHE002
+1496	 BAGUARUHE003
+1501	 ITU+CAUHE004
+1502	 SGRANDUHE003
+1511	 S.CLARUHE003
+1559	 CANDONUHE003
+1594	 PESTREUHE002
+1599	 SACARVUHE004
+1866	 SDOMINUHE002
+2031	 OURIN-UHE003
+2600	 MASCA-UHE003
+2601	 SUICA-UHE002
+2602	 R.BOT-UHE002
+2696	 ROSAL-UHE002
+3014	 SFACAOUHE002
+3641	 CORUM4UHE002
+3642	 CORUM3UHE002
+3744	 ESPORAUHE003
+3986	 ITAOC1UHE000
+4016	 PIDACAUHE002
+4039	 QUEIMAUHE003
+4042	 AIMOREUHE003
+4044	 FUNGRDUHE003
+4052	 AMADO1UHE003
+4054	 AMADO2UHE003
+4064	 IRAPE-UHE003
+4068	 R.BAIXUHE002
+5975	 ITAPEBUHE000
+9442	 SALTO-UHE002
+9443	 S.R.V-UHE002
+9446	 BATALHUHE002
+9447	 FRCLARUHE002
+9448	 CACU--UHE002
+9449	 BCOQUEUHE002
+9500	 SIMPL-UHE003
+44322	 FONTE1UHE001
+44323	 NPECA1UHE003
+10	 ANGRA1UNE001
+11	 ANGRA2UNE001
+30	 SCRU19UTE000
+31	 SCRU13UTE000
+32	 SCRU16UTE000
+53	 GNA1G-UTE003
+54	 GNA1V-UTE001
+201	 RSIL-1UTE000
+269	 CSN---UTE002
+785	 QUIRINUTE000
+1500	 IGARAPUTE000
+1585	 IBIR-GUTE000
+1586	 IBIRITUTE000
+1749	 CANABRUTE000
+2979	 XAVAN-UTE037
+3004	 DAIA--UTE033
+3017	 GOIAN-UTE088
+3524	 TLGA-VUTE000
+3525	 TLGB-VUTE000
+3740	 PALMEIUTE099
+3962	 NFLU-GUTE003
+3963	 NFLU-VUTE001
+3974	 SEROP-UTE000
+3977	 TMACAGUTE000
+3978	 TMACAVUTE000
+4100	 JFORA1UTE000
+4180	 JFORA-UTE000
+4203	 TRG11-UTE001
+4204	 TRV18-UTE000
+4205	 TRV28-UTE000
+4206	 TRG21-UTE000
+4207	 TRG31-UTE000
+4208	 TRV38-UTE000
+4300	 TLGA-GUTE000
+4301	 TLGB-GUTE000
+4617	 FENIX-UTE013
+5978	 VERACEUTE001
+7656	 BRACE-UTE000
+8900	 ARCEL2UTE000
+8901	 ARCEL3UTE000
+8902	 ARCEL1UTE000
+8904	 CST1-2UTE002
+8905	 CST3-4UTE002
+8906	 SOL.--UTE002
+8907	 CSTTRTUTE001
+8910	 VIANA1UTE000
+8911	 VIANA2UTE000
+9026	 LINH--UTE000
+9451	 CACUI-UTE000
+9452	 QUIRI-UTE000
+9453	 BVISTAUTE000
+9454	 C.DOURUTE000
+9600	 CSA-G-UTE001
+9603	 CSA-V-UTE001
+9615	 CSA-G2UTE001
+9627	 BFLUMGUTE002
+9628	 BFLUMVUTE001
+44324	 TRG12-UTE000
+44325	 TRG22-UTE000
+44326	 TRG32-UTE000
+44327	 GNA2G-UTE000
+44329	 MAZL-GUTE000
+44410	 GNA2V-UTE000
+45063	 POVOA-UTE008
+45065	 KRK13AUTE000
+45066	 KRK13BUTE000
+45067	 KRK19AUTE000
+45068	 KRK19BUTE000
+45069	 PRSD1AUTE000
+45070	 PRSD1BUTE000
+45071	 PRSD1CUTE000
+45072	 PRSD2-UTE000
+13	 LCBARRSIN000
+17	 FURNASSIN001
+19	 ITUMBISIN000
+38	 GRAJA2SIN001
+41	 VITOR2SIN001
+44	 GRAJA1SIN001
+47	 VITORISIN001
+315	 BARRE-SIN001
+346	 MESQUISIN001
+354	 NEVE1-SIN001
+355	 NEVE2-SIN001
+402	 ARARQ2SIN003
+531	 I.SOLTSIN004
+4376	 JANAU3SIN002
+7885	 ESTREISIN003
+9034	 EMBORCSIN000
+9035	 NPONTESIN000
+9037	 VGRANDSIN000
+9041	 IRAPE-SIN000
+9504	 T.RIO-SIN002
+END
+
+GNRGROUP SUL
+800	 GBMUNHUHE003
+801	 GBMUNHSIN001
+802	 ARAUCGUTE000
+803	 ARAUCVUTE000
+804	 GPSOUZUHE003
+805	 GPSOUZSIN001
+806	 STACLAUHE002
+808	 GJRICHUHE003
+809	 GJRICHSIN001
+810	 GNBRAGUHE003
+811	 GNBRAGSIN001
+902	 COGLAGBIO034
+904	 ITA---UHE004
+905	 ITA---SIN001
+907	 JLA12AUTE002
+909	 JLA34AUTE002
+911	 JLA56BUTE002
+913	 JLA7C-UTE001
+915	 MACHADUHE003
+916	 MACHADSIN000
+917	 PFUNDOUHE002
+918	 PFUNDOSIN000
+919	 SOSO14UHE003
+920	 SOSO14SIN001
+921	 SOSO56UHE002
+922	 SOSO56SIN000
+925	 SSANTIUHE003
+926	 SSANTISIN001
+931	 MONJOLUHE002
+983	 MAUA--UHE003
+984	 MAUA--PCH002
+998	 PAMPASUTE001
+1033	 CONFLUPCH138
+1053	 TIBAGIUHE138
+1070	 FCHAPEUHE003
+1073	 FCHAPESIN001
+1100	 IPU-50UHE009
+1107	 IPU-60UHE009
+1150	 BGRANDUHE002
+1151	 BGRANDSIN001
+1152	 CANO-GUTE000
+1155	 ITAUBAUHE002
+1156	 ITAUBASIN002
+1157	 CNOVOSUHE003
+1158	 CNOVOSSIN000
+1159	 MCLAROUHE001
+1162	 JACUI-UHE003
+1164	 URUG-GUTE000
+1165	 URUG-VUTE000
+1166	 CALVESUHE002
+1168	 14JUL-UHE001
+1169	 CANO-VUTE000
+1173	 CANDI3UTE001
+1175	 PREAL-UHE001
+1176	 DFRANCUHE001
+1177	 DFRANCSIN001
+1181	 VENAIRSIN000
+1288	 PASMEIPCH013
+1316	 NPR2P2PCH069
+1317	 NPR2P1PCH069
+1319	 CGONZAPCH069
+1578	 UBER1-PCH138
+2050	 BUGRESPCH006
+2051	 CAN-G1PCH013
+2085	 LIVRA3SIN002
+2350	 CHAMINPCH006
+2352	 GUARICPCH013
+2475	 FUNDAOUHE002
+2836	 QQUEIXUHE003
+2863	 SPILAOUHE002
+9194	 CAN-G2PCH013
+9218	 PSJOAOUHE002
+9220	 SJOSE-UHE002
+9222	 KOTZIAPCH006
+9224	 DREHERPCH006
+9310	 SCAVA2PCH006
+9312	 PEZZI-PCH006
+9356	 BAIGUAUHE003
+9362	 BERNECUTE013
+9422	 LUDESAPCH138
+9699	 CANTU2PCH138
+9735	 GARIBAUHE003
+9740	 SROQUEUHE003
+9742	 NHORIZPCH034
+9747	 OURO--PCH034
+9749	 MOINHOPCH034
+9824	 MARME2SIN002
+9986	 KLACELUTE002
+10152	 SCAVA1PCH006
+10248	 CANHADPCH034
+10250	 INVERNPCH034
+10251	 FORQUIPCH034
+10288	 LCHEROPCH138
+10289	 DOISSAPCH138
+10290	 PAREDIPCH138
+10314	 SAOSEPUTE001
+10315	 CISFRAUTE001
+10318	 TUPITIPCH013
+10322	 MRO--3SIN002
+10323	 MACACOPCH138
+10335	 BELAVIPCH138
+10363	 PUMA2-UTE001
+10412	 BVISTAPCH138
+END
+
+GNRGROUP ACRO
+21	 MANSO-UHE004
+3543	 EGIDI-UTE034
+3549	 INPAS-UTE013
+3562	 INPMU-UTE013
+3564	 SONOR-UTE013
+4462	 COLID-UHE003
+4478	 SINOP-UHE002
+4489	 SMANO-UHE004
+4492	 TPIRESUHE005
+4520	 P.PEDRUHE003
+4523	 ITIQ-1UHE002
+4525	 ITIQ-2UHE002
+4596	 CBA-G-UTE000
+4597	 CBA-V-UTE000
+4651	 GUACU-BIO034
+4804	 GUAPO-UHE003
+4809	 JAURU-UHE003
+4825	 FSAGR-BIO013
+4827	 N.OLI-BIO013
+4828	 B.BUG-BIO013
+4831	 JUBA2-UHE003
+4846	 JUBA--UHE003
+4890	 DARDA1UHE004
+4891	 DARDA2UHE001
+6831	 ROND2-UHE003
+6832	 ROND2-UTE000
+6885	 JIPAR-SIN001
+6888	 SA-AD1UHE003
+6891	 SAMU1-UHE005
+6892	 SA-AD2UHE003
+6911	 T.NOR1UTE000
+6912	 T.N2-GUTE000
+6913	 T.N2-VUTE000
+6925	 RMAD--UTE000
+6926	 RMAD2-UTE000
+6970	 ARIQU-SIN001
+7050	 SA-MD-UHE008
+7051	 JIR-MDUHE026
+7061	 JIR-MEUHE021
+7062	 SA-LR-UHE012
+7064	 SA-ME-UHE023
+7735	 FSENERBIO013
+END
