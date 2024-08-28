@@ -18,7 +18,7 @@ if __name__ == '__main__':
 
     #linha_teste.Graficos_Por_REG(pathtosave)
     #linha_teste.Graficos_Por_VBA(pathtosave)
-    #linha_teste.Analises_Especificas(pathtosave)
+    linha_teste.Analises_Especificas(pathtosave)
     #linha_teste.Analise_PF(pathtosave)
 
-    linha_teste.Analise_1Linha(pathtosave,'SIMPLC-RN230',To = 'ACU3---RN230')
+    #linha_teste.Analise_1Linha(pathtosave,'SIMPLC-RN230',To = 'ACU3---RN230')
