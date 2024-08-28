@@ -999,7 +999,7 @@ class Analise_Linhas:
             shutil.move('Quantidade VBASE.txt', Pasta)
         
         if self.Top_10_L1:
-            grouped = self.PWF16_Filt_NEW.groupby(['To Name', 'From Name','REG'])['% L1'].mean().reset_index()
+            grouped = self.PWF16_Filt_NEW.groupby(['To Name', 'From Name','REG'])[['% L1', 'Mvar:Losses']].mean().reset_index()
             # Seleciona as 5 maiores linhas com base na coluna '% L1'
             top_5_grouped = grouped.nlargest(10, '% L1')
 
