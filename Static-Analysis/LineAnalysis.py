@@ -999,12 +999,14 @@ class Analise_Linhas:
             shutil.move('Quantidade VBASE.txt', Pasta)
         
         if self.Top_10_L1:
-            grouped = self.PWF16_Filt_NEW.groupby(['To Name', 'From Name','REG'])[['% L1', 'Mvar:Losses']].mean().reset_index()
-            # Seleciona as 5 maiores linhas com base na coluna '% L1'
+            grouped = self.PWF16_Filt_NEW.groupby(['To Name', 'From Name', 'REG', 'VBASEKV'])[['% L1', 'Mvar:Losses']].mean().reset_index()
+
+            # Seleciona as 10 maiores linhas com base na coluna '% L1'
             top_5_grouped = grouped.nlargest(10, '% L1')
 
             # Ordena em ordem decrescente por '% L1'
             top_5_grouped = top_5_grouped.sort_values(by='% L1', ascending=False)
+
             # Cria um mapeamento de cores para cada 'REG'
             unique_regs = top_5_grouped['REG'].unique()
             color_palette = sns.color_palette('Set2', len(unique_regs))
@@ -1013,13 +1015,13 @@ class Analise_Linhas:
             # Associa cada barra à cor correspondente com base na 'REG'
             bar_colors = top_5_grouped['REG'].map(reg_color_map)
 
-            # Cria o eixo x com a combinação das colunas 'To Name' e 'From Name'
-            x_labels = top_5_grouped['To Name'] + ' para ' + top_5_grouped['From Name']
+            # Cria o eixo x com a combinação das colunas 'To Name', 'From Name' e 'VBASEKV'
+            x_labels = top_5_grouped['To Name'] + '\npara' + top_5_grouped['From Name'] + '(' + top_5_grouped['VBASEKV'].astype(str) + ' kV)'
 
             # Cria o gráfico de barras com as cores mapeadas
             plt.figure(figsize=(10, 6))
-            plt.bar(x_labels, top_5_grouped['% L1'], color=bar_colors)
             bars = plt.bar(x_labels, top_5_grouped['% L1'], color=bar_colors)
+
             # Adiciona rótulos e título ao gráfico
             plt.xlabel('To Name para From Name')
             plt.ylabel('% L1')
@@ -1031,9 +1033,12 @@ class Analise_Linhas:
             # Adiciona uma legenda indicando as cores para cada 'REG'
             handles = [plt.Rectangle((0,0),1,1, color=reg_color_map[reg]) for reg in unique_regs]
             plt.legend(handles, unique_regs, title='REG', loc='best')
+
+            # Adiciona os valores acima de cada barra
             for bar in bars:
                 yval = bar.get_height()
                 plt.text(bar.get_x() + bar.get_width()/2, yval + 0.5, f'{yval:.2f}', ha='center', va='bottom')
+
 
 
             nome_arquivo = f'{Pasta}TOP_10_L1.png'
