@@ -53,6 +53,10 @@ class Analise_Linhas:
         self.histograma_linha = True
         self.MvarLosses_por_MWLosses = True
         self.MvarLosses_por_MWLosses_reg = True
+        self.Top_10_L1 = True
+
+
+        sns.set_theme(style="darkgrid")
 
     def Remover_e_salvar_L1MVA9999(self,Pasta):
         
@@ -993,7 +997,63 @@ class Analise_Linhas:
 
             # Movendo o arquivo para a pasta específica
             shutil.move('Quantidade VBASE.txt', Pasta)
+        
+        if self.Top_10_L1:
+            grouped = self.PWF16_Filt_NEW.groupby(['To Name', 'From Name', 'REG', 'VBASEKV'])[['% L1', 'Mvar:Losses']].mean().reset_index()
 
+            # Seleciona as 10 maiores linhas com base na coluna '% L1'
+            top_5_grouped = grouped.nlargest(10, '% L1')
+
+            # Ordena em ordem decrescente por '% L1'
+            top_5_grouped = top_5_grouped.sort_values(by='% L1', ascending=False)
+
+            # Cria um mapeamento de cores para cada 'REG'
+            unique_regs = top_5_grouped['REG'].unique()
+            color_palette = sns.color_palette('Set2', len(unique_regs))
+            reg_color_map = dict(zip(unique_regs, color_palette))
+
+            # Associa cada barra à cor correspondente com base na 'REG'
+            bar_colors = top_5_grouped['REG'].map(reg_color_map)
+
+            # Cria o eixo x com a combinação das colunas 'To Name', 'From Name' e 'VBASEKV'
+            x_labels = top_5_grouped['To Name'] + '\npara' + top_5_grouped['From Name'] + '(' + top_5_grouped['VBASEKV'].astype(str) + ' kV)'
+
+            # Cria o gráfico de barras com as cores mapeadas
+            plt.figure(figsize=(10, 6))
+            bars = plt.bar(x_labels, top_5_grouped['% L1'], color=bar_colors)
+
+            # Adiciona rótulos e título ao gráfico
+            plt.xlabel('To Name para From Name')
+            plt.ylabel('% L1')
+            plt.title('Top 10 maiores % L1')
+
+            # Rotaciona os rótulos do eixo x para melhor visualização
+            plt.xticks(rotation=45, ha='right')
+
+            # Adiciona uma legenda indicando as cores para cada 'REG'
+            handles = [plt.Rectangle((0,0),1,1, color=reg_color_map[reg]) for reg in unique_regs]
+            plt.legend(handles, unique_regs, title='REG', loc='best')
+
+            # Adiciona os valores acima de cada barra
+            for bar in bars:
+                yval = bar.get_height()
+                plt.text(bar.get_x() + bar.get_width()/2, yval + 0.5, f'{yval:.2f}', ha='center', va='bottom')
+
+
+
+            nome_arquivo = f'{Pasta}TOP_10_L1.png'
+            plt.tight_layout()  # Ajuste o layout antes de salvar
+            plt.savefig(nome_arquivo)
+
+            if not os.path.exists(Pasta):
+
+                os.makedirs(Pasta)
+
+            # Define o caminho completo para o arquivo Excel
+            file_path = os.path.join(Pasta, 'top_5_grouped.xlsx')
+
+            # Salva o DataFrame 'top_5_grouped' no arquivo Excel na pasta especificada
+            top_5_grouped.to_excel(file_path, index=False)
 
     def Analise_PF(self,Pasta):
         import os
