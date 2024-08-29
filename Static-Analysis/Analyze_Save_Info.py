@@ -140,8 +140,8 @@ class AnalyzeStaticCases:
             self.df_Final_nt = self.processdata.df_Final_nt
             self.DF_REGIONAL_GER = self.processdata.DF_REGIONAL_GER
             self.DF_REGIONAL_PQ = self.processdata.DF_REGIONAL_PQ
-            self.plots_static = Plots_Static(self.cenario, svg=False, PO=self.readjustONEcase)
 
+            self.plots_static = Plots_Static(self.cenario, svg=False, PO=self.readjustONEcase)
 
         ## ***************** (O código seguinte obtem as informações das linhas AC e DC e reserva por maquina) *****************
         
@@ -188,7 +188,6 @@ class AnalyzeStaticCases:
         if self.Options['LinhasData']:
 
             def addUF_linha(from_bus, to_bus, bus_info_map, vbasekv_map):
-
                 reg1 = bus_info_map.get(from_bus, np.nan)
                 Vbase1 = vbasekv_map.get(from_bus, np.nan)
                 reg2 = bus_info_map.get(to_bus, np.nan)
@@ -199,7 +198,6 @@ class AnalyzeStaticCases:
                     return np.nan, np.nan
                 
             def fromsaveddatainfo():
-
                 file = os.path.abspath("Static-Analysis/RECURSOS/GeoINFO_BusesSIN.csv")
                 df1 = pd.read_csv(file)
                 df1.drop(df1[df1['REG'] == np.nan].index)
@@ -213,7 +211,6 @@ class AnalyzeStaticCases:
                 else:
                     InfoBarras = fromsaveddatainfo()
 
-                
                 PWF16_concatenados_d1 = PWF16_concatenados[(PWF16_concatenados['Dia'] == PWF16_concatenados['Dia'].iloc[0]) & (PWF16_concatenados['Hora'] == PWF16_concatenados['Hora'].iloc[0])].groupby(by=['From#','To#']).first().reset_index().copy()
 
                 # Create a dictionary to map 'BUS_ID' to 'REG' and 'VBASEKV'
@@ -302,7 +299,6 @@ class AnalyzeStaticCases:
             dfelo3['Nome Elo'] = 'Elo_CPVBTB-PVEL'
             dfelo4 = self.DCLinks_concatenados[(self.DCLinks_concatenados['Bus #'] == 8100)].groupby(by=['Dia', 'Hora']).agg({' P(MW)': 'sum', ' Q(Mvar)': 'sum'})
             dfelo4['Nome Elo'] = 'Elo_XINGU-SE'
-
             dfelo5 = self.DCLinks_concatenados[(self.DCLinks_concatenados['Bus #'] == 8100) & (self.DCLinks_concatenados[' Pole #'].isin([1,2]))].groupby(by=['Dia', 'Hora']).agg({' P(MW)': 'sum', ' Q(Mvar)': 'sum'})
             dfelo5['Nome Elo'] = 'Elo_XINGU-ESTREI'
             dfelo6 = self.DCLinks_concatenados[(self.DCLinks_concatenados['Bus #'] == 8100) & (self.DCLinks_concatenados[' Pole #'].isin([3,4]))].groupby(by=['Dia', 'Hora']).agg({' P(MW)': 'sum', ' Q(Mvar)': 'sum'})
@@ -312,13 +308,6 @@ class AnalyzeStaticCases:
             df_HVDC = pd.concat([dfelo1, dfelo2, dfelo3, dfelo4], axis=0, keys=['Elo_FOZ-IBIUNA', 'Elo_PVEL-ARARQ', 'Elo_CPVBTB-PVEL' ,'Elo_XINGU-SE'])
             self.df_HVDC = df_HVDC
             
-            # if self.Options['PlotIntercambios'] == True and not self.readjustONEcase:
-            #     self.plots_static.plot_Intercambio (self.DF_Intercambios, df_HVDC , '(MW)', 'Exportação (N-S, NE-SE) e  Elo Xingu-SE', ['Fluxo_N-S', 'Fluxo_NE-SE'], ['Elo_XINGU-SE'], )
-            #     self.plots_static.plot_Intercambio (self.DF_Intercambios, df_HVDC , '(MW)', 'Exportação N-S e  Elo Xingu-SE', ['Fluxo_N-S'], ['Elo_XINGU-SE'], )
-            #     self.plots_static.plot_Intercambio (self.DF_Intercambios, df_HVDC , '(MW)', 'Comparativo Exportação NE-N e Elo Xingu-SE', ['Fluxo_NE-N'], ['Elo_XINGU-SE'], Xlimites=None)
-            #     self.plots_static.plot_Intercambio (self.DF_Intercambios, df_HVDC , '(MW)', 'Comparativo Exportação NE-SE e Elo FOZ-IBIUNA', ['Fluxo_NE-SE'], ['Elo_FOZ-IBIUNA'], Xlimites=None)
-            #     self.plots_static.plot_Intercambio (self.DF_Intercambios, df_HVDC , '(MW)', 'Comparativo Exportação SUL-SECO e Elo FOZ-IBIUNA', ['Fluxo_SUL-SECO'], ['Elo_FOZ-IBIUNA'], Xlimites=None)
-
     #=============================================================================================================================
     #                                                    RESERVA REGIONAL
     #=============================================================================================================================
@@ -334,60 +323,18 @@ class AnalyzeStaticCases:
                 self.SGN01_concatenados.rename(columns={'Bus':'BUS_ID', }, inplace=True)
                 self.SGN01_concatenados['BUS_ID'] = self.SGN01_concatenados['BUS_ID'].astype(float)
                 Df_Reserva = self.SGN01_concatenados.merge(df_Final_ger_mod, how = 'left', on='BUS_ID')
+
                 Df_Reserva = Df_Reserva[Df_Reserva['BUS_ID'] != 1100] #RETIRANDO ITAIPU 50HZ DA RESERVA
 
-                REG_groupReserve = Df_Reserva.groupby(by = ['Dia','Hora', 'REG']).agg({' Reserve': 'sum'})
-                GroupReserve = Df_Reserva.groupby(by = ['Dia','Hora']).agg({' Reserve': 'sum'})
-                self.dffreservaPO_REG_MW = REG_groupReserve
-                self.dffreservaPO_MW = GroupReserve
+                self.dffreservaPO_REG_MW = Df_Reserva.groupby(by = ['Dia','Hora', 'REG']).agg({' Reserve': 'sum'})
+                self.dffreservaPO_MW = Df_Reserva.groupby(by = ['Dia','Hora']).agg({' Reserve': 'sum'})
 
                 if not self.readjustONEcase:
-                    self.plots_static.plot_Potencia(GroupReserve[' Reserve'], '(MW)', 'RESERVA (MW) - SIN', limites=None)
-                    self.plots_static.plot_reserva_reg (REG_groupReserve, '(MW)', 'Reserva por Região', 'RESERVA POR REGIÃO', ' Reserve', xlimites=None,ylimites=None, order = False)
+                    self.plots_static.plot_Potencia(self.dffreservaPO_MW[' Reserve'], '(MW)', 'RESERVA (MW) - SIN', limites=None)
+                    self.plots_static.plot_reserva_reg (self.dffreservaPO_REG_MW, '(MW)', 'Reserva por Região', 'RESERVA POR REGIÃO', ' Reserve', xlimites=None,ylimites=None, order = False)
 
-            # ======================ESSE DATAFRAME É SÓ DA RESERVA DAS MAQUINAS COM MODELO DO GERADOR PARA O CONTROLE DE FREQ
-            # ===========================================================================================================================
-            self.df_Final_ger = self.df_Final_ger.merge(self.SGN01_concatenados[['BUS_ID',' Reserve',' Units','Dia','Hora']], on=['BUS_ID','Dia', 'Hora'], how='left')
-
-            #=============================================================================================================================
-            #                                                                   PLOTS RESERVA MVAR
-            #=============================================================================================================================
-            # dff_reserva = self.SGN01_concatenados.merge(self.df_Final_ger[['BUS_ID','Dia', 'Hora', 'ReservaIND', 'ReservaCAP', 'Ger_Active_Units', 'Ger_Units', 'QG_MVAR', 'key', 'REG']], on=['BUS_ID','Dia', 'Hora'], how='left')
-            # ============================================================================================================================
-            # dffreservaPO = dff_reserva.groupby(['Dia', 'Hora']).agg({'QG_MVAR': 'sum', 'ReservaIND':'sum', 'ReservaCAP':'sum'})
-            # dffreservaPO_REG = dff_reserva.groupby(['Dia', 'Hora', 'REG']).agg({'QG_MVAR': 'sum', 'ReservaIND':'sum', 'ReservaCAP':'sum'})
-            # self.dffreservaPO_MVAR = dffreservaPO
-            # self.dffreservaPO_REG_MVAR = dffreservaPO_REG
-
-            # if not self.readjustONEcase:
-            #     self.plots_static.plot_reserva_reg (dffreservaPO_REG, '(MVAR)', 'Reserva Capacitiva por Região MVAR', 'RESERVA CAPACITIVA POR REGIÃO MVAR', 'ReservaCAP', xlimites=None,ylimites=None, order = False)
-            #     self.plots_static.plot_reserva_reg (dffreservaPO_REG, '(MVAR)', 'Reserva Indutiva por Região MVAR', 'RESERVA INDUTIVA POR REGIÃO MVAR', 'ReservaIND', xlimites=None,ylimites=None, order = False)
-
-            #     fig, ax = plt.subplots(figsize=(20,10))
-            #     dffreservaPO['ReservaCAP'].plot(figsize=(20,10), grid=True, title='RESERVA CAPACITIVA (Mvar)',legend='RESERVA')
-            #     ax.tick_params(axis='x', labelsize=15)
-            #     ax.tick_params(axis='y', labelsize=15)
-            #     ax.set_xlabel('PO',fontsize = 15)
-            #     ax.set_ylabel('(MVAR)',fontsize = 15)
-            #     ax.set_title('RESERVA CAPACITIVA (Mvar)', fontsize = 20)
-            #     ax.legend(fontsize = 15)
-            #     nome = self.cenario + '/Plots/Reserva/Reserva_cap_mvar.png'
-            #     plt.savefig(nome, bbox_inches = 'tight')
-
-            #     fig, ax = plt.subplots(figsize=(20,10))
-            #     dffreservaPO['ReservaIND'].plot(figsize=(20,10), grid=True, title='RESERVA INDUTIVA (Mvar)',legend='RESERVA')
-            #     ax.tick_params(axis='x', labelsize=15)
-            #     ax.tick_params(axis='y', labelsize=15)
-            #     ax.set_xlabel('PO',fontsize = 15)
-            #     ax.set_ylabel('(MVAR)',fontsize = 15)
-            #     ax.set_title('RESERVA INDUTIVA (Mvar)', fontsize = 20)
-            #     ax.legend(fontsize = 15)
-            #     nome = self.cenario + '/Plots/Reserva/Reserva_ind_mvar.png'
-            #     plt.savefig(nome, bbox_inches = 'tight')
-            # else: 
-            #     dia= self.day
-            #     hora = self.DF_REGIONAL_GER.index.to_frame()['Hora'].unique()[0]
-            #     self.plots_static.analise_regiao_plot(self.DF_REGIONAL_GER.loc[dia,hora],'PowerPlot')
+                # ======================ESSE DATAFRAME É SÓ DA RESERVA DAS MAQUINAS COM MODELO DO GERADOR PARA O CONTROLE DE FREQ===========
+                self.df_Final_ger = self.df_Final_ger.merge(self.SGN01_concatenados[['BUS_ID',' Reserve',' Units','Dia','Hora']], on=['BUS_ID','Dia', 'Hora'], how='left')
 
     #=============================================================================================================================
     #                                                POTENCIA ATIVA E REATIVA
@@ -398,21 +345,21 @@ class AnalyzeStaticCases:
 
             print('Active and Reactive Power Analysis and Plots:...')
             regioes = self.DF_REGIONAL_GER.reset_index()['REG'].unique()
-            df_pg = self.DF_REGIONAL_GER.reset_index(level=['Dia','Hora', 'REG'])[['key','PG_MW','PL_MW','PG_EOL','PG_SOL', 'Dia', 'Hora', 'QG_MVAR']]
-            df_pg['PG_FERV'] =  (df_pg['PG_EOL'] + df_pg['PG_SOL'])/df_pg['PL_MW']
-            df_grouped = df_pg.groupby(by = ['Dia', 'Hora']).sum(numeric_only=True)
-            self.df_grouped = df_grouped
+            df_pg = self.DF_REGIONAL_GER.reset_index(level=['Dia','Hora', 'REG'])[['key','PG_MW','PL_MW','PG_UHE','PG_UTE','PG_EOL','PG_SOL', 'Dia', 'Hora', 'QG_MVAR','QG_UHE','QG_EOL','QG_SOL','QG_UTE','QL_MVAR']]
+            self.df_grouped = df_pg.groupby(by = ['Dia', 'Hora']).sum(numeric_only=True)
+            self.df_grouped['PG_FERV'] =  (self.df_grouped['PG_EOL'] + self.df_grouped['PG_SOL'])/self.df_grouped['PL_MW']
+            self.df_grouped['Dem_Liquida'] =  self.df_grouped['PL_MW'] - (self.df_grouped['PG_EOL'] + self.df_grouped['PG_SOL'])
 
             if not self.readjustONEcase:
-
-                self.plots_static.plot_Potencia(df_grouped['QG_MVAR'], '(MVAR)', 'MW POTÊNCIA REATIVA GERADA - SIN', limites=None)
-                self.plots_static.plot_Potencia(df_grouped['PG_MW'], '(MW)', 'MVAR POTÊNCIA ATIVA GERADA - SIN', limites=None)
-                self.plots_static.plot_Potencia(df_grouped['PL_MW'], '(MW)', 'MW POTÊNCIA ATIVA DEMANDA BRUTA - SIN', limites=None)
 
                 typeGenDic = {'QG_UHE':'Num_Usinas_UHE', 'QG_UTE':'Num_Usinas_UTE', 'QG_EOL':'Num_Usinas_EOL','QG_SOL':'Num_Usinas_SOL', 'QG_BIO':'Num_Usinas_BIO'}
                 typeGenRegDic = {'Norte':['QG_UHE','QG_EOL','QG_SOL','QG_UTE'],'Nordeste':['QG_UHE','QG_EOL','QG_SOL','QG_UTE'],'Sudeste-Centro-Oeste':['QG_UHE','QG_EOL','QG_SOL','QG_UTE','QG_BIO'],'Sul':['QG_UHE','QG_EOL','QG_UTE','QG_BIO'], 'AC-RO':['QG_UHE','QG_UTE']}
                 typeGenDic_MW = {'PG_UHE':'Num_Usinas_UHE', 'PG_UTE':'Num_Usinas_UTE', 'PG_EOL':'Num_Usinas_EOL','PG_SOL':'Num_Usinas_SOL', 'PG_BIO':'Num_Usinas_BIO'}
                 typeGenRegDic_MW = {'Norte':['PG_UHE','PG_EOL','PG_SOL','PG_UTE'],'Nordeste':['PG_UHE','PG_EOL','PG_SOL','PG_UTE'],'Sudeste-Centro-Oeste':['PG_UHE','PG_EOL','PG_SOL','PG_UTE','PG_BIO'],'Sul':['PG_UHE','PG_EOL','PG_UTE','PG_BIO'], 'AC-RO':['PG_UHE','PG_UTE']}
+                
+                self.plots_static.plot_Potencia(self.df_grouped['QG_MVAR'], '(MVAR)', 'MW POTÊNCIA REATIVA GERADA - SIN', limites=None)
+                self.plots_static.plot_Potencia(self.df_grouped['PG_MW'], '(MW)', 'MVAR POTÊNCIA ATIVA GERADA - SIN', limites=None)
+                self.plots_static.plot_Potencia(self.df_grouped['PL_MW'], '(MW)', 'MW POTÊNCIA ATIVA DEMANDA BRUTA - SIN', limites=None)
 
                 for reg in regioes:
                     self.plots_static.plot_Potencia(self.DF_REGIONAL_GER.loc[:,:,reg]['QG_MVAR'], '(MVAR)', 'MVAR POTÊNCIA REATIVA GERADA - ' + reg, limites=None)
@@ -596,7 +543,7 @@ class AnalyzeStaticCases:
             df_DPI_PO['DPI_PO_final'] = df_DPI_PO['DPI_PO'].pow(1 / (2 * n))
             self.df_DPI_PO = df_DPI_PO
 
-            self.plots_static.plot_indice_0(df_DPI_PO, r'$\mathrm{DPI}$', 'DPI_PO_final', '', 'DPI_PO_final', order=True, ylimites=[-0.05, 1.5], pathtosave= f'{self.folder_path}/Plots/{self.indexfolder}/')
+            self.plots_static.plot_indice_0(self.df_DPI_PO, r'$\mathrm{DPI}$', 'DPI_PO_final', '', 'DPI_PO_final', order=True, ylimites=[-0.05, 1.5], pathtosave= f'{self.folder_path}/Plots/{self.indexfolder}/')
             
             print('Ploting DPI Analysis: ...')
             if self.Options['plotDPI']:
