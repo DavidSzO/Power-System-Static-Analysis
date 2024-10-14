@@ -1,6 +1,6 @@
 from LineAnalysis import *
 
-scenario = 'MPA FNS lim_novos'
+scenario = 'V2A2F5_rev5'
 main_path = f'C:/Users/David/OneDrive/Documents/FERV_documentos/RESULTS/{scenario}/StaticAnalysis/'
 path_data = f'C:/Users/David/OneDrive/Documents/FERV_documentos/RESULTS/{scenario}/StaticAnalysis/Data/Fluxo em Ramos/Df_Linhas.csv'
 path_PWF_NC = f'C:/Users/David/OneDrive/Documents/FERV_documentos/RESULTS/{scenario}/StaticAnalysis/Data/Geral/PWF_NC.csv'

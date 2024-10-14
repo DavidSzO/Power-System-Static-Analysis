@@ -6,13 +6,13 @@ import glob
 
 class Opf_Simulation():
 
-    def __init__(self, path, nome, pathtosave, copypwf):
+    def __init__(self, path, nome, pathtosave, copypwf, GerDSAFile=False):
         
         self.path_folder = path
         self.nome = nome
         self.path_main = pathtosave
         self.copypwf = copypwf
-        
+        self.GerDSAFile = GerDSAFile
     def OPF_Process(self):
 
         path_folder = self.path_main
@@ -20,6 +20,7 @@ class Opf_Simulation():
         days = [nomes_archivos for nomes_archivos in files_and_directories if 'DS20' in nomes_archivos] 
         days.sort() 
         contenidos = []
+        contenidosdyn = []
 
         for dayfolder in days:
             
@@ -29,6 +30,7 @@ class Opf_Simulation():
 
             path_from = self.path_folder
             nomespwf = [i for i in os.listdir(path_)  if (i.startswith('PTOPER_')) & (i.endswith('.pwf')) ]
+            nomesntw = [i for i in os.listdir(path_to_output)  if (i.endswith('.ntw')) ]
 
             # Copia cada arquivo ao directorio de destino
             if self.copypwf:
@@ -91,13 +93,50 @@ class Opf_Simulation():
             with open(path_script_org, 'r') as f:
                 contenidos.append(f.read())
 
+            if self.GerDSAFile:
+
+                for i in nomesntw:
+                    path_dsa = path_to_output + f"/{i.replace('.ntw','.dsa')}"
+                    with open(path_dsa, 'w') as f:
+        
+                        f.write(i)
+                        f.write('\n')
+                        f.write('Model.dyn')
+                        f.write('\n')
+                        f.write('DCShunt_Revisado.def')
+                        f.write('\n')
+                        f.write('SelectedEvents.evt')
+                        f.write('\n')
+                        f.write('SEP_BMONTE_ITAIPU_CORB.sps')
+                        f.write('\n')
+
+
+                path_dyn = path_to_output + "/Script_DynSimulation.txt"  
+                with open(path_dyn, 'w') as f:
+                    for i in nomesntw:
+                        path_dsa = path_to_output + f"/{i.replace('.ntw','.dsa')}"
+                        f.write('OPEN ' + path_dsa)
+                        f.write('\n')
+                        f.write('DSA DOP')
+                        f.write('\n')
+                        f.write('\n')
+
+                with open(path_dyn, 'r') as f:
+                    contenidosdyn.append(f.read())
+
         contenido_combinado = '\n'.join(contenidos)
         nome = self.path_main + 'ScriptScenarios.txt'
         with open(nome, 'w') as f:
             f.write(contenido_combinado)
-
         print(' => As pastas com os arquivos para rodar o OPF e PWF no Organon foram criadas')
 
+        if self.GerDSAFile:
+
+            contenido_combinado_dyn = '\n'.join(contenidosdyn)
+            nome = self.path_main + 'ScriptDynamic.txt'
+            with open(nome, 'w') as f:
+                f.write(contenido_combinado_dyn)
+            print(' => As pastas com os arquivos para rodar as simulações dinâmicas no Organon foram criadas')
 
     def HVDCchanger(self):
         # Function to fill elos_cc from CSV file

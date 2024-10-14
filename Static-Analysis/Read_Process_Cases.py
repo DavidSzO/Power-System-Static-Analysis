@@ -119,7 +119,7 @@ class ReadScenarios:
         }
         col_list_lines = [
             'From#', ' From Name', ' To# - Circ#', ' To Name', ' Type', ' MVA', ' % L1', ' L1(MVA)', ' MW:From-To',
-            ' Mvar:From-To', ' Mvar:Losses',' MW:Losses', ' MW:To-From', ' Power Factor:From-To', ' Power Factor:To-From',
+            ' Mvar:From-To', ' Mvar:Losses',' MW:Losses', ' MW:To-From', ' Power Factor:From-To', ' Power Factor:To-From', ' Area'
         ]
         col_list_hvdc = ['Bus #', ' Bus Name', ' Type', ' Pole #', ' P(MW)', ' Q(Mvar)', ' Status']
         col_list_reserve = ['Bus', ' Group', ' Bus Name', ' Area', ' Zone', ' V (pu)', ' Pg(MW)', ' Qg(Mvar)', ' Reserve', ' Units']
@@ -163,7 +163,7 @@ class ReadScenarios:
         
         if linhas:
             PWF16_concatenados = read_files('PWF16_', col_list_lines) 
-            PWF16_concatenados.rename(columns={'From#':'From#', ' From Name': 'From Name', ' To# - Circ#':'To# - Circ#', ' To Name':'To Name', ' Type':'Type', ' MVA':'MVA', ' MW:From-To':'MW:From-To', ' Mvar:From-To':'Mvar:From-To',' % L1':'% L1', ' L1(MVA)':'L1(MVA)',  ' Mvar:Losses':'Mvar:Losses', ' MW:Losses':'MW:Losses', ' MW:To-From':'MW:To-From', ' Power Factor:From-To':'Power Factor:From-To', ' Power Factor:To-From':'Power Factor:To-From'}, inplace=True)
+            PWF16_concatenados.rename(columns={'From#':'From#', ' From Name': 'From Name', ' To# - Circ#':'To# - Circ#', ' To Name':'To Name', ' Type':'Type', ' MVA':'MVA', ' MW:From-To':'MW:From-To', ' Mvar:From-To':'Mvar:From-To',' % L1':'% L1', ' L1(MVA)':'L1(MVA)',  ' Mvar:Losses':'Mvar:Losses', ' MW:Losses':'MW:Losses', ' MW:To-From':'MW:To-From', ' Power Factor:From-To':'Power Factor:From-To', ' Power Factor:To-From':'Power Factor:To-From',' Area':'ARE'}, inplace=True)
 
             if not PWF16_concatenados.empty:
                 print("Concatenação das linhas")

@@ -116,10 +116,13 @@ class AnalyzeStaticCases:
                 if self.Options['busdata']:
                     file = os.path.abspath("Static-Analysis/RECURSOS/GeoINFO_BusesSIN.csv")
                     df1 = pd.read_csv(file)
+                    file = os.path.abspath("Static-Analysis/RECURSOS/Areas_with_Regions.csv")
+                    df2 = pd.read_csv(file)
                     #************************ Merge com o DATA FRAME COMPLETO ***************************
                     columns = ['BUS_ID', 'BUS_NAME', 'VBASEKV', 'TP', 'ARE', 'MODV_PU', 'ANGV_DEG', 'BASE_MVA', 'PG_MW', 'QG_MVAR', 'PMAX_MW', 'PMIN_MW', 'QMX_MVAR','QMN_MVAR', 'Ger_Units','Ger_Active_Units', 'PL_MW', 'QL_MVAR', 'TC', 'VMAX_PU', 'VMIN_PU', 'BCO_ID', 'B0_MVAR', 'ST', 'SHUNT_INST_IND', 'SHUNT_INST_CAP', 'Dia','Hora']
-                    self.processdata.Df_VF_SF = self.cases.Df_Cases[columns].merge(df1[['BUS_ID','Gen_Type','U_FED','REG', 'Latitude','Longitude']], on='BUS_ID', how='left')
-                    self.processdata.Df_VF_SF.drop(self.processdata.Df_VF_SF[self.processdata.Df_VF_SF['REG'] == np.nan].index)
+                    self.processdata.Df_VF_SF = self.cases.Df_Cases[columns].merge(df1[['BUS_ID', 'Gen_Type', 'Latitude','Longitude']], on='BUS_ID', how='left')
+                    self.processdata.Df_VF_SF = self.processdata.Df_VF_SF.merge(df2[['ARE','Group_Area','U_FED','REG']], on='ARE', how='left')
+                    self.processdata.Df_VF_SF.drop(self.processdata.Df_VF_SF[self.processdata.Df_VF_SF['REG'].isna()].index, inplace=True)
                 else:
                     print("Associating the buses to the states and regions")
                     self.processdata.get_processdata(self.cases.Df_Cases)
@@ -207,7 +210,7 @@ class AnalyzeStaticCases:
             def Main_linha_addREG(PWF16_concatenados):
                 if not self.Options['OnlyPWF_datagen']:
                     Df_VF_SF = self.processdata.Df_VF_SF
-                    InfoBarras = Df_VF_SF[(Df_VF_SF['Dia']==Df_VF_SF['Dia'].iloc[0]) & (Df_VF_SF['Hora']==Df_VF_SF['Hora'].iloc[0])][['BUS_ID','BUS_NAME','VBASEKV','REG', 'U_FED', 'Gen_Type','Latitude', 'Longitude', 'key', 'ARE']]
+                    InfoBarras = Df_VF_SF[(Df_VF_SF['Dia']==Df_VF_SF['Dia'].iloc[0]) & (Df_VF_SF['Hora']==Df_VF_SF['Hora'].iloc[0])][['BUS_ID','BUS_NAME','VBASEKV','REG', 'U_FED', 'Gen_Type','Latitude', 'Longitude', 'key']]
                 else:
                     InfoBarras = fromsaveddatainfo()
 
@@ -656,14 +659,14 @@ class AnalyzeStaticCases:
             
             if self.Options['ComputeDPI'] and not self.Options['OnlyPWF_datagen']:
                 if self.Options['ReservaData']:
-                    self.df_Final_ger_PWFC.to_csv(f'{self.cenario}/Data/Geral/Df_ger.csv', index=False, columns=['key','BUS_ID', 'BUS_NAME', 'ARE', 'MODV_PU', 'ANGV_DEG', 'PG_MW', 'QG_MVAR', 'Dia', 'Hora', 'U_FED', 'Gen_Type', 'REG', 'B0_MVAR', 'ST', 'SHUNT_INST_IND', 'SHUNT_INST_CAP', 'ReservaIND', 'ReservaCAP','IndiceInf', 'IndiceSup',' Reserve','Ger_Active_Units','Ger_Units',' Units', 'Qmin', 'Qmax'])
-                self.df_Final_nt_PWFC.to_csv(f'{self.cenario}/Data/Geral/Df_nt.csv', index=False, columns=['key','BUS_ID', 'BUS_NAME', 'ARE', 'MODV_PU', 'ANGV_DEG', 'VBASEKV', 'PL_MW', 'QL_MVAR', 'Dia', 'Hora', 'U_FED', 'REG', 'B0_MVAR', 'ST', 'SHUNT_INST_IND', 'SHUNT_INST_CAP', 'ReservaINDshunt', 'ReservaCAPshunt','IndiceInf', 'IndiceSup'])
+                    self.df_Final_ger_PWFC.to_csv(f'{self.cenario}/Data/Geral/Df_ger.csv', index=False, columns=['key','BUS_ID', 'BUS_NAME', 'ARE', 'MODV_PU', 'ANGV_DEG', 'PG_MW', 'QG_MVAR', 'Dia', 'Hora', 'U_FED', 'Gen_Type', 'REG', 'B0_MVAR', 'ST', 'SHUNT_INST_IND', 'SHUNT_INST_CAP', 'ReservaIND', 'ReservaCAP','IndiceInf', 'IndiceSup',' Reserve','Ger_Active_Units','Ger_Units',' Units', 'Qmin', 'Qmax','Group_Area'])
+                self.df_Final_nt_PWFC.to_csv(f'{self.cenario}/Data/Geral/Df_nt.csv', index=False, columns=['key','BUS_ID', 'BUS_NAME', 'ARE', 'MODV_PU', 'ANGV_DEG', 'VBASEKV', 'PL_MW', 'QL_MVAR', 'Dia', 'Hora', 'U_FED', 'REG', 'B0_MVAR', 'ST', 'SHUNT_INST_IND', 'SHUNT_INST_CAP', 'ReservaINDshunt', 'ReservaCAPshunt','IndiceInf', 'IndiceSup','Group_Area'])
 
             if self.Options['LinhasData']:
                 if not self.Options['OnlyPWF_datagen']:
                     self.DF_REGIONAL_GER[['key','PG_MW', 'QG_MVAR', 'PL_MW', 'QL_MVAR','Shunt_Ind', 'Shunt_Cap','SHUNT_INST_IND', 'SHUNT_INST_CAP', 'ReservaIND', 'ReservaCAP','PG_UHE', 'PG_UTE', 'PG_EOL', 'PG_SOL', 'PG_BIO', 'PG_Dist', 'QG/QL', 'PG/PL', 'PG_FERV', 'ReservaINDshunt', 'ReservaCAPshunt']].to_csv(self.cenario + '/Data/Potencia/DF_POT_Reg.csv')
                 self.PWF16_Filt_linhas[['key','From#','To#','From Name','To Name','% L1', 'L1(MVA)', 'Mvar:Losses','MW:Losses', 'Dia', 'Hora','REG', 'VBASEKV','MVA', 'MW:From-To', 'MW:To-From','Power Factor:From-To','Power Factor:To-From']].to_csv(self.cenario+'/Data/Fluxo em Ramos/Df_Linhas.csv', index=None)
-                self.PWF16_Filt_TRAFO[['key','From#','To#','From Name','To Name','% L1', 'L1(MVA)', 'Mvar:Losses','MW:Losses','Dia', 'Hora','REG', 'VBASEKV','MVA', 'MW:From-To', 'MW:To-From','Power Factor:From-To','Power Factor:To-From']].to_csv(self.cenario+'/Data/Fluxo em Ramos/Df_Trafo.csv', index=None)
+                self.PWF16_Filt_TRAFO[['key', 'From#','To#','From Name','To Name','% L1', 'L1(MVA)', 'Mvar:Losses','MW:Losses','Dia', 'Hora','REG', 'VBASEKV','MVA', 'MW:From-To', 'MW:To-From','Power Factor:From-To','Power Factor:To-From']].to_csv(self.cenario+'/Data/Fluxo em Ramos/Df_Trafo.csv', index=None)
                 
             if self.Options['IntercambiosData']:
                 self.DF_Intercambios = self.processdata.add_key(self.DF_Intercambios.reset_index())

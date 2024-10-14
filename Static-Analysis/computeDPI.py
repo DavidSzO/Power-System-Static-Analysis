@@ -14,6 +14,7 @@ class ComputeDPI():
          # List of regions and states
         self.regioes = df_Final_nt['REG'].unique()
         self.estados = ['AC', 'RO', 'AM', 'AP', 'PA', 'TO', 'MA', 'AL', 'BA', 'CE', 'PB', 'PE', 'PI', 'RN', 'SE', 'DF', 'GO', 'MT', 'MS', 'ES', 'MG', 'RJ', 'SP', 'PR', 'RS', 'SC']
+        # self.estados = ['AC', 'RO', 'AM', 'AP', 'PA', 'TO', 'MA', 'AL', 'BA', 'CE', 'PB', 'PI', 'DF', 'GO', 'MT', 'MS', 'ES', 'MG', 'RJ', 'SP', 'PR', 'RS', 'SC']
 
         self.get_computeindex(df_Final_nt, df_Final_ger,ts,tb, p_norm, p_inf, NBcv)
 

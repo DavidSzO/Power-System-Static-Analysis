@@ -28,7 +28,7 @@ class PlotterMainStatic():
 
     def handeldataplot (self):
 
-        if 'Df_ger' or 'Df_nt' in self.selectdata:
+        if 'Df_ger' in self.selectdata or 'Df_nt' in self.selectdata:
 
             def boxplot_barrasGeracao(Df_VF, groupflag):
 
@@ -62,18 +62,18 @@ class PlotterMainStatic():
                     self.plot_boxplot(data_VBASEKV, labels_VBASEKV, 'Bus Voltage Distribution by Voltage Level', 'Voltage Level (kV)', 'Voltage (pu)', text=True, nbarra=Nbarras_VBASEKV, pathtosave=None)
 
             # PARAMETROS A SER ESCOLHIDOS NA INTERFAZ ANTES DE PLOTAS ***
-            self.groupbyreg = False  # parametro que agrupa por região se for TRUE, se for FALSE agrupa por tipo de barra
+            self.groupbyreg = True  # parametro que agrupa por região se for TRUE, se for FALSE agrupa por tipo de barra
             if self.selectplot == 'Boxplot':
                 if self.selectdata == 'Df_ger':
                     boxplot_barrasGeracao(self.df, self.groupbyreg) 
                 else: # Caso a data venha de Df_nt
                     boxplot_barrasCarga(self.df, self.groupbyreg)               
 
-        elif 'Df_PQ_DPI_S1' or 'Df_PV_DPI_S1' in self.selectdata:
+        if ('Df_PQ_DPI_S1' in self.selectdata) or ('Df_PV_DPI_S1' in self.selectdata):
 
-            self.all_sameplot  = True
-            self.REG = 'Norte'
-            self.busgroup = 230
+            self.all_sameplot  = False
+            self.REG = 'Nordeste'
+            self.busgroup = 'UHE'
 
             if self.selectdata == 'Df_PQ_DPI_S1':
                 BusGroup = 'VBASEKV'
@@ -97,9 +97,9 @@ class PlotterMainStatic():
 
         elif 'Df_DPI_S2' in self.selectdata:
 
-            self.all_sameplot  = False
-            self.REG = 'Norte'
-            self.BusType = 'PQ'
+            self.all_sameplot  = True
+            self.REG = 'Sudeste-Centro-Oeste'
+            self.BusType = 'PV'
             y_var = self.variable_y
 
             df = self.df.set_index(['level_0','Dia','Hora','REG'])
@@ -116,7 +116,7 @@ class PlotterMainStatic():
                 else:
                     self.plot_line(df.loc[f'DPI_{self.BusType}',:,:,self.REG], y_var, 'Porcentagem de meias horas em um mês (%)', '(p.u)', f'{y_var} por Região - {self.REG}', '', order=True, month = False)
 
-        elif 'Df_DPI_S3' or 'Df_DPI_S4' in self.selectdata:
+        elif 'Df_DPI_S3' in self.selectdata or 'Df_DPI_S4' in self.selectdata :
         
             y_var = self.variable_y
             df = self.df
@@ -126,7 +126,7 @@ class PlotterMainStatic():
             elif self.selectplot == 'Persistence Curve':
                 self.plot_line(df, y_var, 'Porcentagem de meias horas em um mês (%)', '(p.u)', f'{y_var}', '', order=True, month = False)
                  
-        elif '_REG_' or '_Reg' in self.selectdata:
+        elif '_REG_' in self.selectdata or '_Reg' in self.selectdata:
 
             self.all_sameplot  = True
             self.REG = 'Norte'
@@ -152,7 +152,7 @@ class PlotterMainStatic():
             df = self.df
             
             if self.selectplot == 'Lineplot':
-                self.plot_line(df, y_var, 'Pontos de Operação', '(MW)', f'{y_var} por Ponto de Operação', '', order=False, month = False)
+                self.plot_line(df, y_var, 'Pontos de Operação', '(MW)', f'{y_var} por Ponto de Operação', '', order=False, month = True)
             elif self.selectplot == 'Persistence Curve':
                 self.plot_line(df, y_var, 'Porcentagem de meias horas em um mês (%)', '(MW)', f'{y_var}', '', order=True, month = False)
 
@@ -269,5 +269,4 @@ class PlotterMainStatic():
         # plt.close()
 
 
-
-PlotterMainStatic('C:/Users/David/OneDrive/Documents/FERV_documentos/RESULTS/V1A1F2_rev5/StaticAnalysis/Data/Geral/Df_ger.csv','Boxplot', 'CSI_INF')
+PlotterMainStatic('C:/Users/David/OneDrive/Documents/FERV_documentos/RESULTS/V1A1F2_rev5/StaticAnalysis/Data/Potencia/DF_POT_Reg.csv','Lineplot', 'PG_UHE')

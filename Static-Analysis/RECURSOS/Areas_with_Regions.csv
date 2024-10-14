@@ -1,0 +1,164 @@
+ARE,Name,UF,Group_Area,U_FED,REG
+1,RS - 525 kV,RS,525 kV,RS,Sul
+2,RS - 230 kV,RS,230 kV,RS,Sul
+3,RS - DIT/DIS,RS,DIT/DIS,RS,Sul
+4,RS - DIT/DIS,RS,DIT/DIS,RS,Sul
+5,RS - Consumi,RS,Consumi,RS,Sul
+6,RS - Autopro,RS,Autopro,RS,Sul
+30,None,None,,,
+35,None,None,,,
+51,SC - 525 kV,SC,525 kV,SC,Sul
+52,SC - 230 kV,SC,230 kV,SC,Sul
+53,SC - DIT/DIS,SC,DIT/DIS,SC,Sul
+54,SC - Consumi,SC,Consumi,SC,Sul
+101,PR - 525 kV,PR,525 kV,PR,Sul
+102,PR - 230 kV,PR,230 kV,PR,Sul
+103,PR - DIT/DIS,PR,DIT/DIS,PR,Sul
+104,PR - Consumi,PR,Consumi,PR,Sul
+105,PR - Autopro,PR,Autopro,PR,Sul
+201,SP - 765 kV,SP,765 kV,SP,Sudeste-Centro-Oeste
+202,SP - 500 kV,SP,500 kV,SP,Sudeste-Centro-Oeste
+203,SP - 440 kV,SP,440 kV,SP,Sudeste-Centro-Oeste
+204,SP - 345 kV,SP,345 kV,SP,Sudeste-Centro-Oeste
+205,SP - 230 kV,SP,230 kV,SP,Sudeste-Centro-Oeste
+206,SP - DIT/DIS,SP,DIT/DIS,SP,Sudeste-Centro-Oeste
+207,SP - DIT/DIS,SP,DIT/DIS,SP,Sudeste-Centro-Oeste
+208,SP - DIT/DIS,SP,DIT/DIS,SP,Sudeste-Centro-Oeste
+209,SP - DIT/DIS,SP,DIT/DIS,SP,Sudeste-Centro-Oeste
+210,SP - DIT/DIS,SP,DIT/DIS,SP,Sudeste-Centro-Oeste
+211,SP - DIT/DIS,SP,DIT/DIS,SP,Sudeste-Centro-Oeste
+212,SP - DIT/DIS,SP,DIT/DIS,SP,Sudeste-Centro-Oeste
+213,SP - DIT/DIS,SP,DIT/DIS,SP,Sudeste-Centro-Oeste
+214,SP - DIT/DIS,SP,DIT/DIS,SP,Sudeste-Centro-Oeste
+215,SP - Autopro,SP,Autopro,SP,Sudeste-Centro-Oeste
+216,SP - Consumi,SP,Consumi,SP,Sudeste-Centro-Oeste
+217,SP - Autopro,SP,Autopro,SP,Sudeste-Centro-Oeste
+241,PY - Sistema,PY,Sistema,,
+251,RJ - 500 kV,RJ,500 kV,RJ,Sudeste-Centro-Oeste
+252,RJ - 345 kV,RJ,345 kV,RJ,Sudeste-Centro-Oeste
+253,RJ - 230 kV,RJ,230 kV,RJ,Sudeste-Centro-Oeste
+254,RJ - DIT/DIS,RJ,DIT/DIS,RJ,Sudeste-Centro-Oeste
+255,RJ - DIT/DIS,RJ,DIT/DIS,RJ,Sudeste-Centro-Oeste
+256,RJ - DIT/DIS,RJ,DIT/DIS,RJ,Sudeste-Centro-Oeste
+257,RJ - DIT/DIS,RJ,DIT/DIS,RJ,Sudeste-Centro-Oeste
+258,RJ - DIT/DIS,RJ,DIT/DIS,RJ,Sudeste-Centro-Oeste
+259,RJ - DIT/DIS,RJ,DIT/DIS,RJ,Sudeste-Centro-Oeste
+260,RJ - Consumi,RJ,Consumi,RJ,Sudeste-Centro-Oeste
+261,RJ - Autopro,RJ,Autopro,RJ,Sudeste-Centro-Oeste
+262,RJ - Autopro,RJ,Autopro,RJ,Sudeste-Centro-Oeste
+301,ES - 500 kV,ES,500 kV,ES,Sudeste-Centro-Oeste
+302,ES - 345 kV,ES,345 kV,ES,Sudeste-Centro-Oeste
+303,ES - 230 kV,ES,230 kV,ES,Sudeste-Centro-Oeste
+304,ES - DIT/DIS,ES,DIT/DIS,ES,Sudeste-Centro-Oeste
+305,ES - DIT/DIS,ES,DIT/DIS,ES,Sudeste-Centro-Oeste
+306,ES - DIT/DIS,ES,DIT/DIS,ES,Sudeste-Centro-Oeste
+307,ES - Autopro,ES,Autopro,ES,Sudeste-Centro-Oeste
+351,MG - 500 kV,MG,500 kV,MG,Sudeste-Centro-Oeste
+352,MG - 345 kV,MG,345 kV,MG,Sudeste-Centro-Oeste
+353,MG - 230 kV,MG,230 kV,MG,Sudeste-Centro-Oeste
+354,MG - DIT/DIS,MG,DIT/DIS,MG,Sudeste-Centro-Oeste
+355,MG - DIT/DIS,MG,DIT/DIS,MG,Sudeste-Centro-Oeste
+356,MG - DIT/DIS,MG,DIT/DIS,MG,Sudeste-Centro-Oeste
+357,MG - DIT/DIS,MG,DIT/DIS,MG,Sudeste-Centro-Oeste
+358,MG - DIT/DIS,MG,DIT/DIS,MG,Sudeste-Centro-Oeste
+359,MG - DIT/DIS,MG,DIT/DIS,MG,Sudeste-Centro-Oeste
+360,MG - DIT/DIS,MG,DIT/DIS,MG,Sudeste-Centro-Oeste
+361,MG - DIT/DIS,MG,DIT/DIS,MG,Sudeste-Centro-Oeste
+362,MG - Consumi,MG,Consumi,MG,Sudeste-Centro-Oeste
+363,MG - Autopro,MG,Autopro,MG,Sudeste-Centro-Oeste
+401,MS - 440 kV,MS,440 kV,MS,Sudeste-Centro-Oeste
+402,MS - 230 kV,MS,230 kV,MS,Sudeste-Centro-Oeste
+403,MS - DIT/DIS,MS,DIT/DIS,MS,Sudeste-Centro-Oeste
+404,MS - Autopro,MS,Autopro,MS,Sudeste-Centro-Oeste
+405,MS - Autopro,MS,Autopro,MS,Sudeste-Centro-Oeste
+431,AC - 230 kV,AC,230 kV,AC,AC-RO
+432,AC - DIT/DIS,AC,DIT/DIS,AC,AC-RO
+451,RO - 500 kV,RO,500 kV,RO,AC-RO
+452,RO - 230 kV,RO,230 kV,RO,AC-RO
+453,RO - DIT/DIS,RO,DIT/DIS,RO,AC-RO
+454,RO - DIT/DIS,RO,DIT/DIS,RO,AC-RO
+455,RO - DIT/DIS,RO,DIT/DIS,RO,AC-RO
+456,RO - DIT/DIS,RO,DIT/DIS,RO,AC-RO
+457,RO - DIT/DIS,RO,DIT/DIS,RO,AC-RO
+458,RO - DIT/DIS,RO,DIT/DIS,RO,AC-RO
+459,RO - DIT/DIS,RO,DIT/DIS,RO,AC-RO
+460,RO - DIT/DIS,RO,DIT/DIS,RO,AC-RO
+471,MT - 500 kV,MT,500 kV,MT,Sudeste-Centro-Oeste
+472,MT - 230 kV,MT,230 kV,MT,Sudeste-Centro-Oeste
+473,MT - DIT/DIS,MT,DIT/DIS,MT,Sudeste-Centro-Oeste
+474,MT - DIT/DIS,MT,DIT/DIS,MT,Sudeste-Centro-Oeste
+475,MT - DIT/DIS,MT,DIT/DIS,MT,Sudeste-Centro-Oeste
+476,MT - DIT/DIS,MT,DIT/DIS,MT,Sudeste-Centro-Oeste
+477,MT - DIT/DIS,MT,DIT/DIS,MT,Sudeste-Centro-Oeste
+478,MT - DIT/DIS,MT,DIT/DIS,MT,Sudeste-Centro-Oeste
+479,MT - DIT/DIS,MT,DIT/DIS,MT,Sudeste-Centro-Oeste
+480,MT - Consumi,MT,Consumi,MT,Sudeste-Centro-Oeste
+481,MT - Autopro,MT,Autopro,MT,Sudeste-Centro-Oeste
+511,GO - 500 kV,GO,500 kV,GO,Sudeste-Centro-Oeste
+512,GO - 345 kV,GO,345 kV,GO,Sudeste-Centro-Oeste
+513,GO - 230 kV,GO,230 kV,GO,Sudeste-Centro-Oeste
+514,GO - DIT/DIS,GO,DIT/DIS,GO,Sudeste-Centro-Oeste
+515,GO - DIT/DIS,GO,DIT/DIS,GO,Sudeste-Centro-Oeste
+516,GO - DIT/DIS,GO,DIT/DIS,GO,Sudeste-Centro-Oeste
+517,GO - DIT/DIS,GO,DIT/DIS,GO,Sudeste-Centro-Oeste
+518,GO - DIT/DIS,GO,DIT/DIS,GO,Sudeste-Centro-Oeste
+519,GO - Consumi,GO,Consumi,GO,Sudeste-Centro-Oeste
+520,GO - Autopro,GO,Autopro,GO,Sudeste-Centro-Oeste
+561,DF - 500 kV,DF,500 kV,DF,Sudeste-Centro-Oeste
+562,DF - 345 kV,DF,345 kV,DF,Sudeste-Centro-Oeste
+563,DF - 230 kV,DF,230 kV,DF,Sudeste-Centro-Oeste
+564,DF - DIT/DIS,DF,DIT/DIS,DF,Sudeste-Centro-Oeste
+582,TO - 230 kV,TO,230 kV,TO,Norte
+583,TO - DIT/DIS,TO,DIT/DIS,TO,Norte
+701,BA - 500 kV,BA,500 kV,BA,Nordeste
+702,BA - 230 kV,BA,230 kV,BA,Nordeste
+703,BA - DIT/DIS,BA,DIT/DIS,BA,Nordeste
+704,BA - Consumi,BA,Consumi,BA,Nordeste
+711,BA/SE - 500,BA/SE,500,BA,Nordeste
+712,BA/SE - 230,BA/SE,230,BA,Nordeste
+713,BA/SE - DIT/,BA/SE,DIT/,BA,Nordeste
+714,BA/SE - DIT/,BA/SE,DIT/,BA,Nordeste
+715,BA/SE - Cons,BA/SE,Cons,BA,Nordeste
+716,BA/SE - Auto,BA/SE,Auto,BA,Nordeste
+721,AL/PE - 500,AL/PE,500,AL,Nordeste
+722,AL/PE - 230,AL/PE,230,AL,Nordeste
+723,AL/PE - DIT/,AL/PE,DIT/,AL,Nordeste
+724,AL/PE - Cons,AL/PE,Cons,AL,Nordeste
+741,PB/RN - 500,PB/RN,500,PB,Nordeste
+742,PB/RN - 230,PB/RN,230,PB,Nordeste
+743,PB/RN - DIT/,PB/RN,DIT/,PB,Nordeste
+744,PB/RN - Cons,PB/RN,Cons,PB,Nordeste
+761,CE - 500 kV,CE,500 kV,CE,Nordeste
+762,CE - 230 kV,CE,230 kV,CE,Nordeste
+763,CE - DIT/DIS,CE,DIT/DIS,CE,Nordeste
+764,CE - Consumi,CE,Consumi,CE,Nordeste
+771,PI - 500 kV,PI,500 kV,PI,Nordeste
+772,PI - 230 kV,PI,230 kV,PI,Nordeste
+773,PI - DIT/DIS,PI,DIT/DIS,PI,Nordeste
+800,,,,,
+801,AM - 500 kV,AM,500 kV,AM,Norte
+802,AM - 230 kV,AM,230 kV,AM,Norte
+803,AM - DIT/DIS,AM,DIT/DIS,AM,Norte
+804,AM - DIT/DIS,AM,DIT/DIS,AM,Norte
+805,AM - DIT/DIS,AM,DIT/DIS,AM,Norte
+806,AM - DIT/DIS,AM,DIT/DIS,AM,Norte
+821,AP - 230 kV,AP,230 kV,AP,Norte
+822,AP - DIT/DIS,AP,DIT/DIS,AP,Norte
+841,PA - 500 kV,PA,500 kV,PA,Norte
+842,PA - 230 kV,PA,230 kV,PA,Norte
+843,PA - 230 kV,PA,230 kV,PA,Norte
+844,PA - 230 kV,PA,230 kV,PA,Norte
+845,PA - DIT/DIS,PA,DIT/DIS,PA,Norte
+846,PA - DIT/DIS,PA,DIT/DIS,PA,Norte
+847,PA - DIT/DIS,PA,DIT/DIS,PA,Norte
+848,PA - Consumi,PA,Consumi,PA,Norte
+861,MA - 500 kV,MA,500 kV,MA,Norte
+862,MA - 230 kV,MA,230 kV,MA,Norte
+863,MA - 230 kV,MA,230 kV,MA,Norte
+864,MA - DIT/DIS,MA,DIT/DIS,MA,Norte
+865,MA - DIT/DIS,MA,DIT/DIS,MA,Norte
+866,MA - Consumi,MA,Consumi,MA,Norte
+881,TO - 500 kV,TO,500 kV,TO,Norte
+882,TO - 230 kV,TO,230 kV,TO,Norte
+883,TO - DIT/DIS,TO,DIT/DIS,TO,Norte
+998,,,,,
