@@ -27,7 +27,7 @@ class Analise_Linhas:
         #self.PW16_OLD =  self.PWF16_Filt_NEW.copy()
 
         self.PWF16_Filt_NEW = self.PWF16_Filt_NEW[(self.PWF16_Filt_NEW['L1(MVA)']!=9999)]
-
+        self.Grafico_geral = True
         self.Grafico_Maior_L1 = True
         self.plotar_grafico_de_calor = True
         self.boxplot_REG = True
@@ -41,8 +41,10 @@ class Analise_Linhas:
         self.PVI = True
         self.PFI_Grafico = True
         self.PFI_Excel = True
-        self.histograma_html = True
-        self.histograma_png = True
+        self.histograma_REG_html = True
+        self.histograma_REG_png = True
+        self.histograma_VBASE_html = True
+        self.histograma_VBASE_png = True
         self.histograma_1reg_html= True
         self.histograma_1reg_png = True
         self.carregamento_linha = True
@@ -101,6 +103,222 @@ class Analise_Linhas:
     def Graficos_Por_REG(self, Pasta):
         import matplotlib.pyplot as plt
         sns.set_theme(style="darkgrid")
+
+        import plotly.express as px
+        import pandas as pd
+
+        # Loop pelas regiões
+        for reg in self.PWF16_Filt_NEW['REG'].unique():
+            # Filtrar o DataFrame pela região atual
+            df_reg = self.PWF16_Filt_NEW[self.PWF16_Filt_NEW['REG'] == reg]
+            df_grouped = df_reg.groupby(['Hora', 'Dia']).agg({
+                'MW:Losses': 'sum', 
+                'Mvar:Losses': 'sum', 
+                '% L1': 'mean'
+            }).reset_index()
+
+            # Criar o gráfico de dispersão interativo com Plotly
+            fig = px.scatter(
+                df_grouped,
+                x='Mvar:Losses',
+                y='MW:Losses',
+                color='% L1',
+                color_continuous_scale='Viridis',  # Troque 'coolwarm' por uma paleta compatível
+                hover_data={'Hora': True, 'Dia': True, '% L1': ':.2f'},
+                labels={'Mvar:Losses': 'Mvar:Losses', 'MW:Losses': 'MW:Losses', '% L1': '% L1'},
+                title=f'Mvar:Losses por MW:Losses com Graduação de Cores por % L1 - Região {reg}'
+            )
+
+            # Personalizar o layout e salvar
+            fig.update_layout(
+                coloraxis_colorbar=dict(title='% L1'),
+                xaxis_title='Mvar:Losses',
+                yaxis_title='MW:Losses'
+            )
+
+            # Salvar o gráfico interativo em HTML
+            nome_arquivo = f'{Pasta}% L1rLosses_por_MW_{reg}.html'
+            fig.write_html(nome_arquivo)
+
+
+
+
+
+        colors = ['b', 'g', 'r', 'c', 'orange']
+        grouped = self.PWF16_Filt_NEW.groupby(['From#', 'To#', 'REG'])['% L1'].mean().reset_index()
+
+        # Encontrar o tamanho de cada grupo 'REG'
+        reg_sizes = grouped['REG'].value_counts()
+
+        # Encontrar o tamanho do 'REG' com maior tamanho
+        max_reg_size = reg_sizes.max()
+
+        # Ordenando os dados por '% L1' dentro de cada 'REG'
+        grouped.sort_values(by=['REG', '% L1'], inplace=True)
+
+        # Plotagem do gráfico de pontos
+        fig, ax = plt.subplots()
+
+        for i, (reg, group) in enumerate(grouped.groupby('REG')):
+            ax.scatter(range(len(group)), group['% L1'], color=colors[i], label=reg)
+
+        # Definir os valores do eixo x com base no tamanho do 'REG' máximo e mais 3 pontos
+        x_values = [max_reg_size] + [max_reg_size - (max_reg_size // 4) * j for j in range(1, 4)]  # Valores decrescentes
+        ax.set_xticks(x_values)
+        ax.set_xticklabels(x_values)
+        ax.set_xlabel('Total de linhas')  # Definindo o rótulo do eixo x
+        ax.yaxis.grid(True)  # Adicionar grade somente no eixo y
+        ax.set_ylabel('% L1 Médio de cada linha')
+        ax.legend(title='REG')
+        plt.title('Carregamento Médio de cada linha em ordem crescente', fontsize=15)
+        nome_arquivo2 = f'{Pasta}Carregamento_MédioL1_de_cada_linha_em_ordem_crescente.png'
+        plt.tight_layout() 
+        plt.savefig(nome_arquivo2)
+
+        colors = ['b', 'g', 'r', 'c', 'orange']
+        grouped = self.PWF16_Filt_NEW.groupby(['From#', 'To#', 'REG'])['Mvar:Losses'].mean().reset_index()
+
+        # Encontrar o tamanho de cada grupo 'REG'
+        reg_sizes = grouped['REG'].value_counts()
+
+        # Encontrar o tamanho do 'REG' com maior tamanho
+        max_reg_size = reg_sizes.max()
+
+        # Ordenando os dados por '% L1' dentro de cada 'REG'
+        grouped.sort_values(by=['REG', 'Mvar:Losses'], inplace=True)
+
+        # Plotagem do gráfico de pontos
+        fig, ax = plt.subplots()
+
+        for i, (reg, group) in enumerate(grouped.groupby('REG')):
+            ax.scatter(range(len(group)), group['Mvar:Losses'], color=colors[i], label=reg)
+
+        # Definir os valores do eixo x com base no tamanho do 'REG' máximo e mais 3 pontos
+        x_values = [max_reg_size] + [max_reg_size - (max_reg_size // 4) * j for j in range(1, 4)]  # Valores decrescentes
+        ax.set_xticks(x_values)
+        ax.set_xticklabels(x_values)
+        ax.set_xlabel('Total de linhas')  # Definindo o rótulo do eixo x
+        ax.yaxis.grid(True)  # Adicionar grade somente no eixo y
+        ax.set_ylabel('% L1 Médio de cada linha')
+        ax.legend(title='REG')
+        plt.title('Perda Reativa Média de cada linha em ordem crescente', fontsize=15)
+        nome_arquivo2 = f'{Pasta}Carregamento_MédioMvar_de_cada_linha_em_ordem_crescente.png'
+        plt.tight_layout() 
+        plt.savefig(nome_arquivo2)
+
+        import plotly.express as px
+        import pandas as pd
+
+        # Agrupar o DataFrame
+        df_grouped = self.PWF16_Filt_NEW.groupby(['Hora', 'Dia']).agg({
+            'MW:Losses': 'sum', 
+            'Mvar:Losses': 'sum', 
+            '% L1': 'mean'
+        }).reset_index()
+
+        # Criar o gráfico de dispersão interativo com Plotly
+        fig = px.scatter(
+            df_grouped,
+            x='Mvar:Losses',
+            y='MW:Losses',
+            color='% L1',
+            color_continuous_scale='Viridis',  # Substituindo 'coolwarm' por uma paleta compatível
+            hover_data={'Hora': True, 'Dia': True, '% L1': ':.2f'},
+            labels={'Mvar:Losses': 'Mvar:Losses', 'MW:Losses': 'MW:Losses', '% L1': '% L1'},
+            title='Mvar:Losses por MW:Losses por ponto de operação (semi-hora)'
+        )
+
+        # Personalizar a barra de cores e os títulos
+        fig.update_layout(
+            coloraxis_colorbar=dict(title='% L1'),
+            xaxis_title='Mvar:Losses',
+            yaxis_title='MW:Losses'
+        )
+
+        # Salvar o gráfico interativo como um arquivo HTML
+        nome_arquivo = f'{Pasta}% L1rLosses_por_MW.html'
+        fig.write_html(nome_arquivo)
+
+        if self.Grafico_geral:
+            import matplotlib.pyplot as plt
+
+            regioes = ['Norte', 'Nordeste', 'AC-RO', 'Sudeste-Centro-Oeste', 'Sul']
+            colors = ['b', 'g', 'r', 'c', 'orange']
+
+            # Filtrar os dados para as regiões desejadas e com VBASEKV >= 230
+            PWF16_Filt_Regioes = self.PWF16_Filt_NEW[(self.PWF16_Filt_NEW['REG'].isin(regioes)) & (self.PWF16_Filt_NEW['VBASEKV'] >= 230)]
+
+            # Calcular a média do '% L1' para cada combinação de 'Dia' e 'REG'
+            media_por_combinacao = PWF16_Filt_Regioes.groupby(['Dia', 'REG'])['% L1'].mean().reset_index()
+
+            # Definir a lista de todos os dias que devem aparecer no eixo X
+            dias = sorted(media_por_combinacao['Dia'].unique())
+
+            # Criação do gráfico de linha
+            plt.figure(figsize=(12, 6))
+            plt.title('Média do % L1 nas Regiões por Dia', fontsize=20)
+
+            # Para cada região, plote uma linha com a cor correspondente
+            for reg, color in zip(regioes, colors):
+                # Filtrar os dados para a região atual
+                dados_regiao = media_por_combinacao[media_por_combinacao['REG'] == reg]
+                
+                # Plotar a linha com a cor correspondente
+                plt.plot(dados_regiao['Dia'], dados_regiao['% L1'], label=reg, color=color)
+
+            # Configuração do eixo X e Y
+            plt.xticks(dias, fontsize=16)  # Exibir todos os dias no eixo X e rotacionar para melhor visualização
+            plt.xlabel('Dia', fontsize=18)
+            plt.ylabel('Média do % L1', fontsize=18)
+            plt.tick_params(axis='y', which='major', labelsize=16)
+
+            # Adicionar legenda
+            plt.legend(title='Região', fontsize=12)
+
+            # Salvar o gráfico
+            nome_arquivo2 = f'{Pasta}Linha_dia.png'
+            plt.tight_layout()  # Ajuste o layout antes de salvar
+            plt.savefig(nome_arquivo2)
+
+
+                    
+
+            # Filtrar os dados para as regiões desejadas e com VBASEKV >= 230
+            PWF16_Filt_Regioes = self.PWF16_Filt_NEW[(self.PWF16_Filt_NEW['REG'].isin(regioes)) & (self.PWF16_Filt_NEW['VBASEKV'] >= 230)]
+
+            # Calcular a média do '% L1' para cada combinação de 'Dia', 'Hora' e 'REG'
+            media_por_combinacao = PWF16_Filt_Regioes.groupby(['Hora', 'REG'])['% L1'].mean().reset_index()
+
+            # Criação do gráfico de linha
+            plt.figure(figsize=(12, 6))
+            plt.title('Média do % L1 nas Regiões por Hora', fontsize=20)
+
+            # Para cada região, plote uma linha com a cor correspondente
+            for reg, color in zip(regioes, colors):
+                # Filtrar os dados para a região atual
+                dados_regiao = media_por_combinacao[media_por_combinacao['REG'] == reg]
+                
+                # Plotar a linha com a cor correspondente
+                plt.plot(dados_regiao['Hora'], dados_regiao['% L1'], label=reg, color=color)
+
+            # Configuração do eixo X e Y
+            plt.xticks(fontsize=16, rotation=90)
+            plt.xlabel('Hora', fontsize=18)
+            plt.ylabel('Média do % L1', fontsize=18)
+            plt.tick_params(axis='y', which='major', labelsize=16)
+
+            # Adicionar legenda
+            plt.legend(title='Região', fontsize=12)
+
+            # Salvar o gráfico
+            nome_arquivo2 = f'{Pasta}Linha_hora.png'
+            plt.tight_layout()  # Ajuste o layout antes de salvar
+            plt.savefig(nome_arquivo2)
+
+
+
+
+
         if self.Grafico_Maior_L1:
             def Grafico_Maior_L1(REG):
                 
@@ -189,7 +407,7 @@ class Analise_Linhas:
                 # Crie um gráfico de calor para 'Mvar:Losses'
                 plt.figure(figsize=(12, 6))
 
-                ax = sns.heatmap(pivot_Mvar_Losses, cmap='Reds_r', cbar=True, fmt=".2f")
+                ax = sns.heatmap(pivot_Mvar_Losses, cmap='coolwarm', cbar=True, fmt=".2f")
 
                 cbar = ax.collections[0].colorbar
                 cbar.ax.set_ylabel('Mvar:Losses', fontsize=16)  # Aumente o tamanho do rótulo da barra de legenda
@@ -208,7 +426,7 @@ class Analise_Linhas:
 
                 plt.figure(figsize=(12, 6))
 
-                ax = sns.heatmap(pivot_percent_L1, cmap='Reds', cbar=True, fmt=".2f")
+                ax = sns.heatmap(pivot_percent_L1, cmap='coolwarm', cbar=True, fmt=".2f",vmin=15, vmax=30)
 
                 cbar = ax.collections[0].colorbar
                 cbar.ax.set_ylabel('% L1', fontsize=16)  # Aumente o tamanho do rótulo da barra de legenda
@@ -252,7 +470,7 @@ class Analise_Linhas:
             boxprops = dict(facecolor='white', color='black')
             bp2 = plt.boxplot([media_por_combinacao[media_por_combinacao['REG'] == reg]['% L1'] for reg in regioes], 
                             vert=True, positions=range(1, len(regioes) + 1), 
-                            widths=0.6, patch_artist=True, showfliers=True, boxprops=boxprops)
+                            widths=0.6, patch_artist=True, showfliers=False, boxprops=boxprops)
 
             # Preencha as caixas com as cores correspondentes
             for box, color in zip(bp2['boxes'], colors):
@@ -287,7 +505,7 @@ class Analise_Linhas:
             boxprops = dict(facecolor='white', color='black')
             bp2 = plt.boxplot([media_por_combinacao[media_por_combinacao['REG'] == reg]['Mvar:Losses'] for reg in regioes], 
                             vert=True, positions=range(1, len(regioes) + 1), 
-                            widths=0.6, patch_artist=True, showfliers=True, boxprops=boxprops)
+                            widths=0.6, patch_artist=True, showfliers=False, boxprops=boxprops)
 
             # Preencha as caixas com as cores correspondentes
             for box, color in zip(bp2['boxes'], colors):
@@ -340,7 +558,36 @@ class Analise_Linhas:
                 plt.tight_layout()  # Ajuste o layout antes de salvar
                 plt.savefig(nome_arquivo)
 
-                
+                PWF16_Filt_Reg = self.PWF16_Filt_NEW[(self.PWF16_Filt_NEW['REG'] == Reg) & (self.PWF16_Filt_NEW['VBASEKV'] >= 230)]
+                resultados_agregados_hora = PWF16_Filt_Reg.groupby('Dia').agg({'% L1': 'mean', 'Mvar:Losses': 'mean'})
+
+                fig, ax1 = plt.subplots(figsize=(12, 6))
+                plt.suptitle(f'Gráfico média %L1 e Mvar: {Reg}', fontsize=24)
+
+                ax1.plot(resultados_agregados_hora.index, resultados_agregados_hora['% L1'], label='% L1', color='blue')
+                ax1.set_xlabel('Dias', fontsize=18)  # Aumente o tamanho do rótulo do eixo x
+                ax1.set_ylabel('% L1', color='blue', fontsize=18)
+
+                # Criar um segundo eixo y no mesmo gráfico
+                ax2 = ax1.twinx()
+                ax2.plot(resultados_agregados_hora.index, resultados_agregados_hora['Mvar:Losses'], label='Mvar:Losses', color='red')
+                ax2.set_ylabel('Mvar:Losses', color='red', fontsize=18)
+
+                # Defina as posições das marcações e os rótulos do eixo x
+                ax1.set_xticks(range(len(resultados_agregados_hora.index)))
+                ax1.set_xticklabels(resultados_agregados_hora.index, rotation=90, fontsize=14)
+
+                ax1.tick_params(axis='y', which='major', labelsize=16, colors='tab:blue')
+                ax2.tick_params(axis='y', which='major', labelsize=16, colors='tab:red')
+
+                ax1.legend(loc='upper left', fontsize=16)
+                ax2.legend(loc='upper right', fontsize=16)
+
+                # Defina o nome do arquivo antes de salvá-lo
+                nome_arquivo = f'{Pasta}{Reg}_dia.png'
+                plt.tight_layout()  # Ajuste o layout antes de salvar
+                plt.savefig(nome_arquivo)
+
 
             # Chamadas de função para plotagem
             plotar_grafico_por_reg('Norte')
@@ -349,14 +596,14 @@ class Analise_Linhas:
             plotar_grafico_por_reg('Sudeste-Centro-Oeste')
             plotar_grafico_por_reg('Sul')
 
-        if self.histograma_html:
+        if self.histograma_REG_html:
             
             # Definir o renderizador padrão para o navegador
             pio.renderers.default = 'browser'
 
 
             # Obter valores únicos de 'VBASEKV'
-            vbasekv_values = self.PWF16_Filt_NEW['VBASEKV'].unique()
+            vbasekv_values = self.PWF16_Filt_NEW['REG'].unique()
             vbasekv_values.sort()
 
             # Lista para armazenar os dados dos histogramas
@@ -365,17 +612,17 @@ class Analise_Linhas:
             # Loop para criar histogramas para cada valor de 'VBASEKV'
             for vbasekv in vbasekv_values:
                 # Filtra o DataFrame pelo valor atual de 'VBASEKV'
-                df_filtered = self.PWF16_Filt_NEW[self.PWF16_Filt_NEW['VBASEKV'] == vbasekv]
+                df_filtered = self.PWF16_Filt_NEW[self.PWF16_Filt_NEW['REG'] == vbasekv]
                 
                 # Agrupa os dados por 'From#' e 'To#' e calcula a média de '% L1'
                 df_grouped = df_filtered.groupby(['From#', 'To#'])['% L1'].mean().reset_index()
                 
                 # Adiciona os dados do histograma à lista
-                hist_data.append(go.Histogram(x=df_grouped['% L1'], nbinsx=20, name=f'VBASEKV = {vbasekv}', opacity=0.5))
+                hist_data.append(go.Histogram(x=df_grouped['% L1'], nbinsx=20, name=f'REG = {vbasekv}', opacity=0.5))
 
             # Cria o layout do gráfico
             layout = go.Layout(
-                title='Carregamento médio das linhas de todas as regiões por VBASEKV',
+                title='Carregamento médio das linhas de todas as regiões por REG',
                 xaxis=dict(title='% L1'),
                 yaxis=dict(title='Frequência'),
                 barmode='overlay',
@@ -408,7 +655,7 @@ class Analise_Linhas:
                 os.makedirs(Pasta)
 
             # Nome do arquivo HTML
-            file_name = 'histograma_todas_reg.html'
+            file_name = 'histograma_todas_reg_REG.html'
 
             # Caminho completo para o arquivo HTML
             file_path = os.path.join(Pasta, file_name)
@@ -416,20 +663,20 @@ class Analise_Linhas:
             # Salvar o gráfico como arquivo HTML
             fig.write_html(file_path)
 
-        if self.histograma_png:
+        if self.histograma_REG_png:
 
             # Supondo que o DataFrame PWF16_Filt_NEW já esteja carregado
             # Valor específico de 'VBASEKV' que queremos analisar separadamente
-            vbasekv_specific = 230
+            vbasekv_specific = 'AC-RO'
 
             # Configuração dos gráficos
             fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(14, 16))
 
             # Gráfico para o valor específico de 'VBASEKV'
-            df_filtered_specific = self.PWF16_Filt_NEW[self.PWF16_Filt_NEW['VBASEKV'] == vbasekv_specific]
+            df_filtered_specific = self.PWF16_Filt_NEW[self.PWF16_Filt_NEW['REG'] == vbasekv_specific]
             df_grouped_specific = df_filtered_specific.groupby(['From#', 'To#'])['% L1'].mean().reset_index()
             axes[0].hist(df_grouped_specific['% L1'], bins=20, alpha=0.5, edgecolor='black')
-            axes[0].set_title(f'% L1 médio todas as linhas para VBASEKV = {vbasekv_specific}')
+            axes[0].set_title(f'% L1 médio todas as linhas para REG = {vbasekv_specific}')
             axes[0].set_xlabel('% L1')
             axes[0].set_ylabel('Frequência')
             axes[0].yaxis.set_major_locator(ticker.MaxNLocator(nbins=20))
@@ -439,29 +686,160 @@ class Analise_Linhas:
             axes[0].grid(True, which='both', axis='y', linestyle='--')
 
             # Gráfico para os outros valores de 'VBASEKV'
-            df_filtered_others = self.PWF16_Filt_NEW[self.PWF16_Filt_NEW['VBASEKV'] != vbasekv_specific]
-            vbasekv_values_others = df_filtered_others['VBASEKV'].unique()
+            df_filtered_others = self.PWF16_Filt_NEW[self.PWF16_Filt_NEW['REG'] != vbasekv_specific]
+            vbasekv_values_others = df_filtered_others['REG'].unique()
             vbasekv_values_others.sort()
 
             for vbasekv in vbasekv_values_others:
-                df_filtered = df_filtered_others[df_filtered_others['VBASEKV'] == vbasekv]
+                df_filtered = df_filtered_others[df_filtered_others['REG'] == vbasekv]
                 df_grouped = df_filtered.groupby(['From#', 'To#'])['% L1'].mean().reset_index()
-                axes[1].hist(df_grouped['% L1'], bins=20, alpha=0.5, label=f'VBASEKV = {vbasekv}', edgecolor='black')
+                axes[1].hist(df_grouped['% L1'], bins=20, alpha=0.5, label=f'REG = {vbasekv}', edgecolor='black')
 
-            axes[1].set_title(' % L1 das linhas para outros valores de VBASEKV')
+            axes[1].set_title(' % L1 das linhas para outros valores de REG')
             axes[1].set_xlabel('% L1')
             axes[1].set_ylabel('Frequência')
             axes[1].yaxis.set_major_locator(ticker.MaxNLocator(nbins=20))
             axes[1].tick_params(which='both', width=2)
             axes[1].tick_params(which='major', length=7)
             axes[1].tick_params(which='minor', length=4, color='r')
-            axes[1].legend(title='VBASEKV')
+            axes[1].legend(title='REG')
             axes[1].grid(True, which='both', axis='y', linestyle='--')
             
             # Ajustar layout e mostrar os gráficos
             plt.tight_layout()
-            nome_arquivo = f'{Pasta}Histograma_todas_Reg.png'               
+            nome_arquivo = f'{Pasta}Histograma_todas_Reg_REG.png'               
             plt.savefig(nome_arquivo)
+            
+            
+            
+
+        
+        if self.MvarLosses_por_MWLosses:
+            df_grouped = self.PWF16_Filt_NEW.groupby(['Hora','Dia']).agg({'MW:Losses': 'sum', 'Mvar:Losses': 'sum', '% L1': 'mean'}).reset_index()
+
+            # Agrupar o DataFrame por '% L1' e calcular a méMW:Losses dos valores de 'Mvar:Losses' e 'MW:Losses'
+            
+
+            # Ordenar o DataFrame pelos % L1s para garantir a gradação de cores correta
+            grouped_df = df_grouped.sort_values('% L1')
+
+            # Normalizar os valores dos % L1s para usar como cores
+            norm = plt.Normalize(grouped_df['% L1'].min(), grouped_df['% L1'].max())
+
+            # Usar o mapa de cores 'coolwarm'
+            cmap = plt.get_cmap('coolwarm')
+
+            # Criar as cores para cada ponto
+            colors = cmap(norm(grouped_df['% L1']))
+
+            # Plotar os dados
+            plt.figure(figsize=(10, 6))
+            plt.scatter(grouped_df['Mvar:Losses'], grouped_df['MW:Losses'], c=colors, s=15, edgecolors='b', linewidth=0.5)
+
+            # Adicionar barra de cores
+            sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+            sm.set_array([])
+            cbar = plt.colorbar(sm)
+            cbar.set_label('% L1')
+
+            # Adicionar rótulos e título
+            plt.xlabel('Mvar:Losses')
+            plt.ylabel('MW:Losses')
+            plt.title(' Mvar:Losses por MW:Losses por ponto de operação(semi-hora)')
+            nome_arquivo = f'{Pasta}% L1rLosses_por_MW'
+            plt.tight_layout()  # Ajuste o layout antes de salvar
+            plt.savefig(nome_arquivo)
+
+        if self.MvarLosses_por_MWLosses_reg:
+            
+            # Iterar sobre cada região única em 'REG'
+            for reg in self.PWF16_Filt_NEW['REG'].unique():
+                # Filtrar o DataFrame pela região atual
+                df_reg = self.PWF16_Filt_NEW[self.PWF16_Filt_NEW['REG'] == reg]
+                df_grouped = df_reg.groupby(['Hora','Dia']).agg({'MW:Losses': 'sum', 'Mvar:Losses': 'sum', '% L1': 'mean'}).reset_index()
+                # Agrupar o DataFrame filtrado
+                '''
+                df_grouped = df_reg.groupby(['Hora', 'Dia']).agg({
+                    'MW:Losses': 'sum', 
+                    'Mvar:Losses': 'sum', 
+                    '% L1': 'mean'
+                }).reset_index()'''
+
+                # Ordenar o DataFrame pelos % L1s para garantir a gradação de cores correta
+                grouped_df = df_grouped.sort_values('% L1')
+
+                # Normalizar os valores dos % L1s para usar como cores
+                norm = plt.Normalize(grouped_df['% L1'].min(), grouped_df['% L1'].max())
+
+                # Usar o mapa de cores 'coolwarm'
+                cmap = plt.get_cmap('coolwarm')
+
+                # Criar as cores para cada ponto
+                colors = cmap(norm(grouped_df['% L1']))
+
+                # Plotar os dados
+                plt.figure(figsize=(10, 6))
+                plt.scatter(grouped_df['Mvar:Losses'], grouped_df['MW:Losses'], c=colors, s=20, edgecolors='b', linewidth=0.5)
+
+                # Adicionar barra de cores
+                sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+                sm.set_array([])
+                cbar = plt.colorbar(sm)
+                cbar.set_label('% L1')
+
+                # Adicionar rótulos e título
+                plt.xlabel('Mvar:Losses')
+                plt.ylabel('MW:Losses')
+                plt.title(f'Mvar:Losses por MW:Losses com Graduação de Cores por % L1 - Região {reg}')
+
+                # Salvar o gráfico com o nome da região
+                nome_arquivo = f'{Pasta}% L1rLosses_por_MW_{reg}.png'
+                plt.tight_layout()  # Ajuste o layout antes de salvar
+                plt.savefig(nome_arquivo)
+                plt.close()
+
+    def Graficos_Por_VBA(self, Pasta):
+        sns.set_theme(style="darkgrid")
+
+
+
+
+        unique_vbasekv =   self.PWF16_Filt_NEW['VBASEKV'].unique()
+
+        # Cores especificadas
+        colors = ['b', 'g', 'r', 'c', 'orange']
+
+        for vbasekv in unique_vbasekv:
+            # Filtrar o DataFrame para 'VBASEKV' igual a vbasekv
+            filtered_df = self.PWF16_Filt_NEW[self.PWF16_Filt_NEW['VBASEKV'] == vbasekv]
+            
+            # Agrupamento e cálculo da média
+            grouped = filtered_df.groupby(['From#', 'To#', 'REG'])['% L1'].mean().reset_index()
+            
+            # Ordenando os dados por '% L1' dentro de cada 'REG'
+            grouped.sort_values(by=['REG', '% L1'], inplace=True)
+            
+            # Plotagem do gráfico de pontos
+            fig, ax = plt.subplots(figsize=(10, 6))  # Definindo o tamanho da figura (largura x altura)
+            
+            for i, (reg, group) in enumerate(grouped.groupby('REG')):
+                ax.scatter(range(len(group)), group['% L1'], color=colors[i], label=reg, s=15)  # Diminuindo o tamanho dos pontos
+                
+            ax.set_xlabel('Total de linhas')  # Definindo o rótulo do eixo x
+            
+            ax.set_ylabel('% L1')
+            ax.set_title(f"VBASEKV = {vbasekv}")  # Adicionando o valor de VBASEKV ao título
+            
+            ax.legend(title='REG')  # Adicionando a legenda com as diferentes 'REG'
+            
+            
+            plt.tight_layout()  # Ajuste o layout antes de salvar
+                # Salvar o gráfico
+            plt.savefig(os.path.join(Pasta, f'{Pasta}Vbase{vbasekv}.png'))
+                
+                # Fechar o gráfico para liberar a memória
+            plt.close()
+
 
         
         if self.histograma_1reg_png:
@@ -566,91 +944,123 @@ class Analise_Linhas:
                 # Salvar o gráfico em formato HTML
                 fig.write_html(os.path.join(Pasta, f'Histograma_{reg}.html'))
 
-        if self.MvarLosses_por_MWLosses:
-            df_grouped = self.PWF16_Filt_NEW.groupby(['Hora','Dia']).agg({'MW:Losses': 'sum', 'Mvar:Losses': 'sum', '% L1': 'mean'}).reset_index()
+        
+        if self.histograma_VBASE_html:
+            
+            # Definir o renderizador padrão para o navegador
+            pio.renderers.default = 'browser'
 
-            # Agrupar o DataFrame por '% L1' e calcular a méMW:Losses dos valores de 'Mvar:Losses' e 'MW:Losses'
+
+            # Obter valores únicos de 'VBASEKV'
+            vbasekv_values = self.PWF16_Filt_NEW['VBASEKV'].unique()
+            vbasekv_values.sort()
+
+            # Lista para armazenar os dados dos histogramas
+            hist_data = []
+
+            # Loop para criar histogramas para cada valor de 'VBASEKV'
+            for vbasekv in vbasekv_values:
+                # Filtra o DataFrame pelo valor atual de 'VBASEKV'
+                df_filtered = self.PWF16_Filt_NEW[self.PWF16_Filt_NEW['VBASEKV'] == vbasekv]
+                
+                # Agrupa os dados por 'From#' e 'To#' e calcula a média de '% L1'
+                df_grouped = df_filtered.groupby(['From#', 'To#'])['% L1'].mean().reset_index()
+                
+                # Adiciona os dados do histograma à lista
+                hist_data.append(go.Histogram(x=df_grouped['% L1'], nbinsx=20, name=f'VBASEKV = {vbasekv}', opacity=0.5))
+
+            # Cria o layout do gráfico
+            layout = go.Layout(
+                title='Carregamento médio das linhas de todas as regiões por VBASEKV',
+                xaxis=dict(title='% L1'),
+                yaxis=dict(title='Frequência'),
+                barmode='overlay',
+                updatemenus=[dict(
+                    type="buttons",
+                    direction="down",
+                    buttons=list([
+                        dict(
+                            label="Select All",
+                            method="update",
+                            args=[{"visible": [True] * len(hist_data)},
+                                {"title": "All"}]),
+                        dict(
+                            label="Deselect All",
+                            method="update",
+                            args=[{"visible": [False] * len(hist_data)},
+                                {"title": "None"}])
+                    ]),
+                )]
+            )
+
+            # Cria a figura
+            fig = go.Figure(data=hist_data, layout=layout)
+
+            # Pasta onde deseja salvar o arquivo HTML
             
 
-            # Ordenar o DataFrame pelos % L1s para garantir a gradação de cores correta
-            grouped_df = df_grouped.sort_values('% L1')
+            # Verificar se a pasta existe e criar se não existir
+            if not os.path.exists(Pasta):
+                os.makedirs(Pasta)
 
-            # Normalizar os valores dos % L1s para usar como cores
-            norm = plt.Normalize(grouped_df['% L1'].min(), grouped_df['% L1'].max())
+            # Nome do arquivo HTML
+            file_name = 'histograma_todas_reg_VBASE.html'
 
-            # Usar o mapa de cores 'coolwarm'
-            cmap = plt.get_cmap('coolwarm')
+            # Caminho completo para o arquivo HTML
+            file_path = os.path.join(Pasta, file_name)
 
-            # Criar as cores para cada ponto
-            colors = cmap(norm(grouped_df['% L1']))
+            # Salvar o gráfico como arquivo HTML
+            fig.write_html(file_path)
 
-            # Plotar os dados
-            plt.scatter(grouped_df['Mvar:Losses'], grouped_df['MW:Losses'], c=colors, s=15, edgecolors='b', linewidth=0.5)
+        if self.histograma_VBASE_png:
 
-            # Adicionar barra de cores
-            sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
-            sm.set_array([])
-            cbar = plt.colorbar(sm)
-            cbar.set_label('% L1')
+            # Supondo que o DataFrame PWF16_Filt_NEW já esteja carregado
+            # Valor específico de 'VBASEKV' que queremos analisar separadamente
+            vbasekv_specific = 230
 
-            # Adicionar rótulos e título
-            plt.xlabel('Mvar:Losses')
-            plt.ylabel('MW:Losses')
-            plt.title(' Mvar:Losses por MW:Losses por ponto de operação(semi-hora)')
-            nome_arquivo = f'{Pasta}% L1rLosses_por_MW'
-            plt.tight_layout()  # Ajuste o layout antes de salvar
+            # Configuração dos gráficos
+            fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(14, 16))
+
+            # Gráfico para o valor específico de 'VBASEKV'
+            df_filtered_specific = self.PWF16_Filt_NEW[self.PWF16_Filt_NEW['VBASEKV'] == vbasekv_specific]
+            df_grouped_specific = df_filtered_specific.groupby(['From#', 'To#'])['% L1'].mean().reset_index()
+            axes[0].hist(df_grouped_specific['% L1'], bins=20, alpha=0.5, edgecolor='black')
+            axes[0].set_title(f'% L1 médio todas as linhas para VBASEKV = {vbasekv_specific}')
+            axes[0].set_xlabel('% L1')
+            axes[0].set_ylabel('Frequência')
+            axes[0].yaxis.set_major_locator(ticker.MaxNLocator(nbins=20))
+            axes[0].tick_params(which='both', width=2)
+            axes[0].tick_params(which='major', length=7)
+            axes[0].tick_params(which='minor', length=4, color='r')
+            axes[0].grid(True, which='both', axis='y', linestyle='--')
+
+            # Gráfico para os outros valores de 'VBASEKV'
+            df_filtered_others = self.PWF16_Filt_NEW[self.PWF16_Filt_NEW['VBASEKV'] != vbasekv_specific]
+            vbasekv_values_others = df_filtered_others['VBASEKV'].unique()
+            vbasekv_values_others.sort()
+
+            for vbasekv in vbasekv_values_others:
+                df_filtered = df_filtered_others[df_filtered_others['VBASEKV'] == vbasekv]
+                df_grouped = df_filtered.groupby(['From#', 'To#'])['% L1'].mean().reset_index()
+                axes[1].hist(df_grouped['% L1'], bins=20, alpha=0.5, label=f'VBASEKV = {vbasekv}', edgecolor='black')
+
+            axes[1].set_title(' % L1 das linhas para outros valores de VBASEKV')
+            axes[1].set_xlabel('% L1')
+            axes[1].set_ylabel('Frequência')
+            axes[1].yaxis.set_major_locator(ticker.MaxNLocator(nbins=20))
+            axes[1].tick_params(which='both', width=2)
+            axes[1].tick_params(which='major', length=7)
+            axes[1].tick_params(which='minor', length=4, color='r')
+            axes[1].legend(title='VBASEKV')
+            axes[1].grid(True, which='both', axis='y', linestyle='--')
+            
+            # Ajustar layout e mostrar os gráficos
+            plt.tight_layout()
+            nome_arquivo = f'{Pasta}Histograma_todas_Reg_VBASE.png'               
             plt.savefig(nome_arquivo)
 
-        if self.MvarLosses_por_MWLosses_reg:
-            
-            # Iterar sobre cada região única em 'REG'
-            for reg in self.PWF16_Filt_NEW['REG'].unique():
-                # Filtrar o DataFrame pela região atual
-                df_reg = self.PWF16_Filt_NEW[self.PWF16_Filt_NEW['REG'] == reg]
-                
-                # Agrupar o DataFrame filtrado
-                df_grouped = df_reg.groupby(['Hora', 'Dia']).agg({
-                    'MW:Losses': 'sum', 
-                    'Mvar:Losses': 'sum', 
-                    '% L1': 'mean'
-                }).reset_index()
 
-                # Ordenar o DataFrame pelos % L1s para garantir a gradação de cores correta
-                grouped_df = df_grouped.sort_values('% L1')
 
-                # Normalizar os valores dos % L1s para usar como cores
-                norm = plt.Normalize(grouped_df['% L1'].min(), grouped_df['% L1'].max())
-
-                # Usar o mapa de cores 'coolwarm'
-                cmap = plt.get_cmap('coolwarm')
-
-                # Criar as cores para cada ponto
-                colors = cmap(norm(grouped_df['% L1']))
-
-                # Plotar os dados
-                plt.figure(figsize=(10, 6))
-                plt.scatter(grouped_df['Mvar:Losses'], grouped_df['MW:Losses'], c=colors, s=20, edgecolors='b', linewidth=0.5)
-
-                # Adicionar barra de cores
-                sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
-                sm.set_array([])
-                cbar = plt.colorbar(sm)
-                cbar.set_label('% L1')
-
-                # Adicionar rótulos e título
-                plt.xlabel('Mvar:Losses')
-                plt.ylabel('MW:Losses')
-                plt.title(f'Mvar:Losses por MW:Losses com Graduação de Cores por % L1 - Região {reg}')
-
-                # Salvar o gráfico com o nome da região
-                nome_arquivo = f'{Pasta}% L1rLosses_por_MW_{reg}.png'
-                plt.tight_layout()  # Ajuste o layout antes de salvar
-                plt.savefig(nome_arquivo)
-                plt.close()
-
-    def Graficos_Por_VBA(self, Pasta):
-        sns.set_theme(style="darkgrid")
-        
         if self.plotar_grafico_por_reg_VBA:
             def plotar_grafico_por_reg_VBA(REG):
                 PWF16_Filt_Reg = self.PWF16_Filt_NEW[self.PWF16_Filt_NEW['REG'] == REG]
@@ -999,7 +1409,7 @@ class Analise_Linhas:
             shutil.move('Quantidade VBASE.txt', Pasta)
         
         if self.Top_10_L1:
-            grouped = self.PWF16_Filt_NEW.groupby(['To Name', 'From Name', 'REG', 'VBASEKV'])[['% L1', 'Mvar:Losses']].mean().reset_index()
+            grouped = self.PWF16_Filt_NEW.groupby(['To Name', 'From Name', 'REG', 'VBASEKV'])[['% L1', 'Mvar:Losses','MW:Losses']].mean().reset_index()
 
             # Seleciona as 10 maiores linhas com base na coluna '% L1'
             top_5_grouped = grouped.nlargest(10, '% L1')
@@ -1016,7 +1426,7 @@ class Analise_Linhas:
             bar_colors = top_5_grouped['REG'].map(reg_color_map)
 
             # Cria o eixo x com a combinação das colunas 'To Name', 'From Name' e 'VBASEKV'
-            x_labels = top_5_grouped['To Name'] + '\npara' + top_5_grouped['From Name'] + '(' + top_5_grouped['VBASEKV'].astype(str) + ' kV)'
+            x_labels = top_5_grouped['To Name'] + ' para\n' + top_5_grouped['From Name'] + '(' + top_5_grouped['VBASEKV'].astype(str) + ' kV)'
 
             # Cria o gráfico de barras com as cores mapeadas
             plt.figure(figsize=(10, 6))
@@ -1028,7 +1438,7 @@ class Analise_Linhas:
             plt.title('Top 10 maiores % L1')
 
             # Rotaciona os rótulos do eixo x para melhor visualização
-            plt.xticks(rotation=45, ha='right')
+            plt.xticks(rotation=45, ha='right', fontsize=10)
 
             # Adiciona uma legenda indicando as cores para cada 'REG'
             handles = [plt.Rectangle((0,0),1,1, color=reg_color_map[reg]) for reg in unique_regs]
@@ -1054,6 +1464,61 @@ class Analise_Linhas:
 
             # Salva o DataFrame 'top_5_grouped' no arquivo Excel na pasta especificada
             top_5_grouped.to_excel(file_path, index=False)
+
+            #Analise Mvar MW
+
+           
+            # Criação da figura e eixos
+            fig, ax1 = plt.subplots(figsize=(10, 6))
+
+            # Posições das barras
+            bar_width = 0.35
+            index = np.arange(len(x_labels))
+
+            # Barras para 'MW:Losses'
+            bars1 = ax1.bar(index - bar_width / 2, top_5_grouped['MW:Losses'], bar_width, label='MW:Losses', color=bar_colors, edgecolor='blue', hatch='//')
+
+            # Configuração do primeiro eixo y para 'MW:Losses'
+            ax1.set_xlabel('To Name para From Name', fontsize=12)
+            ax1.set_ylabel('MW:Losses', fontsize=14, color='blue')
+            ax1.tick_params(axis='y', labelcolor='blue')
+            ax1.set_xticks(index)
+            ax1.set_xticklabels(x_labels, rotation=45, ha='right')
+
+            # Adiciona valores inteiros acima de cada barra de 'MW:Losses'
+            for bar in bars1:
+                yval = bar.get_height()
+                ax1.text(bar.get_x() + bar.get_width() / 2, yval + 0.5, f'{int(yval)}', ha='center', va='bottom')
+
+            # Criação do segundo eixo y e barras para 'Mvar:Losses'
+            ax2 = ax1.twinx()
+            bars2 = ax2.bar(index + bar_width / 2, top_5_grouped['Mvar:Losses'], bar_width, label='Mvar:Losses', color=bar_colors, edgecolor='red', hatch='\\')
+
+            # Configuração do segundo eixo y para 'Mvar:Losses'
+            ax2.set_ylabel('Mvar:Losses', fontsize=14, color='red')
+            ax2.tick_params(axis='y', labelcolor='red')
+
+            # Define limites para os eixos y para melhor visualização
+            ax1.set_ylim(0, max(top_5_grouped['MW:Losses']) * 1.1)
+            ax2.set_ylim(0, max(top_5_grouped['Mvar:Losses']) * 1.1)
+
+            # Adiciona valores inteiros acima de cada barra de 'Mvar:Losses'
+            for bar in bars2:
+                yval = bar.get_height()
+                ax2.text(bar.get_x() + bar.get_width() / 2, yval + 0.5, f'{int(yval)}', ha='center', va='bottom')
+
+            # Adiciona o título ao gráfico
+            plt.title('Top 10 maiores % L1, perdas ativas e reativas')
+
+            # Adiciona uma legenda para 'REG'
+            handles = [plt.Rectangle((0,0),1,1, color=reg_color_map.get(reg, 'gray')) for reg in unique_regs]
+            plt.legend(handles, unique_regs, title='REG', loc='upper left')
+
+            nome_arquivo = f'{Pasta}TOP_10_L1_Mvar_por_MW_losses.png'
+            plt.tight_layout()  # Ajuste o layout antes de salvar
+            plt.savefig(nome_arquivo)
+            
+
 
     def Analise_PF(self,Pasta):
         import os
