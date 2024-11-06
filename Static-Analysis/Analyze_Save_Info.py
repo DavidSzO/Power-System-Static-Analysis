@@ -150,35 +150,35 @@ class AnalyzeStaticCases:
         
         if self.Options['ReadPWF_files']:
 
-            if self.Options['linhascsv'] and self.Options['LinhasData']:
-                self.PWF16_concatenados = dd.read_csv(self.path_folder + '/LinhasInfo.csv', sep=',').compute()
-                self.PWF16_concatenados['Dia'] = self.PWF16_concatenados['Dia'].astype(str).str.zfill(2)
-                self.cases.get_Intercambios(df=self.PWF16_concatenados)
-                self.DF_Intercambios = self.cases.DF_Intercambios
+            # if self.Options['linhascsv'] and self.Options['LinhasData']:
+            #     self.PWF16_concatenados = dd.read_csv(self.path_folder + '/LinhasInfo.csv', sep=',').compute()
+            #     self.PWF16_concatenados['Dia'] = self.PWF16_concatenados['Dia'].astype(str).str.zfill(2)
+            #     self.cases.get_Intercambios(df=self.PWF16_concatenados)
+            #     self.DF_Intercambios = self.cases.DF_Intercambios
 
-            if self.Options['HVDCcsv'] and self.Options['HVDCData']:
-                self.DCLinks_concatenados = dd.read_csv(self.path_folder + '/HVDCInfo.csv', sep=',').compute()
-                self.DCLinks_concatenados['Dia'] = self.DCLinks_concatenados['Dia'].astype(str).str.zfill(2)
+            # if self.Options['HVDCcsv'] and self.Options['HVDCData']:
+            #     self.DCLinks_concatenados = dd.read_csv(self.path_folder + '/HVDCInfo.csv', sep=',').compute()
+            #     self.DCLinks_concatenados['Dia'] = self.DCLinks_concatenados['Dia'].astype(str).str.zfill(2)
 
-            if self.Options['reservacsv'] and self.Options['ReservaData']:
-                self.SGN01_concatenados = dd.read_csv(self.path_folder + '/ReservaInfo.csv', sep=',').compute()
-                self.SGN01_concatenados['Dia'] = self.SGN01_concatenados['Dia'].astype(str).str.zfill(2)
+            # if self.Options['reservacsv'] and self.Options['ReservaData']:
+            #     self.SGN01_concatenados = dd.read_csv(self.path_folder + '/ReservaInfo.csv', sep=',').compute()
+            #     self.SGN01_concatenados['Dia'] = self.SGN01_concatenados['Dia'].astype(str).str.zfill(2)
                 
             if self.Options['LinhasData'] | self.Options['HVDCData'] | self.Options['ReservaData']:
                 print("Starting line and interconnections data generation ...")
                 if not (self.Options['linhascsv'] and self.Options['reservacsv'] and self.Options['HVDCcsv']):
                     self.cases.get_Networkinfo(linhas=not self.Options['linhascsv'], Reserva=not self.Options['reservacsv'], Intercambios=not self.Options['HVDCcsv'], hour = self.hour)
 
-                    if not self.Options['linhascsv'] and self.Options['LinhasData']:
-                        self.PWF16_concatenados = self.cases.linesInfo
-                        self.DF_Intercambios = self.cases.DF_Intercambios
+                    # if not self.Options['linhascsv'] and self.Options['LinhasData']:
+                    #     self.PWF16_concatenados = self.cases.linesInfo
+                    #     self.DF_Intercambios = self.cases.DF_Intercambios
 
-                    if not self.Options['reservacsv'] and self.Options['ReservaData']:
-                        try:
-                            self.SGN01_concatenados = self.cases.ReserveInfo
-                        except Exception as e:
-                            print(f"Error obtaining Reserve: {e}")
-                            pass
+                    # if not self.Options['reservacsv'] and self.Options['ReservaData']:
+                    #     try:
+                    #         self.SGN01_concatenados = self.cases.ReserveInfo
+                    #     except Exception as e:
+                    #         print(f"Error obtaining Reserve: {e}")
+                    #         pass
 
                     if not self.Options['HVDCcsv'] and self.Options['HVDCData']:
                         self.DCLinks_concatenados = self.cases.HVDCInfo
@@ -232,7 +232,9 @@ class AnalyzeStaticCases:
                 
                 return PWF16_Filt_linhas, PWF16_Filt_TRAFO
 
-            self.PWF16_Filt_linhas, self.PWF16_Filt_TRAFO = Main_linha_addREG(self.PWF16_concatenados)
+            # self.PWF16_Filt_linhas, self.PWF16_Filt_TRAFO = Main_linha_addREG(self.PWF16_concatenados)
+            self.PWF16_Filt_linhas, self.PWF16_Filt_TRAFO = Main_linha_addREG(self.cases.linesInfo)
+            
             
         if self.Options['HVDCData']:
 
@@ -319,13 +321,13 @@ class AnalyzeStaticCases:
         if self.Options['ReservaData'] == True and not self.Options['OnlyPWF_datagen']:
 
             print('Reserve Analysis and Plots: ...')
-            if (self.SGN01_concatenados.empty == False):
+            if (self.cases.ReserveInfo.empty == False):
                 dia = self.df_Final_ger['Dia'].iloc[0]
                 hora = self.df_Final_ger['Hora'].iloc[0]
                 df_Final_ger_mod = self.df_Final_ger[(self.df_Final_ger['Dia'] == dia) & (self.df_Final_ger['Hora'] == hora)][['BUS_ID', 'Gen_Type', 'U_FED', 'REG','key']]
-                self.SGN01_concatenados.rename(columns={'Bus':'BUS_ID', }, inplace=True)
-                self.SGN01_concatenados['BUS_ID'] = self.SGN01_concatenados['BUS_ID'].astype(float)
-                Df_Reserva = self.SGN01_concatenados.merge(df_Final_ger_mod, how = 'left', on='BUS_ID')
+                self.cases.ReserveInfo.rename(columns={'Bus':'BUS_ID', }, inplace=True)
+                self.cases.ReserveInfo['BUS_ID'] = self.cases.ReserveInfo['BUS_ID'].astype(float)
+                Df_Reserva = self.cases.ReserveInfo.merge(df_Final_ger_mod, how = 'left', on='BUS_ID')
 
                 Df_Reserva = Df_Reserva[Df_Reserva['BUS_ID'] != 1100] #RETIRANDO ITAIPU 50HZ DA RESERVA
 
@@ -337,7 +339,7 @@ class AnalyzeStaticCases:
                     self.plots_static.plot_reserva_reg (self.dffreservaPO_REG_MW, '(MW)', 'Reserva por Região', 'RESERVA POR REGIÃO', ' Reserve', xlimites=None,ylimites=None, order = False)
 
                 # ======================ESSE DATAFRAME É SÓ DA RESERVA DAS MAQUINAS COM MODELO DO GERADOR PARA O CONTROLE DE FREQ===========
-                self.df_Final_ger = self.df_Final_ger.merge(self.SGN01_concatenados[['BUS_ID',' Reserve',' Units','Dia','Hora']], on=['BUS_ID','Dia', 'Hora'], how='left')
+                self.df_Final_ger = self.df_Final_ger.merge(self.cases.ReserveInfo[['BUS_ID',' Reserve',' Units','Dia','Hora']], on=['BUS_ID','Dia', 'Hora'], how='left')
 
     #=============================================================================================================================
     #                                                POTENCIA ATIVA E REATIVA
@@ -665,13 +667,26 @@ class AnalyzeStaticCases:
             if self.Options['LinhasData']:
                 if not self.Options['OnlyPWF_datagen']:
                     self.DF_REGIONAL_GER[['key','PG_MW', 'QG_MVAR', 'PL_MW', 'QL_MVAR','Shunt_Ind', 'Shunt_Cap','SHUNT_INST_IND', 'SHUNT_INST_CAP', 'ReservaIND', 'ReservaCAP','PG_UHE', 'PG_UTE', 'PG_EOL', 'PG_SOL', 'PG_BIO', 'PG_Dist', 'QG/QL', 'PG/PL', 'PG_FERV', 'ReservaINDshunt', 'ReservaCAPshunt']].to_csv(self.cenario + '/Data/Potencia/DF_POT_Reg.csv')
-                self.PWF16_Filt_linhas[['key','From#','To#','From Name','To Name','% L1', 'L1(MVA)', 'Mvar:Losses','MW:Losses', 'Dia', 'Hora','REG', 'VBASEKV','MVA', 'MW:From-To', 'MW:To-From','Power Factor:From-To','Power Factor:To-From']].to_csv(self.cenario+'/Data/Fluxo em Ramos/Df_Linhas.csv', index=None)
-                self.PWF16_Filt_TRAFO[['key', 'From#','To#','From Name','To Name','% L1', 'L1(MVA)', 'Mvar:Losses','MW:Losses','Dia', 'Hora','REG', 'VBASEKV','MVA', 'MW:From-To', 'MW:To-From','Power Factor:From-To','Power Factor:To-From']].to_csv(self.cenario+'/Data/Fluxo em Ramos/Df_Trafo.csv', index=None)
+                self.PWF16_Filt_linhas[['key','ARE','From#','To#','From Name','To Name','% L1', 'L1(MVA)', 'Mvar:Losses','MW:Losses', 'Dia', 'Hora','REG', 'VBASEKV','MVA', 'MW:From-To', 'MW:To-From','Power Factor:From-To','Power Factor:To-From']].to_csv(self.cenario+'/Data/Fluxo em Ramos/Df_Linhas.csv', index=None)
+                self.PWF16_Filt_TRAFO[['key', 'ARE', 'From#','To#','From Name','To Name','% L1', 'L1(MVA)', 'Mvar:Losses','MW:Losses','Dia', 'Hora','REG', 'VBASEKV','MVA', 'MW:From-To', 'MW:To-From','Power Factor:From-To','Power Factor:To-From']].to_csv(self.cenario+'/Data/Fluxo em Ramos/Df_Trafo.csv', index=None)
+
+                self.cases.AreasInfo = self.processdata.add_key(self.cases.AreasInfo)
+                self.cases.AreasInfo.to_csv(self.cenario + '/Data/Fluxo em Ramos/Df_AreasInfo.csv', header=True, index=True)
+
+                self.cases.NTW02 = self.processdata.add_key(self.cases.NTW02)
+                self.cases.NTW02.to_csv(self.cenario + '/Data/Fluxo em Ramos/Df_Load.csv', header=True, index=True)
+
+                self.cases.NTW03 = self.processdata.add_key(self.cases.NTW03)
+                self.cases.NTW03.to_csv(self.cenario + '/Data/Fluxo em Ramos/Df_Generation.csv', header=True, index=True)
                 
             if self.Options['IntercambiosData']:
-                self.DF_Intercambios = self.processdata.add_key(self.DF_Intercambios.reset_index())
-                self.DF_Intercambios.rename(columns={'level_0':'Intercambio AC'}, inplace=True)
-                self.DF_Intercambios.to_csv(self.cenario + '/Data/Fluxo em Ramos/DF_Intercambios.csv', index = False)
+                # self.DF_Intercambios = self.processdata.add_key(self.DF_Intercambios.reset_index())
+                # self.DF_Intercambios.rename(columns={'level_0':'Intercambio AC'}, inplace=True)
+                # self.DF_Intercambios.to_csv(self.cenario + '/Data/Fluxo em Ramos/DF_Intercambios.csv', index = False)
+
+                self.cases.DF_Intercambios = self.processdata.add_key(self.cases.DF_Intercambios.reset_index())
+                self.cases.DF_Intercambios.rename(columns={'level_0':'Intercambio AC'}, inplace=True)
+                self.cases.DF_Intercambios.to_csv(self.cenario + '/Data/Fluxo em Ramos/DF_Intercambios.csv', index = False)
 
             if self.Options['HVDCData']:
                 self.df_HVDC = self.processdata.add_key(self.df_HVDC)

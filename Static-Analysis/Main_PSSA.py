@@ -13,12 +13,12 @@ if __name__ == '__main__':
     # ************************************************************************************************
     Options_ReadProcess= {
                             'Norm': 2,          # Write None for using infinite norm in voltage analysis
-                            'OneCase': 2,       # (1) for All cases or (2) for Just One Case analysis
+                            'OneCase': 1,       # (1) for All cases or (2) for Just One Case analysis
                             'SavePath':"C:/Users/David/OneDrive/Documents/FERV_documentos/",
         # ---------------------------------------------------
                             'generatescript' : False,   # Put TRUE just for generate the script for simulation and saving the flows in Organon
-                            'OPFsimulation': True,
-                            'OnlyPWF_datagen': False,   # Put TRUE just for generate the data for Interconnection and Line Flow Analysis
+                            'OPFsimulation': False,
+                            'OnlyPWF_datagen': True,   # Put TRUE just for generate the data for Interconnection and Line Flow Analysis
                             'extract_fromcsv' :False,   # Put TRUE just in the first simulation, once the ProcessedDataBase.csv is generated it is not necessary
                             
                             'savedata':True,            # To save the data of the electric variables in the folders
@@ -65,10 +65,10 @@ if __name__ == '__main__':
     # path_folder_3 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/REV_1_02/V1A1F4_RESP_FNS_lim_rev1_2026/'
     # path_folder_4 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/REV_1_02/V1A1F5_RESP_FNS_lim_rev1_2026/'
 
-    # path_folder_0  = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/REV_5/V1A1F2_rev5/'
-    # path_folder_1 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/REV_5/V1A1F3_rev5/'
-    # path_folder_2  = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/REV_5/V1A1F4_rev5/'
-    # path_folder_3 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/REV_5/V1A1F5_rev5/'
+    path_folder_0  = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/REV_5/V1A1F2_rev5/'
+    path_folder_1 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/REV_5/V1A1F3_rev5/'
+    path_folder_2  = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/REV_5/V1A1F4_rev5/'
+    path_folder_3 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V1A1F_/REV_5/V1A1F5_rev5/'
 
     # =============================         CASOS 2026 V2A2F       =========================================== 
     # path_folder_5 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F2_REV02_2026/'
@@ -76,10 +76,10 @@ if __name__ == '__main__':
     # path_folder_7 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F4_REV02_2026/'
     # path_folder_8 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_2/V2A2F5_REV02_2026/'
 
-    path_folder_11  = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_5/V2A2F2_rev5/'
-    # path_folder_22 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_5/V2A2F3_rev5/'
-    # path_folder_33  = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_5/V2A2F4_rev5/'
-    # path_folder_44 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_5/V2A2F5_rev5/'
+    # path_folder_4  = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_5/V2A2F2_rev5/'
+    # path_folder_5 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_5/V2A2F3_rev5/'
+    # path_folder_6  = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_5/V2A2F4_rev5/'
+    # path_folder_7 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V2A2F_/REV_5/V2A2F5_rev5/'
     #     
     # =============================         CASOS 2026 V3A3F       ===========================================
     # path_folder_9 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_1/V3A3F2_REV1_2026/'
@@ -87,10 +87,10 @@ if __name__ == '__main__':
     # path_folder_11 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_1/V3A3F4_REV1_2026/'
     # path_folder_12 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_1/V3A3F5_REV1_2026/'
 
-    # path_folder_11  = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_5/V3A3F2_rev5/'
-    # path_folder_22 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_5/V3A3F3_rev5/'
-    # path_folder_33  = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_5/V3A3F4_rev5/'
-    # path_folder_44 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_5/V3A3F5_rev5/'
+    # path_folder_8  = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_5/V3A3F2_rev5/'
+    # path_folder_9 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_5/V3A3F3_rev5/'
+    # path_folder_10  = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_5/V3A3F4_rev5/'
+    # path_folder_11 = 'D:/0 FERV/0 Dados PYTHON/CASOS 2026/V3A3F_/REV_5/V3A3F5_rev5/'
 
     # ************************************************************************************************
     #                           PATHS FOR ANALYSYS SIMULATED IN ORGANON BY UNICAMP
@@ -114,7 +114,7 @@ if __name__ == '__main__':
     # ============================= List of PATHS ===========================================
     # path_folders = [path_folder_1, path_folder_2, path_folder_3, path_folder_4, path_folder_5, path_folder_6, path_folder_7, path_folder_8, path_folder_9, path_folder_10, 
     # path_folders = [path_folder_22, path_folder_33, path_folder_44]
-    path_folders = [path_folder_11] #path_folder_22, path_folder_33, path_folder_44
+    path_folders = [path_folder_0] #path_folder_5, path_folder_6, path_folder_7, path_folder_8, path_folder_9, path_folder_10, path_folder_11
     for path_folder in path_folders:
 
         if Options_ReadProcess['generatescript']:

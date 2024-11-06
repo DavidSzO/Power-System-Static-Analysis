@@ -140,6 +140,14 @@ class ReadScenarios:
                 folder = os.path.join(self.path, day, 'Output')
                 files_path.extend(get_files_path(folder, ''))
 
+        def clean_columns(df, columns):
+            """
+            Coerce non-numeric values in specified columns to NaN.
+            """
+            for col in columns:
+                df[col] = dd.to_numeric(df[col], errors='coerce')
+            return df
+
         def concat_and_compute(dfs):
             if len(dfs) > 0:
                 return dd.concat(dfs, ignore_index=True).compute()
@@ -149,20 +157,31 @@ class ReadScenarios:
             filtered_files = [file for file in files_path if pattern in os.path.basename(file)]
             if not filtered_files:
                 return []
-            try:
-                dfs = [dd.read_csv(file, sep=';', skiprows=[0], usecols=col_list, dtype=dtype_dict).pipe(add_dia_hora, file, os.path.basename(os.path.dirname(os.path.dirname(file)))[-2:], hour) for file in filtered_files]
-                dfs = concat_and_compute(dfs)
-            except UnicodeDecodeError:
-                dfs = [dd.read_csv(file, sep=';', skiprows=[0], usecols=col_list, dtype=dtype_dict, encoding='latin1').pipe(add_dia_hora, file, os.path.basename(os.path.dirname(os.path.dirname(file)))[-2:], hour) for file in filtered_files]
-                dfs = concat_and_compute(dfs)
-            except ValueError:
-                dfs = [dd.read_csv(file, sep=';', skiprows=[0], dtype=dtype_dict).pipe(add_dia_hora, file, os.path.basename(os.path.dirname(os.path.dirname(file)))[-2:], hour) for file in filtered_files]
-                dfs = concat_and_compute(dfs)
-
+            
+            if col_list != None:
+                try:
+                    dfs = [dd.read_csv(file, sep=';', skiprows=[0], usecols=col_list, dtype=dtype_dict, assume_missing=True).pipe(add_dia_hora, file, os.path.basename(os.path.dirname(os.path.dirname(file)))[-2:], hour) for file in filtered_files]
+                    dfs = concat_and_compute(dfs)
+                except UnicodeDecodeError:
+                    dfs = [dd.read_csv(file, sep=';', skiprows=[0], usecols=col_list, dtype=dtype_dict, encoding='latin1', assume_missing=True).pipe(add_dia_hora, file, os.path.basename(os.path.dirname(os.path.dirname(file)))[-2:], hour) for file in filtered_files]
+                    dfs = concat_and_compute(dfs)
+                except ValueError:
+                    dfs = [dd.read_csv(file, sep=';', skiprows=[0], dtype=dtype_dict, assume_missing=True).pipe(add_dia_hora, file, os.path.basename(os.path.dirname(os.path.dirname(file)))[-2:], hour) for file in filtered_files]
+                    dfs = concat_and_compute(dfs)
+            else:
+                try:
+                    dfs = [dd.read_csv(file, sep=';', skiprows=[0], dtype=dtype_dict, assume_missing=True).pipe(add_dia_hora, file, os.path.basename(os.path.dirname(os.path.dirname(file)))[-2:], hour) for file in filtered_files]
+                    dfs = concat_and_compute(dfs)
+                except UnicodeDecodeError:
+                    dfs = [dd.read_csv(file, sep=';', skiprows=[0], dtype=dtype_dict, encoding='latin1', assume_missing=True).pipe(add_dia_hora, file, os.path.basename(os.path.dirname(os.path.dirname(file)))[-2:], hour) for file in filtered_files]
+                    dfs = concat_and_compute(dfs)
+                except ValueError:
+                    dfs = [dd.read_csv(file, sep=';', skiprows=[0], dtype=dtype_dict, na_values=[' *********'], assume_missing=True).pipe(add_dia_hora, file, os.path.basename(os.path.dirname(os.path.dirname(file)))[-2:], hour).pipe(clean_columns, [' Gen MW', ' Gen Mvar', ' Load MW', ' Load Mvar', ' Shunt Mvar', ' Export MW', ' Export Mvar', ' Loss MW', ' Loss Mvar']) for file in filtered_files]
+                    dfs = concat_and_compute(dfs)                
             return dfs
         
         if linhas:
-            PWF16_concatenados = read_files('PWF16_', col_list_lines) 
+            PWF16_concatenados = read_files('PWF16_', col_list_lines, dtype_dict_linhas) 
             PWF16_concatenados.rename(columns={'From#':'From#', ' From Name': 'From Name', ' To# - Circ#':'To# - Circ#', ' To Name':'To Name', ' Type':'Type', ' MVA':'MVA', ' MW:From-To':'MW:From-To', ' Mvar:From-To':'Mvar:From-To',' % L1':'% L1', ' L1(MVA)':'L1(MVA)',  ' Mvar:Losses':'Mvar:Losses', ' MW:Losses':'MW:Losses', ' MW:To-From':'MW:To-From', ' Power Factor:From-To':'Power Factor:From-To', ' Power Factor:To-From':'Power Factor:To-From',' Area':'ARE'}, inplace=True)
 
             if not PWF16_concatenados.empty:
@@ -199,6 +218,22 @@ class ReadScenarios:
                 SGN01_concatenados[' Reserve'] = SGN01_concatenados[' Reserve'].astype(float)
                 SGN01_concatenados[' Units'] = SGN01_concatenados[' Units'].astype(int)
                 self.ReserveInfo = SGN01_concatenados
+
+            print("Concatenação da Areas")
+            PWF26_concatenados = read_files('PWF26_', col_list=None) 
+            if not PWF26_concatenados.empty:
+                self.AreasInfo = PWF26_concatenados
+
+            print("Concatenação da Geração")
+            NTW03_concatenados = read_files('NTW03_', col_list=None) 
+            if not NTW03_concatenados.empty:
+                self.NTW03 = NTW03_concatenados
+            
+            print("Concatenação da Carga")
+            NTW02_concatenados = read_files('NTW02_', col_list=None) 
+            if not NTW02_concatenados.empty:
+                self.NTW02 = NTW02_concatenados
+
                 # if not self.PO:
                 #     print("Salvando Dataframe da Reserva")
                 #     SGN01_concatenados.to_csv(os.path.join(self.path, 'ReservaInfo.csv'), index=None)
@@ -245,22 +280,37 @@ class ReadScenarios:
                     f.write('OPEN "' + i + j + '.ntw"')
                     f.write('\n')
                     f.write('OPEN "' + i + 'Model.dyn"')
-                    f.write('\n')
-                    f.write('NEWTON')
+
                     f.write('\n')
                     f.write('CSV PWF16')
                     f.write('\n')
                     f.write('CSV SGN01')
                     f.write('\n')
+                    f.write('CSV PWF26')
+                    f.write('\n')
+                    f.write('CSV NTW02')
+                    f.write('\n')
+                    f.write('CSV NTW03')
+                    f.write('\n')
+                    f.write('NEWTON')
+                    f.write('\n')
                     f.write('CSV PWF25')
                     f.write('\n')
+
                     f.write('COPY PWF16.csv PWF16_' + j +'.csv')
+                    f.write('\n')
+
+                    f.write('COPY SGN01.csv SGN01_' + j +'.csv')
+                    f.write('\n')
+                    f.write('COPY PWF26.csv PWF26_' + j +'.csv')
+                    f.write('\n')
+                    f.write('COPY NTW02.csv NTW02_' + j +'.csv')
+                    f.write('\n')
+                    f.write('COPY NTW03.csv NTW03_' + j +'.csv')
                     f.write('\n')
                     f.write('COPY PWF25.csv PWF25_' + j +'.csv')
                     f.write('\n')
-                    f.write('COPY SGN01.csv SGN01_' + j +'.csv')
-                    f.write('\n')
-
+                    
         print('Script para rodar fluxos gerado exitosamente!')
 
     def get_Intercambios(self, df=None):
